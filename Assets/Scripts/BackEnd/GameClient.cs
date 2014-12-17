@@ -13,7 +13,10 @@ public class GameClient : MonoBehaviour {
 			Application.LoadLevel(GameMenu.SceneNameMenu);
 			return;
 		}
-		
+		if(!GameManager.Instaniated)
+		{
+			GameManager.Init();
+		}
 		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
 		PhotonNetwork.Instantiate(playerPrefab.name, transform.position, Quaternion.identity, 0);
 	}

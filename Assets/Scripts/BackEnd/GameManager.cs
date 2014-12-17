@@ -10,6 +10,7 @@ static public class GameManager
 	public static int PlayersInLobby;
 	public static int PlayersTurn;
 	public static int TargetsAlive;
+	public static bool Instaniated = false;
     //privates
 	private static ArrayList Players;
 	private static ArrayList Targets;
@@ -23,6 +24,7 @@ static public class GameManager
 		PlayersInLobby = 0;
 		PlayersTurn = 0;
 		TargetsAlive = 0;
+		Instaniated = true;
 	}
 	//Adds Players to the game
 	static public bool AddPlayer(Player p)
@@ -48,15 +50,8 @@ static public class GameManager
 	//Adds targets into the game
 	static public bool AddTarget(BaseTarget t)
 	{
-		if(Targets.Count == 0)
-		{
-			Targets.Add(t);
-		}
-		else
-		{
-			Targets.Add (t);
-			TargetsAlive++;
-		}
+		Targets.Add (t);
+		TargetsAlive++;
 		return true;
 	}
 	static public Player CurrentPlayer()

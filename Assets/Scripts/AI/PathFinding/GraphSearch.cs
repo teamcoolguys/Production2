@@ -76,13 +76,44 @@ public class GraphSearch
 	//A* code//
 	public Node GetNextNode()
 	{
-		Node node;
-		node = null;
-		return node;
+		Node lowestIter;
+		lowestIter = null;
+		float lowestCost = 99999.99f;	//just equal to FLT_MAX
+		foreach (Node i in mOpenList)
+		{
+			Node node = i;
+			float f = node.g + node.h;
+			if(f<lowestCost)
+			{
+				lowestCost = f;
+				lowestIter = i;
+			}
+		}
+		Node lowestNode = lowestIter;
+		mOpenList.Remove (lowestIter);
+		return lowestNode;
 	}
 	public void ExpandNode(Node node, Node neighbor)
 	{
-
+		if(!neighbor.close)
+		{
+			float g = node.g + 1.0f;
+			float h = 1.0f;
+			if(!neighbor.open)
+			{
+				neighbor.g = g;
+				neighbor.h = h;
+				neighbor.mParent = node;
+				mOpenList.Add (neighbor);
+				neighbor.open = true;
+			}
+			else if(g < neighbor.g)
+			{
+				neighbor.g = g;
+				neighbor.h = h;
+				neighbor.mParent = node;
+			}
+		}
 	}
 	//A* code//
 	public List<Node> GetPathList()

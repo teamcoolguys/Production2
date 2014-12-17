@@ -35,5 +35,7 @@ public class Node
 	public Node()
 	{
 		mNeighbors = new Node[4]; //could use Direction.count but we will need to cast it which cost one more action
+		g = 0.0f;
+		h = 0.0f;
 	}
 }
