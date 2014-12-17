@@ -3,10 +3,19 @@ using System.Collections;
 
 public class GameClient : MonoBehaviour {
 
+	public GameObject playerPrefab;
 	// Use this for initialization
 	void Awake () 
 	{
-		GameManager.Init ();
+		// in case we started this demo with the wrong scene being active, simply load the menu scene
+		if (!PhotonNetwork.connected)
+		{
+			Application.LoadLevel(GameMenu.SceneNameMenu);
+			return;
+		}
+		
+		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
+		PhotonNetwork.Instantiate(playerPrefab.name, transform.position, Quaternion.identity, 0);
 	}
 	
 	// Update is called once per frame

@@ -1,5 +1,8 @@
 fileFormatVersion: 2
-guid: d731c1ba6bb3c8347a125aceaee32811
+guid: a02ce27e88b39fa428538620fe0335e3
+labels:
+- ExitGames
+- PUN
 MonoImporter:
   serializedVersion: 2
   defaultReferences: []

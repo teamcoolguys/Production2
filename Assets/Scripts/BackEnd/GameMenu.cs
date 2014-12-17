@@ -10,8 +10,8 @@ public class GameMenu : MonoBehaviour
 	
 	private bool connectFailed = false;
 	
-	public readonly string SceneNameMenu = "DemoWorker-Scene";
-	
+	public static readonly string SceneNameMenu = "Scrap";
+
 	public string SceneNameGame;
 	
 	private string errorDialog;
@@ -56,6 +56,7 @@ public class GameMenu : MonoBehaviour
 			SceneNameGame = "DemoWorkerGame-Scene";
 		}
 		// PhotonNetwork.logLevel = NetworkLogLevel.Full;
+		GameManager.Init();
 	}
 
 	public void OnGUI()
