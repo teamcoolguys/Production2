@@ -5,9 +5,9 @@ using Random = UnityEngine.Random;
 public class GameMenu : MonoBehaviour 
 {
 	private string roomName = "myRoom";
-	
+
 	private Vector2 scrollPos = Vector2.zero;
-	
+
 	private bool connectFailed = false;
 	
 	public static readonly string SceneNameMenu = "Scrap";
@@ -56,7 +56,6 @@ public class GameMenu : MonoBehaviour
 			SceneNameGame = "DemoWorkerGame-Scene";
 		}
 		// PhotonNetwork.logLevel = NetworkLogLevel.Full;
-		GameManager.Init();
 	}
 
 	public void OnGUI()
@@ -127,7 +126,7 @@ public class GameMenu : MonoBehaviour
 		//this.roomName = GUILayout.TextField(this.roomName);
 		if (GUILayout.Button("Join Room", GUILayout.Width(100)))
 		{
-			NetworkCommands.JoinLobby(this.roomName);
+			PhotonNetwork.JoinRoom(this.roomName);
 		}
 		
 		GUILayout.EndHorizontal();
@@ -153,7 +152,7 @@ public class GameMenu : MonoBehaviour
 		GUILayout.FlexibleSpace();
 		if (GUILayout.Button("Join Random", GUILayout.Width(100)))
 		{
-			NetworkCommands.JoinRandom();
+			PhotonNetwork.JoinRandomRoom();
 		}
 		
 		
@@ -177,7 +176,7 @@ public class GameMenu : MonoBehaviour
 				GUILayout.Label(roomInfo.name + " " + roomInfo.playerCount + "/" + roomInfo.maxPlayers);
 				if (GUILayout.Button("Join"))
 				{
-					NetworkCommands.JoinLobby(roomInfo.name);
+					PhotonNetwork.JoinRoom(roomInfo.name);
 				}
 				
 				GUILayout.EndHorizontal();
