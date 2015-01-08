@@ -68,7 +68,7 @@ static public class GameManager
 		}
 		if(LastPlayer != (Player)Players[PlayersTurn])
 		{
-			LastPlayer.moved = false;
+			LastPlayer.mMoved = false;
 			LastPlayer.mHand.PlayedCard = false;
 			LastPlayer = (Player)Players[PlayersTurn];
 		}
@@ -84,7 +84,7 @@ static public class GameManager
 		{
 			p.UpdatePlayer();
 		}
-		if(p.moved)//&& p.mHand.PlayedCard)
+		if(p.mMoved)//&& p.mHand.PlayedCard)
 		{
 			PlayersTurn++;
 		}

@@ -13,20 +13,19 @@ public class BaseTarget : MonoBehaviour {
 	private int mPositionX;
 	private int mPositionY;
 
+
+
 	public int mDefense;
-	public int mCurDefense;
-	
-	public int mMovement;
-	public int mRunMovement;
-	
-	public int mInfarmy;
-	public int mGold;
-	
+	public uint mMovement;
+	public uint mRunMovement;
+	public uint mInfarmy;
+
+	//Vision range
 	public int mDetectionRun;
 	public int mDetectionWalk;
 	public int mDetectionSee;
 
-	public bool TargetTurn;
+	public bool mTargetTurn;
 
 	TileMap mTileMap;
 	TileMapMouse mMouse;
@@ -43,7 +42,7 @@ public class BaseTarget : MonoBehaviour {
 		//Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mPositionX, mPositionY);
 		//Move(v3Temp);
 		//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-		TargetTurn = false;
+		mTargetTurn = false;
 		//mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 
 		mTileMapObject=GameObject.Find("CurrentTileMap");
@@ -67,6 +66,10 @@ public class BaseTarget : MonoBehaviour {
 		//fixed for negatvie Z values
 		//mMouseY = mMouse.mMouseHitY;
 		//fixed for negatvie Z values
+		if (Input.GetKey ("b"))
+		{
+			UpdateTarget ();
+		}
 	}
 	public bool UpdateTarget()
 	{
@@ -136,8 +139,6 @@ public class BaseTarget : MonoBehaviour {
 			int temp=mTileMap.MapInfo.GetTileType(MoveX, MoveX);
 			//Random moveMent;
 
-			Debug.Log ("TargetMoved: " + MoveX + ", " + MoveY);
-			Debug.Log (temp);
 			switch(temp)
 			{
 
@@ -150,7 +151,7 @@ public class BaseTarget : MonoBehaviour {
 				mPositionX = MoveX;
 				mPositionY = MoveY;
 				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-				TargetTurn = true;
+				mTargetTurn = true;
 				rc = true;
 				walk = true;
 				break;
