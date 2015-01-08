@@ -82,7 +82,7 @@ static public class GameManager
     {
 		if(Input.GetMouseButtonDown (0))
 		{
-			p.UpdatePlyer();
+			p.UpdatePlayer();
 		}
 		if(p.moved)//&& p.mHand.PlayedCard)
 		{
