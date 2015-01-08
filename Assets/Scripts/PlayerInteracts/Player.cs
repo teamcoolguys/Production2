@@ -56,7 +56,7 @@ public class Player : MonoBehaviour
 		moved = false;
 		mHand = new Hand();
 		mDeck = new Deck ();
-		GameManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+		//GameManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 		Debug.Log ("Player Created");
 	}
 
@@ -71,13 +71,17 @@ public class Player : MonoBehaviour
 		mMouseY = mMouse.mMouseHitY;
 		//fixed for negatvie Z values
 
-		if (Input.GetKey ("escape")) 
+		//if (Input.GetKey ("escape")) 
+		//{
+		//	Application.Quit ();
+		//}
+		if (Input.GetKey ("a"))
 		{
-			Application.Quit ();
+			UpdatePlayer ();
 		}
 	}
 
-	public bool UpdatePlyer()
+	public bool UpdatePlayer()
 	{
 		Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
 		Debug.Log ("Tile: " + mMouseX + ", " + mMouseY);
