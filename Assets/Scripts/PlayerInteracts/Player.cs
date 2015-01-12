@@ -1,9 +1,13 @@
 ﻿//Created by Dylan Fraser
 //November 3, 2014
+
+//Updated by
 //Jack Ng
 //November 4, 2014
 //Wyatt Gibbs
 //December 10, 2014
+//Jack Ng
+//Jan 8th, 2015
 
 using UnityEngine;
 using System.Collections;
@@ -12,35 +16,38 @@ using System.Collections;
 [RequireComponent(typeof(TileMapMouse))]
 public class Player : MonoBehaviour
 {
+
+	//Information needed in the game 
+	public baseCharacter mCharacter;
 	TileMap mTileMap;
 	TileMapMouse mMouse;
 	GameObject mTileMapObject;
-	//privates
+
+	//Current Stats
+	public uint mAttack;
+	public uint mDefence;
+	public uint mMovement;
+	public uint mRange;
+	
+	//Mouse Info
 	private int mMouseX;
 	private int mMouseY;
-	private Space currentSpace;
-	private TestMap mCurrentGrid;
-	//private TestMap map;
-	 
-			//Jack//
-	public int mCurrentSpot;
-	public baseCharacter mCharacter;
+
+	//Tracking current Spot//
 	public int mPositionX;
 	public int mPositionY;
-	//Tracking current Spot//
+
 
 	//Wyatt//
-	public bool moved;
-	public Hand mHand; //made this public so I could reference it in the Game Manager to pass to the HUD 
+	//GameLoop
+	public bool mMoved;
+	public Hand mHand; 
+	//made this public so I could reference it in the Game Manager to pass to the HUD 
 	//allows game loop to move forwardcurrently//
-
-	//publics
+	
 	public Deck mDeck;
-
 	public GameObject Self;
-
 	public int mInfamy = 0;
-	public int mRange = 0;
 
 	// Use this for initialization
 	void Start()
@@ -53,7 +60,7 @@ public class Player : MonoBehaviour
 		mMouseY = mMouse.mMouseHitY;
 		//fixed for negative Z values
 		//instantiates the objects in this object
-		moved = false;
+		mMoved = false;
 		mHand = new Hand();
 		mDeck = new Deck ();
 		//GameManager.AddPlayer (this);//allows gamemanager to know that a new player is active
@@ -83,12 +90,12 @@ public class Player : MonoBehaviour
 
 	public bool UpdatePlayer()
 	{
-		Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
-		Debug.Log ("Tile: " + mMouseX + ", " + mMouseY);
-		Debug.Log (mTileMap.MapInfo.GetTileType(mMouseX,mMouseY));
+		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
+		//Debug.Log ("Tile: " + mMouseX + ", " + mMouseY);
+		//Debug.Log (mTileMap.MapInfo.GetTileType(mMouseX,mMouseY));
 		int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
 		//Random moveMent;
-		Debug.Log (temp);
+		//Debug.Log (temp);
 		switch(temp)
 		{
 		case 1:
@@ -99,15 +106,15 @@ public class Player : MonoBehaviour
 			mPositionX=mMouseX;
 			mPositionY=mMouseY;
 			mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 3);
-			moved = true;
+			mMoved = true;
 			break;
 		case 2:
 			Debug.Log ("Target::Wall");
-			moved = false;
+			mMoved = false;
 			break;
 		default:
-			Debug.Log ("Target::Fuck Off");
-			moved = false;
+			//Debug.Log ("Target::Fuck Off");
+			mMoved = false;
 			break;
 		}
 		return true;
@@ -116,15 +123,5 @@ public class Player : MonoBehaviour
 	void Move(Vector3 pos)
 	{
 		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
-	}
-
-	public void SetCurrentSpace(Space nextSpace)
-	{
-		currentSpace = nextSpace;
-	}
-
-	public Transform FindCurrentSpace()
-	{
-		return currentSpace.transform;
-	}
+	}	
 }
