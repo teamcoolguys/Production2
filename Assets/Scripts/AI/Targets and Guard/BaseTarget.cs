@@ -52,19 +52,19 @@ public class BaseTarget : MonoBehaviour {
 		////fixed for negatvie Z values
 		//mMouseY = mMouse.mMouseHitY;
 		//Hard fixed for negative Z values
-		GameManager.AddTarget (this);
+		//GameManager.AddTarget (this);
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		//mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
+		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
-		//mMouseX = mMouse.mMouseHitX;
+		mMouseX = mMouse.mMouseHitX;
 		
 		//fixed for negatvie Z values
-		//mMouseY = mMouse.mMouseHitY;
+		mMouseY = mMouse.mMouseHitY;
 		//fixed for negatvie Z values
 		if (Input.GetKey ("b"))
 		{
@@ -75,11 +75,12 @@ public class BaseTarget : MonoBehaviour {
 	{
 		bool rc = false;
 		bool walk = false;
-		while(walk==false)
-		{
+
+		//while(walk==false)
+		//{
 
 			//Random movement
-			int totalMove = Random.Range(0,mMovement); //4
+			//int totalMove = Random.Range(0,mMovement); //4
 			//int possibleMoveX = 0;
 			//int possibleMoveY = 0;
 			//int checkX;
@@ -111,45 +112,44 @@ public class BaseTarget : MonoBehaviour {
 			//	}
 			//}
 			//Debug.Log ("breakpoint1");
-			int MoveX = Random.Range (0,totalMove);
-			int MoveY = totalMove - MoveX;
-			Debug.Log ("Moved: " + MoveX + ", " + MoveY);
-			MoveX = Random.Range (-MoveX, MoveX);
-			MoveY = Random.Range (-MoveY, MoveY);
-			Debug.Log ("MovedSecond: " + MoveX + ", " + MoveY);
-			MoveX += mPositionX;
-			MoveY += mPositionY; 
-			if (MoveX > 9) 
-			{
-				MoveX = 9;
-			}
-			if(MoveX<0)
-			{
-				MoveX = 0;
-			}
-			if (MoveY > 9) 
-			{
-				MoveY = 9;
-			}
-			if(MoveY<0)
-			{
-				MoveY = 0;
-			}
+			//int MoveX = Random.Range (0,totalMove);
+			//int MoveY = totalMove - MoveX;
+			//Debug.Log ("Moved: " + MoveX + ", " + MoveY);
+			//MoveX = Random.Range (-MoveX, MoveX);
+			//MoveY = Random.Range (-MoveY, MoveY);
+			//Debug.Log ("MovedSecond: " + MoveX + ", " + MoveY);
+			//MoveX += mPositionX;
+			//MoveY += mPositionY; 
+			//if (MoveX > 9) 
+			//{
+			//	MoveX = 9;
+			//}
+			//if(MoveX<0)
+			//{
+			//	MoveX = 0;
+			//}
+			//if (MoveY > 9) 
+			//{
+			//	MoveY = 9;
+			//}
+			//if(MoveY<0)
+			//{
+			//	MoveY = 0;
+			//}
 
-			int temp=mTileMap.MapInfo.GetTileType(MoveX, MoveX);
+			int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
 			//Random moveMent;
 
 			switch(temp)
 			{
-
 			case 1:
 				Debug.Log ("Target::Floor");
-				Debug.Log ("Target: " + MoveX + ", " + MoveY);
+				Debug.Log ("Target: " + mMouseX + ", " + mMouseY);
 				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
-				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(MoveX, MoveY);
+				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
 				Move(v3Temp);
-				mPositionX = MoveX;
-				mPositionY = MoveY;
+				mPositionX = mMouseX;
+				mPositionY = mMouseY;
 				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
 				mTargetTurn = true;
 				rc = true;
@@ -162,8 +162,8 @@ public class BaseTarget : MonoBehaviour {
 				Debug.Log ("Target::Fuck Off");
 				break;
 			}
-		}
-		return rc;
+		//}
+		return true;
 	}
 	void Move(Vector3 pos)
 	{
