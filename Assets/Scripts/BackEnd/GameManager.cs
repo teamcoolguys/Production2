@@ -85,7 +85,7 @@ static public class GameManager
 	static private void PlayerTurn(Player p)
     {
 		if(Input.GetMouseButtonDown (0))
-		{
+		{			
 			p.UpdatePlayer();
 		}
 		if(p.mMoved)//&& p.mHand.PlayedCard)
