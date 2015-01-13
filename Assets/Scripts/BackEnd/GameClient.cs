@@ -13,7 +13,7 @@ public class GameClient : MonoBehaviour {
 			Application.LoadLevel(GameMenu.SceneNameMenu);
 			return;
 		}
-		if(!GameManager.Instaniated)
+		if(!GameManager.sInstaniated)
 		{
 			GameManager.Init();
 		}
@@ -24,7 +24,7 @@ public class GameClient : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		if(GameManager.PlayersInLobby > 0)
+		if(GameManager.sPlayersInLobby > 0)
 		{
 			GameManager.GameLoop ();
 		}
@@ -32,9 +32,9 @@ public class GameClient : MonoBehaviour {
 
 	void OnGUI()
 	{
-		if(GameManager.PlayersTurn <= GameManager.PlayersInLobby)
+		if(GameManager.sPlayersTurn <= GameManager.sPlayersInLobby)
 		{
-			GUI.Button(new Rect(10,400,100 ,50),"Players Turn " + (GameManager.PlayersTurn+1).ToString());
+			GUI.Button(new Rect(10,400,100 ,50),"Players Turn " + (GameManager.sPlayersTurn+1).ToString());
 		}
 		else
 		{
