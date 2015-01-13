@@ -76,8 +76,8 @@ public class BaseTarget : MonoBehaviour {
 		bool rc = false;
 		bool walk = false;
 
-		while(walk==false)
-		{
+		//while(walk==false)
+		//{
 
 			//Random movement
 			//int totalMove = Random.Range(0,mMovement); //4
@@ -142,27 +142,37 @@ public class BaseTarget : MonoBehaviour {
 
 			switch(temp)
 			{
-			case 1:
-				Debug.Log ("Target::Floor");
-				Debug.Log ("Target: " + mMouseX + ", " + mMouseY);
-				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
-				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
-				Move(v3Temp);
-				mPositionX = mMouseX;
-				mPositionY = mMouseY;
-				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-				mTargetTurn = true;
-				rc = true;
-				walk = true;
-				break;
-			case 2:
-				Debug.Log ("Target::Wall");
-				break;
-			default:
-				Debug.Log ("Target::Fuck Off");
-				break;
+				case 1:
+					{
+						Debug.Log ("Target::Floor");
+						Debug.Log ("Target: " + mMouseX + ", " + mMouseY);
+						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
+						Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+						Move(v3Temp);
+						mPositionX = mMouseX;
+						mPositionY = mMouseY;
+						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
+						mTargetTurn = true;
+						rc = true;
+						walk = true;
+						break;
+					}
+				case 2:
+					{
+						Debug.Log ("Target::Wall");
+						break;
+					}
+				default:
+					{
+						Debug.Log ("Target::Fuck Off");
+						break;
+					}
 			}
-		}
+			if(walk == true)
+			{
+				Debug.Log("Walking");
+			}
+		//}
 		return rc;
 	}
 	void Move(Vector3 pos)
