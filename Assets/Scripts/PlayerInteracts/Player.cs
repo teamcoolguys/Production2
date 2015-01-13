@@ -63,7 +63,7 @@ public class Player : MonoBehaviour
 		mMoved = false;
 		mHand = new Hand();
 		mDeck = new Deck ();
-		//GameManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+		GameManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 		Debug.Log ("Player Created");
 	}
 
@@ -82,7 +82,7 @@ public class Player : MonoBehaviour
 		//{
 		//	Application.Quit ();
 		//}
-		if (Input.GetKey ("a"))
+		if (Input.GetMouseButtonDown (0))
 		{
 			UpdatePlayer ();
 		}
