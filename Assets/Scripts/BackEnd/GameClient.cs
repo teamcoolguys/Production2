@@ -1,9 +1,14 @@
 ﻿ using UnityEngine;
 using System.Collections;
 
-public class GameClient : MonoBehaviour {
+public class GameClient : MonoBehaviour 
+{
 
-	public GameObject playerPrefab;
+	public GameObject player1Prefab;
+	public GameObject player2Prefab;
+	public GameObject player3Prefab;
+	public GameObject player4Prefab;
+	
 	// Use this for initialization
 	void Awake () 
 	{
@@ -18,7 +23,22 @@ public class GameClient : MonoBehaviour {
 			GameManager.Init();
 		}
 		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
-		PhotonNetwork.Instantiate(playerPrefab.name, transform.position, Quaternion.identity, 0);
+		switch (GameManager.sPlayersInLobby + 1)
+		{
+			case 1:
+				PhotonNetwork.Instantiate(player1Prefab.name, transform.position, Quaternion.identity, 0);
+				break;
+			case 2:
+				PhotonNetwork.Instantiate(player2Prefab.name, transform.position, Quaternion.identity, 0);
+				break;
+			case 3:
+				PhotonNetwork.Instantiate(player3Prefab.name, transform.position, Quaternion.identity, 0);
+				break;
+			case 4:
+				PhotonNetwork.Instantiate(player4Prefab.name, transform.position, Quaternion.identity, 0);
+				break;
+				
+		}
 	}
 	
 	// Update is called once per frame

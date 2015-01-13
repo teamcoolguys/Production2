@@ -39,9 +39,10 @@ public class Player : MonoBehaviour
 
 
 	//Wyatt//
-	//GameLoop
+	//stuff I am using for Game Loop
 	public bool mMoved;
-	public Hand mHand; 
+	public Hand mHand;
+	private Vector3 syncEndPosition = Vector3.zero;
 	//made this public so I could reference it in the Game Manager to pass to the HUD 
 	//allows game loop to move forwardcurrently//
 	
@@ -90,32 +91,35 @@ public class Player : MonoBehaviour
 
 	public bool UpdatePlayer()
 	{
-		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
-		//Debug.Log ("Tile: " + mMouseX + ", " + mMouseY);
-		//Debug.Log (mTileMap.MapInfo.GetTileType(mMouseX,mMouseY));
-		int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
-		//Random moveMent;
-		//Debug.Log (temp);
-		switch(temp)
+		if(networkView.isMine)
 		{
-		case 1:
-			Debug.Log ("Target::Floor");
-			mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
-			Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
-			Move(v3Temp);
-			mPositionX=mMouseX;
-			mPositionY=mMouseY;
-			mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 3);
-			mMoved = true;
-			break;
-		case 2:
-			Debug.Log ("Target::Wall");
-			mMoved = false;
-			break;
-		default:
-			//Debug.Log ("Target::Fuck Off");
-			mMoved = false;
-			break;
+			//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
+			//Debug.Log ("Tile: " + mMouseX + ", " + mMouseY);
+			//Debug.Log (mTileMap.MapInfo.GetTileType(mMouseX,mMouseY));
+			int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
+			//Random moveMent;
+			//Debug.Log (temp);
+			switch(temp)
+			{
+			case 1:
+				Debug.Log ("Target::Floor");
+				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
+				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+				Move(v3Temp);
+				mPositionX=mMouseX;
+				mPositionY=mMouseY;
+				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 3);
+				mMoved = true;
+				break;
+			case 2:
+				Debug.Log ("Target::Wall");
+				mMoved = false;
+				break;
+			default:
+				//Debug.Log ("Target::Fuck Off");
+				mMoved = false;
+				break;
+			}
 		}
 		return true;
 	}
@@ -123,5 +127,20 @@ public class Player : MonoBehaviour
 	void Move(Vector3 pos)
 	{
 		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
-	}	
+	}
+
+	//added this to try to fix some issues
+	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+	{
+		if (stream.isWriting)
+		{
+			stream.SendNext(rigidbody.position);
+		}
+		else
+		{
+			syncEndPosition = (Vector3)stream.ReceiveNext();
+			GameManager.sPlayersTurn
+				++;
+		}
+	}
 }
