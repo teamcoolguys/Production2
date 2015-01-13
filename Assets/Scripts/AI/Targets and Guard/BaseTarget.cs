@@ -52,7 +52,7 @@ public class BaseTarget : MonoBehaviour {
 		////fixed for negatvie Z values
 		//mMouseY = mMouse.mMouseHitY;
 		//Hard fixed for negative Z values
-		//GameManager.AddTarget (this);
+		GameManager.AddTarget (this);
 	}
 	
 	// Update is called once per frame
@@ -76,8 +76,8 @@ public class BaseTarget : MonoBehaviour {
 		bool rc = false;
 		bool walk = false;
 
-		//while(walk==false)
-		//{
+		while(walk==false)
+		{
 
 			//Random movement
 			//int totalMove = Random.Range(0,mMovement); //4
@@ -162,8 +162,8 @@ public class BaseTarget : MonoBehaviour {
 				Debug.Log ("Target::Fuck Off");
 				break;
 			}
-		//}
-		return true;
+		}
+		return rc;
 	}
 	void Move(Vector3 pos)
 	{

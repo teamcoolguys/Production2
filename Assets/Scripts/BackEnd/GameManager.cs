@@ -96,7 +96,7 @@ static public class GameManager
 		{
 			if(t.UpdateTarget())
 			{
-				//t.TargetTurn = false;
+				t.mTargetTurn = false;
 			}
 		}
 	}
