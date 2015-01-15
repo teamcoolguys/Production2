@@ -33,12 +33,20 @@ public class BaseTarget : MonoBehaviour {
 	//privates
 	private int mMouseX;
 	private int mMouseY;
+
+	//Wyatt
+	private GameManager mManager;
+	void Awake()
+	{
+		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+
+	}
+
 	// Use this for initialization
 	void Start () 
 	{
 		mPositionX = 0;
 		mPositionY = 0;
-		
 		//Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mPositionX, mPositionY);
 		//Move(v3Temp);
 		//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
@@ -52,7 +60,7 @@ public class BaseTarget : MonoBehaviour {
 		////fixed for negatvie Z values
 		//mMouseY = mMouse.mMouseHitY;
 		//Hard fixed for negative Z values
-		GameManager.AddTarget (this);
+		mManager.AddTarget (this);
 	}
 	
 	// Update is called once per frame

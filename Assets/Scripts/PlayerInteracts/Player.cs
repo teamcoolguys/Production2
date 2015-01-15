@@ -8,6 +8,8 @@
 //December 10, 2014
 //Jack Ng
 //Jan 8th, 2015
+//Wyatt Gibbs
+//Jan 14th 2015
 
 using UnityEngine;
 using System.Collections;
@@ -41,6 +43,7 @@ public class Player : MonoBehaviour
 	//Wyatt//
 	//stuff I am using for Game Loop
 	public bool mMoved;
+	public bool mAttacked;
 	public Hand mHand;
 	private Vector3 syncEndPosition = Vector3.zero;
 	//made this public so I could reference it in the Game Manager to pass to the HUD 
@@ -50,6 +53,13 @@ public class Player : MonoBehaviour
 	public GameObject Self;
 	public int mInfamy = 0;
 
+	//Wyatt
+	private GameManager mManager;
+	void Awake()
+	{
+		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+		
+	}
 	// Use this for initialization
 	void Start()
 	{
@@ -64,7 +74,7 @@ public class Player : MonoBehaviour
 		mMoved = false;
 		mHand = new Hand();
 		mDeck = new Deck ();
-		GameManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+		mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 		Debug.Log ("Player Created");
 	}
 
@@ -83,10 +93,6 @@ public class Player : MonoBehaviour
 		//{
 		//	Application.Quit ();
 		//}
-		if (Input.GetMouseButtonDown (0))
-		{
-			UpdatePlayer ();
-		}
 	}
 
 	public bool UpdatePlayer()
@@ -124,6 +130,20 @@ public class Player : MonoBehaviour
 		return true;
 	}
 
+	public void Attack()
+	{
+		int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
+		switch (temp)
+		{
+		case 3:
+			break;
+		case 4:
+			break;
+		case default:
+			GUI.TextArea(new Rect(50, 50, 500, 500), "You Cannot Attack this target"))
+		}
+	}
+
 	void Move(Vector3 pos)
 	{
 		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
@@ -139,8 +159,7 @@ public class Player : MonoBehaviour
 		else
 		{
 			syncEndPosition = (Vector3)stream.ReceiveNext();
-			GameManager.sPlayersTurn
-				++;
+			mManager.sPlayersTurn++;
 		}
 	}
 }

@@ -4,23 +4,25 @@
 using UnityEngine;
 using System.Collections;
 
-static public class GameManager
+public class GameManager : MonoBehaviour
 {
     //publics
-	public static int sPlayersInLobby;
-	public static int sPlayersTurn = 0;
-	public static int sTargetsAlive;
-	public static bool sInstaniated = false;
+	public int sPlayersInLobby;
+	public int sPlayersTurn;
+	public int sTargetsAlive;
+	public bool sInstaniated;
     //privates
-	private static ArrayList sPlayers;
-	private static ArrayList sTargets;
-	private static Player sLastPlayer;
-	private static BaseTarget sLastTarget;
+	private ArrayList sPlayers;
+	private ArrayList sTargets;
+	private Player sLastPlayer;
+	private BaseTarget sLastTarget;
+
 	//Call this to restart the lobby
-	static public void Init()
+	public void Init()
 	{
 		if(sInstaniated != true)
 		{
+			Debug.Log("Instantiated");
 			sPlayers = new ArrayList();
 			sTargets = new ArrayList();
 			sPlayersInLobby = 0;
@@ -29,8 +31,9 @@ static public class GameManager
 			sInstaniated = true;
 		}
 	}
+
 	//Adds Players to the game
-	static public bool AddPlayer(Player p)
+	public bool AddPlayer(Player p)
 	{
 		if(sPlayers.Count == 0)
 		{
@@ -51,25 +54,19 @@ static public class GameManager
 		return true;
 	}
 	//Adds targets into the game
-	static public bool AddTarget(BaseTarget t)
+	public bool AddTarget(BaseTarget t)
 	{
 		sTargets.Add (t);
 		sTargetsAlive++;
 		return true;
 	}
-	static public Player CurrentPlayer()
+	public Player CurrentPlayer()
 	{
 		return (Player)sPlayers [sPlayersTurn];
 	}
     // Call this to Have the game logic function
-	static public void GameLoop()
+	public void GameLoop()
     {
-		if (sPlayersTurn > sPlayersInLobby)
-		{
-			AITurn();
-			sPlayersTurn = sPlayersTurn % (sPlayersInLobby+1);
-			Debug.Log(sPlayersTurn);
-		}
 		if(sLastPlayer != (Player)sPlayers[sPlayersTurn])
 		{
 			sLastPlayer.mMoved = false;
@@ -80,21 +77,30 @@ static public class GameManager
 		{
 			PlayerTurn((Player)sPlayers[sPlayersTurn]);
 		}
+		if (sPlayersTurn > sPlayersInLobby)
+		{
+			AITurn();
+			sPlayersTurn = sPlayersTurn % (sPlayersInLobby + 1);
+			Debug.Log(sPlayersTurn);
+		}
     }
 	//this is what the player can do on their turn
-	static private void PlayerTurn(Player p)
+	private void PlayerTurn(Player p)
     {
-		if(Input.GetMouseButtonDown (0))
-		{			
-			p.UpdatePlayer();
-		}
-		if(p.mMoved)//&& p.mHand.PlayedCard)
+		while(!p.mAttacked)
 		{
-			sPlayersTurn++;
+			if(Input.GetMouseButtonDown (0) && !p.mMoved)
+			{			
+				p.UpdatePlayer();
+			}
+			if(Input.GetMouseButtonDown(0) && !p.mAttacked)
+			{
+				p.Attack();
+			}
 		}
     }
 	//Do AI stuff in this function
-	static private void AITurn()
+	private void AITurn()
 	{
 		foreach(BaseTarget t in sTargets)
 		{
