@@ -121,6 +121,13 @@ public class Player : MonoBehaviour
 				Debug.Log ("Target::Wall");
 				mMoved = false;
 				break;
+			case 3:
+			case 4:
+			case 5:
+				Debug.Log("Combat Here");
+				mAttacked = true;
+				Combat();
+				break;
 			default:
 				//Debug.Log ("Target::Fuck Off");
 				mMoved = false;
@@ -130,36 +137,31 @@ public class Player : MonoBehaviour
 		return true;
 	}
 
-	public void Attack()
-	{
-		int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
-		switch (temp)
-		{
-		case 3:
-			break;
-		case 4:
-			break;
-		case default:
-			GUI.TextArea(new Rect(50, 50, 500, 500), "You Cannot Attack this target"))
-		}
-	}
-
 	void Move(Vector3 pos)
 	{
 		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
 	}
 
+	void Combat ()
+	{
+
+	}
+
 	//added this to try to fix some issues
-	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+	void OnPhotonSerializeView(PhotonStream stream,
+	                           PhotonMessageInfo info)
 	{
 		if (stream.isWriting)
 		{
-			stream.SendNext(rigidbody.position);
+			//We own this player: send the others our data
+			stream.SendNext(transform.position);
+			stream.SendNext(transform.rotation);
 		}
 		else
 		{
-			syncEndPosition = (Vector3)stream.ReceiveNext();
-			mManager.sPlayersTurn++;
+			//Network player, receive data
+			transform.position = (Vector3)stream.ReceiveNext();
+			transform.rotation = (Quaternion)stream.ReceiveNext();
 		}
 	}
 }

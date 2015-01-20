@@ -7,7 +7,8 @@ public class GameClient : MonoBehaviour
 	public GameObject player2Prefab;
 	public GameObject player3Prefab;
 	public GameObject player4Prefab;
-	
+
+	private GameObject mGameManager;
 	private GameManager mManager;
 	// Use this for initialization
 	void Awake () 
@@ -18,7 +19,8 @@ public class GameClient : MonoBehaviour
 			Application.LoadLevel(GameMenu.SceneNameMenu);
 			return;
 		}
-		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+		mGameManager = GameObject.Find("GameManager");
+		mManager = mGameManager.GetComponent<GameManager>();
 		if(!mManager.sInstaniated)
 		{
 			mManager.Init();
@@ -57,14 +59,14 @@ public class GameClient : MonoBehaviour
 	{
 		if(mManager.sPlayersTurn <= mManager.sPlayersInLobby)
 		{
-			GUI.Button(new Rect(10,400,100 ,50),"Players Turn " + (mManager.sPlayersTurn+1).ToString());
+			GUI.TextArea(new Rect(10,400,100 ,50),"Players Turn " + (mManager.sPlayersTurn+1).ToString());
 		}
 		else
 		{
-			GUI.Button(new Rect(10,400,100 ,50),"AI Turn");
+			GUI.TextArea(new Rect(10,400,100 ,50),"AI Turn");
 		}
 
-		if(GUI.Button (new Rect (10, 500, 50, 100), "End Turn"))
+		if(GUI.Button(new Rect (10, 500, 100, 50), "End Turn"))
 		{
 			mManager.sPlayersTurn++;
 		}

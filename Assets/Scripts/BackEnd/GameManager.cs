@@ -67,12 +67,13 @@ public class GameManager : MonoBehaviour
     // Call this to Have the game logic function
 	public void GameLoop()
     {
-		if(sLastPlayer != (Player)sPlayers[sPlayersTurn])
-		{
-			sLastPlayer.mMoved = false;
-			sLastPlayer.mHand.PlayedCard = false;
-			sLastPlayer = (Player)sPlayers[sPlayersTurn];
-		}
+//		if(sLastPlayer != (Player)sPlayers[sPlayersTurn])
+//		{
+//			sLastPlayer.mMoved = false;
+//			sLastPlayer.mHand.PlayedCard = false;
+//			sLastPlayer.mAttacked = false;
+//			sLastPlayer = (Player)sPlayers[sPlayersTurn];
+//		}
 		if(sPlayersTurn <= sPlayersInLobby)
 		{
 			PlayerTurn((Player)sPlayers[sPlayersTurn]);
@@ -80,25 +81,29 @@ public class GameManager : MonoBehaviour
 		if (sPlayersTurn > sPlayersInLobby)
 		{
 			AITurn();
-			sPlayersTurn = sPlayersTurn % (sPlayersInLobby + 1);
+			sPlayersTurn = sPlayersTurn % (sPlayersInLobby  );
 			Debug.Log(sPlayersTurn);
 		}
     }
+
 	//this is what the player can do on their turn
 	private void PlayerTurn(Player p)
     {
-		while(!p.mAttacked)
+		if(!p.mAttacked)
 		{
-			if(Input.GetMouseButtonDown (0) && !p.mMoved)
+			if(Input.GetMouseButtonDown (0))
 			{			
 				p.UpdatePlayer();
 			}
-			if(Input.GetMouseButtonDown(0) && !p.mAttacked)
-			{
-				p.Attack();
-			}
+			return;
 		}
+		p.mAttacked = false;
+		p.mMoved = false;
+		p.mHand.PlayedCard = false;
+		sPlayersTurn++;
+		return;
     }
+
 	//Do AI stuff in this function
 	private void AITurn()
 	{
@@ -108,6 +113,22 @@ public class GameManager : MonoBehaviour
 			{
 				t.mTargetTurn = false;
 			}
+		}
+	}
+
+	void OnPhotonSerializeView(PhotonStream stream,	PhotonMessageInfo info)
+	{
+		if (stream.isWriting)
+		{
+			//We own this player: send the others our data
+			stream.SendNext(transform.position);
+			stream.SendNext(transform.rotation);
+		}
+		else
+		{
+			//Network player, receive data
+			transform.position = (Vector3)stream.ReceiveNext();
+			transform.rotation = (Quaternion)stream.ReceiveNext();
 		}
 	}
 }
