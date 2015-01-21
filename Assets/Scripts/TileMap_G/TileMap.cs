@@ -1,8 +1,3 @@
-//Created by Jack Ng
-//Production 1
-//Updated by Dylan Fraser
-//Production 1
-
 using UnityEngine;
 using System.Collections;
 
