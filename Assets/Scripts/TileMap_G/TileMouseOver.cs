@@ -1,8 +1,3 @@
-//Created by Jack Ng
-//Production 1
-
-//Updated By
-
 using UnityEngine;
 using System.Collections;
 

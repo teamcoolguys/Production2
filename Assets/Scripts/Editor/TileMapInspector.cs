@@ -1,7 +1,3 @@
-//Jack Ng
-//Production One
-//Using Tile Map tutorial
-
 using UnityEditor;
 using UnityEngine;
 using System.Collections;
