@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public class HUD : MonoBehaviour 
 {
-	private baseCharacter ch;
 	public List<GameObject> deck = new List<GameObject>();
 	public List<GUITexture> infamsprites = new List<GUITexture>();
 	public double uoff = 0;
@@ -15,13 +14,8 @@ public class HUD : MonoBehaviour
 	private int cardsheld = 0;
 	private bool[] cs = new bool[3];
 	private bool showR = false;
-	private bool combui = false;
-	private GameObject player = GameObject.Find("GameClient");
-	public GUITexture bar, backbar, turns, stats;
-	public GUITexture combar, atkbar, defbar, atkprt, defprt, cardslots;
-	public GUIText str, def, mov, inf;
-
-	public float maxinfamy, infamy, percent;
+	private GUITexture bar;
+	float maxinfamy = 8, infamy = 0, percent;
 
 
 	void Start ()
@@ -33,13 +27,6 @@ public class HUD : MonoBehaviour
 			GameObject go = GameObject.Instantiate(infamsprites[i]) as GameObject;
 
 		}
-		maxinfamy = 8; infamy = 0;
-		//Compute Player stats here
-
-		//str.text = player.GetComponent<GameClient> ().playerPrefab.mCharacter.mInputAttack.ToString();
-		//def.text = player.GetComponent<GameClient> ().playerPrefab.mCharacter.mInputDefence.ToString();
-		//mov.text = player.GetComponent<GameClient>().playerPrefab.mCharacter.mInputMovement.ToString();
-
 		ResetDeck ();
 	}
 
@@ -107,88 +94,34 @@ public class HUD : MonoBehaviour
 		cardsheld = 0;
 		cardsDealt = 0;
 	}
-	
-
-	Rect ResizeGUI(Rect _rect)
-	{
-		float FilScreenWidth = _rect.width / 800;
-		float rectWidth = FilScreenWidth * Screen.width;
-		float FilScreenHeight = _rect.height / 600;
-		float rectHeight = FilScreenHeight * Screen.height;
-		float rectX = (_rect.x / 800) * Screen.width;
-		float rectY = (_rect.y / 600) * Screen.height;
-		
-		return new Rect(rectX,rectY,rectWidth,rectHeight);
-	}
 
 	void OnGUI()
 	{
-		
-		if (combui) 
-		{
-			//int screenAspectRatio = (screenWidth / screenHeight);
-			//int textureAspectRatio = (textureWidth / textureHeight);
-			GUI.Box(new Rect((Screen.width/2) - 180,210,100,150), ""); //attacker card slot
-			GUI.Box(new Rect((Screen.width/2) + 140,40,100,150), "");	//target card slot
-			GUI.Box(new Rect((Screen.width/2) + 260,40,100,150), "");//target card slot
-			GUI.Box(new Rect((Screen.width/2) + 140,210,100,150), "");//target card slot
-			GUI.Box(new Rect((Screen.width/2) + 260,210,100,150), "");//target card slot
-			if (GUI.Button(new Rect((Screen.width/2) - 180,380,100, 25), "Fight!")) //Fight button
-			{
-				//Combatstuff
-			}
-			GUI.Box(new Rect((Screen.width/2),30,60,380), "");//Middle back bar
-			GUI.Box(new Rect((Screen.width/2) + 5,35,50,185), "");//Middle Attack bar
-			GUI.Box(new Rect((Screen.width/2) + 5,220,50,185), "");//Middle Defense bar
-			GUI.Box(new Rect((Screen.width/2) - 20,215,100,10), "");//Middle Clash bar
-			GUI.Box(new Rect((Screen.width/2) - 180,80,100,100), "");//Attacker Port box
-			GUI.Box(new Rect((Screen.width/2) - 180,40,100,20), "PlayerName");//Attacker name box
-			GUI.Box(new Rect((Screen.width/2) + 210,430,100,100), "");//Def port box
-			GUI.Box(new Rect((Screen.width/2) + 210,390,100,20), "Defendername");//Def name box
-		}
-		else if (combui == false)
-		{
-			if (infamy == 0)
-				percent = 0;
-			else if (infamy >= maxinfamy)
-			{percent = 190; infamy = maxinfamy;}
-			else
-				percent = 190 * (infamy/maxinfamy);
 
-			GUI.DrawTexture(new Rect((Screen.width/2) - 100, (Screen.height/2) - (Screen.height/2) + 25, 200, 30), backbar.texture , ScaleMode.StretchToFill, true, 0.0f);
-			GUI.DrawTexture(new Rect((Screen.width/2) - 95, (Screen.height/2) - (Screen.height/2) + 30, percent, 20), bar.texture , ScaleMode.StretchToFill, true, 0.0f);
-			inf.text = "Infamy"; //Infamy text and spacing it out
-			//turns
-			GUI.DrawTexture(new Rect((Screen.width/2) - 470, (Screen.height/2) - 240, 200, 300), turns.texture , ScaleMode.StretchToFill, true, 0.0f);
-			//stats
-			GUI.DrawTexture(new Rect((Screen.width/2) + 260, (Screen.height/2) - 240, 200, 300), stats.texture , ScaleMode.StretchToFill, true, 0.0f);
-
-			if (GUI.Button(new Rect(40,40,50, 30), "INFAMY BOOOST"))
-			{
-				infamy = infamy+1;
-			}
-			
-			if (!showR) 
-			{
-				if (GUI.Button(new Rect(10,10,100, 20), "Deal"))
-				{
-					MoveDealtCard();
-				}
-			}
-			else
-			{
-				if (GUI.Button(new Rect(10, 10, 100, 20), "Reset"))
-				{
-					ResetDeck();
-				}
-			}
-			if (GUI.Button(new Rect(Screen.width - 110, 10, 100, 20), "GameOver"))
-			{
-				Gameover();
-			}
-		}
 		//GameObject go = GameObject.Instantiate
+		if (GUI.Button(new Rect(40,40,30, 20), "INFAMY BOOOST"))
+		{
+			infamy = infamy+1;
+		}
 
+		if (!showR) 
+		{
+			if (GUI.Button(new Rect(10,10,100, 20), "Deal"))
+			{
+				MoveDealtCard();
+			}
+		}
+		else
+		{
+			if (GUI.Button(new Rect(10, 10, 100, 20), "Reset"))
+			{
+				ResetDeck();
+			}
+		}
+		if (GUI.Button(new Rect(Screen.width - 110, 10, 100, 20), "GameOver"))
+		{
+			Gameover();
+		}
 	}
 
 	void MoveDealtCard()
@@ -324,28 +257,15 @@ public class HUD : MonoBehaviour
 
 	void Update()
 	{
-
-		str.text = infamy.ToString();
-		if (Input.GetKeyDown("space"))
-		{
-			if (combui == false)
-				combui = true;
-			else
-				combui = false;
-		}
-
-		if (combui) 
-		{
-
-		} 
-		else 
-		{
-
-		}
-
 		Rearrangeinfamy ();
-		//bar = GameObject.Find("frontbr").guiTexture;
-
+		bar = GameObject.Find("frontbr").guiTexture;
+		if (infamy == 0)
+			percent = 0;
+		else if (infamy == maxinfamy)
+			percent = 250;
+		else
+			percent = 250 * (infamy/maxinfamy);
+		bar.pixelInset = new Rect (-125, 253, percent, 23);
 
 		Rearrangehand ();
 		if (cardsheld == 5 || cards.Count == 0) 
@@ -358,8 +278,7 @@ public class HUD : MonoBehaviour
 		{
 			Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 			RaycastHit hit;
-			if (Physics.Raycast(ray, out hit))			
-			{ 
+			if (Physics.Raycast(ray, out hit))			{ 
 				Debug.Log("clicked it");
 				
 				if(hit.collider.CompareTag("Card"))

@@ -7,35 +7,38 @@ using System.Collections;
 static public class GameManager
 {
     //publics
-	public static int PlayersInLobby;
-	public static int PlayersTurn;
-	public static int TargetsAlive;
-	public static bool Instaniated = false;
+	public static int sPlayersInLobby;
+	public static int sPlayersTurn = 0;
+	public static int sTargetsAlive;
+	public static bool sInstaniated = false;
     //privates
-	private static ArrayList Players;
-	private static ArrayList Targets;
-	private static Player LastPlayer;
-	private static BaseTarget LastTarget;
+	private static ArrayList sPlayers;
+	private static ArrayList sTargets;
+	private static Player sLastPlayer;
+	private static BaseTarget sLastTarget;
 	//Call this to restart the lobby
 	static public void Init()
 	{
-		Players = new ArrayList();
-		Targets = new ArrayList();
-		PlayersInLobby = 0;
-		PlayersTurn = 0;
-		TargetsAlive = 0;
-		Instaniated = true;
+		if(sInstaniated != true)
+		{
+			sPlayers = new ArrayList();
+			sTargets = new ArrayList();
+			sPlayersInLobby = 0;
+			sPlayersTurn = 0;
+			sTargetsAlive = 0;
+			sInstaniated = true;
+		}
 	}
 	//Adds Players to the game
 	static public bool AddPlayer(Player p)
 	{
-		if(Players.Count == 0)
+		if(sPlayers.Count == 0)
 		{
-			Players.Add(p);
-			LastPlayer = p;
+			sPlayers.Add(p);
+			sLastPlayer = p;
 			return true;
 		}
-		foreach(Player j in Players)
+		foreach(Player j in sPlayers)
 		{
 			if(Equals(p,j))
 			{
@@ -43,60 +46,61 @@ static public class GameManager
 				return false;
 			}
 		}
-		Players.Add (p);
-		PlayersInLobby++;
+		sPlayers.Add (p);
+		sPlayersInLobby++;
 		return true;
 	}
 	//Adds targets into the game
 	static public bool AddTarget(BaseTarget t)
 	{
-		Targets.Add (t);
-		TargetsAlive++;
+		sTargets.Add (t);
+		sTargetsAlive++;
 		return true;
 	}
 	static public Player CurrentPlayer()
 	{
-		return (Player)Players [PlayersTurn];
+		return (Player)sPlayers [sPlayersTurn];
 	}
     // Call this to Have the game logic function
 	static public void GameLoop()
     {
-		if (PlayersTurn > PlayersInLobby)
+		if (sPlayersTurn > sPlayersInLobby)
 		{
 			AITurn();
-			PlayersTurn = PlayersTurn % (PlayersInLobby+1);
+			sPlayersTurn = sPlayersTurn % (sPlayersInLobby+1);
+			Debug.Log(sPlayersTurn);
 		}
-		if(LastPlayer != (Player)Players[PlayersTurn])
+		if(sLastPlayer != (Player)sPlayers[sPlayersTurn])
 		{
-			LastPlayer.moved = false;
-			LastPlayer.mHand.PlayedCard = false;
-			LastPlayer = (Player)Players[PlayersTurn];
+			sLastPlayer.mMoved = false;
+			sLastPlayer.mHand.PlayedCard = false;
+			sLastPlayer = (Player)sPlayers[sPlayersTurn];
 		}
-		if(PlayersTurn <= PlayersInLobby)
+		if(sPlayersTurn <= sPlayersInLobby)
 		{
-			PlayerTurn((Player)Players[PlayersTurn]);
+			PlayerTurn((Player)sPlayers[sPlayersTurn]);
 		}
     }
 	//this is what the player can do on their turn
 	static private void PlayerTurn(Player p)
     {
 		if(Input.GetMouseButtonDown (0))
-		{
+		{			
 			p.UpdatePlayer();
 		}
-		if(p.moved)//&& p.mHand.PlayedCard)
+		if(p.mMoved)//&& p.mHand.PlayedCard)
 		{
-			PlayersTurn++;
+			sPlayersTurn++;
 		}
     }
 	//Do AI stuff in this function
 	static private void AITurn()
 	{
-		foreach(BaseTarget t in Targets)
+		foreach(BaseTarget t in sTargets)
 		{
 			if(t.UpdateTarget())
 			{
-				t.TargetTurn = false;
+				t.mTargetTurn = false;
 			}
 		}
 	}
