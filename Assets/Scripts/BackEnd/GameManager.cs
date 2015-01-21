@@ -14,8 +14,6 @@ public class GameManager : MonoBehaviour
     //privates
 	private ArrayList sPlayers;
 	private ArrayList sTargets;
-	private Player sLastPlayer;
-	private BaseTarget sLastTarget;
 
 	//Call this to restart the lobby
 	public void Init()
@@ -38,7 +36,6 @@ public class GameManager : MonoBehaviour
 		if(sPlayers.Count == 0)
 		{
 			sPlayers.Add(p);
-			sLastPlayer = p;
 			return true;
 		}
 		foreach(Player j in sPlayers)
@@ -95,12 +92,14 @@ public class GameManager : MonoBehaviour
 			{			
 				p.UpdatePlayer();
 			}
-			return;
 		}
-		p.mAttacked = false;
-		p.mMoved = false;
-		p.mHand.PlayedCard = false;
-		sPlayersTurn++;
+		else
+		{
+			p.mAttacked = false;
+			p.mMoved = false;
+			p.mHand.PlayedCard = false;
+			sPlayersTurn++;
+		}
 		return;
     }
 
@@ -121,14 +120,22 @@ public class GameManager : MonoBehaviour
 		if (stream.isWriting)
 		{
 			//We own this player: send the others our data
-			stream.SendNext(transform.position);
-			stream.SendNext(transform.rotation);
+			stream.SendNext(sPlayersInLobby);
+			stream.SendNext(sPlayersTurn);
+			stream.SendNext(sPlayers);
+			stream.SendNext(sTargetsAlive);
+			stream.SendNext(sInstaniated);
+			stream.SendNext(sTargets);
 		}
 		else
 		{
 			//Network player, receive data
-			transform.position = (Vector3)stream.ReceiveNext();
-			transform.rotation = (Quaternion)stream.ReceiveNext();
+			sPlayersInLobby = (int)stream.ReceiveNext();
+			sPlayersTurn = (int)stream.ReceiveNext();
+			sPlayers = (ArrayList)stream.ReceiveNext();
+			sTargetsAlive = (int)stream.ReceiveNext();
+			sInstaniated = (bool)stream.ReceiveNext();
+			sTargets = (ArrayList)stream.ReceiveNext();
 		}
 	}
 }

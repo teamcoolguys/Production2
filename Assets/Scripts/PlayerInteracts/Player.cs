@@ -109,13 +109,16 @@ public class Player : MonoBehaviour
 			{
 			case 1:
 				Debug.Log ("Target::Floor");
-				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
-				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
-				Move(v3Temp);
-				mPositionX=mMouseX;
-				mPositionY=mMouseY;
-				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 3);
-				mMoved = true;
+				if(!mMoved)
+				{
+					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
+					Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+					Move(v3Temp);
+					mPositionX=mMouseX;
+					mPositionY=mMouseY;
+					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 3);
+					mMoved = true;
+				}
 				break;
 			case 2:
 				Debug.Log ("Target::Wall");
