@@ -1,4 +1,10 @@
-﻿using UnityEngine;
+﻿//Created by Dylan Fraser
+//Prodcution 1
+//Updated by Jack Ng
+//Production 1
+//Updated by Jack Ng
+//Jan 8th
+using UnityEngine;
 
 public class DTileMap {
 	
@@ -68,8 +74,6 @@ public class DTileMap {
 		{
 			for(int x=0;x<sizex;x++) 
 			{
-				float yIncrease;
-				float xIncrease;
 				Vector3 currentLocation = startLocation;
 				currentLocation.x += x*1.0f;
 				currentLocation.z += y*1.0f;
