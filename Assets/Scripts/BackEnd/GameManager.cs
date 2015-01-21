@@ -4,23 +4,23 @@
 using UnityEngine;
 using System.Collections;
 
-static public class GameManager
+public class GameManager : MonoBehaviour
 {
     //publics
-	public static int sPlayersInLobby;
-	public static int sPlayersTurn = 0;
-	public static int sTargetsAlive;
-	public static bool sInstaniated = false;
+	public int sPlayersInLobby;
+	public int sPlayersTurn;
+	public int sTargetsAlive;
+	public bool sInstaniated;
     //privates
-	private static ArrayList sPlayers;
-	private static ArrayList sTargets;
-	private static Player sLastPlayer;
-	private static BaseTarget sLastTarget;
+	private ArrayList sPlayers;
+	private ArrayList sTargets;
+
 	//Call this to restart the lobby
-	static public void Init()
+	public void Init()
 	{
 		if(sInstaniated != true)
 		{
+			Debug.Log("Instantiated");
 			sPlayers = new ArrayList();
 			sTargets = new ArrayList();
 			sPlayersInLobby = 0;
@@ -29,13 +29,13 @@ static public class GameManager
 			sInstaniated = true;
 		}
 	}
+
 	//Adds Players to the game
-	static public bool AddPlayer(Player p)
+	public bool AddPlayer(Player p)
 	{
 		if(sPlayers.Count == 0)
 		{
 			sPlayers.Add(p);
-			sLastPlayer = p;
 			return true;
 		}
 		foreach(Player j in sPlayers)
@@ -51,50 +51,60 @@ static public class GameManager
 		return true;
 	}
 	//Adds targets into the game
-	static public bool AddTarget(BaseTarget t)
+	public bool AddTarget(BaseTarget t)
 	{
 		sTargets.Add (t);
 		sTargetsAlive++;
 		return true;
 	}
-	static public Player CurrentPlayer()
+	public Player CurrentPlayer()
 	{
 		return (Player)sPlayers [sPlayersTurn];
 	}
     // Call this to Have the game logic function
-	static public void GameLoop()
+	public void GameLoop()
     {
-		if (sPlayersTurn > sPlayersInLobby)
-		{
-			AITurn();
-			sPlayersTurn = sPlayersTurn % (sPlayersInLobby+1);
-			Debug.Log(sPlayersTurn);
-		}
-		if(sLastPlayer != (Player)sPlayers[sPlayersTurn])
-		{
-			sLastPlayer.mMoved = false;
-			sLastPlayer.mHand.PlayedCard = false;
-			sLastPlayer = (Player)sPlayers[sPlayersTurn];
-		}
+//		if(sLastPlayer != (Player)sPlayers[sPlayersTurn])
+//		{
+//			sLastPlayer.mMoved = false;
+//			sLastPlayer.mHand.PlayedCard = false;
+//			sLastPlayer.mAttacked = false;
+//			sLastPlayer = (Player)sPlayers[sPlayersTurn];
+//		}
 		if(sPlayersTurn <= sPlayersInLobby)
 		{
 			PlayerTurn((Player)sPlayers[sPlayersTurn]);
 		}
-    }
-	//this is what the player can do on their turn
-	static private void PlayerTurn(Player p)
-    {
-		if(Input.GetMouseButtonDown (0))
-		{			
-			p.UpdatePlayer();
-		}
-		if(p.mMoved)//&& p.mHand.PlayedCard)
+		if (sPlayersTurn > sPlayersInLobby)
 		{
+			AITurn();
+			sPlayersTurn = sPlayersTurn % (sPlayersInLobby  );
+			Debug.Log(sPlayersTurn);
+		}
+    }
+
+	//this is what the player can do on their turn
+	private void PlayerTurn(Player p)
+    {
+		if(!p.mAttacked)
+		{
+			if(Input.GetMouseButtonDown (0))
+			{			
+				p.UpdatePlayer();
+			}
+		}
+		else
+		{
+			p.mAttacked = false;
+			p.mMoved = false;
+			p.mHand.PlayedCard = false;
 			sPlayersTurn++;
 		}
+		return;
     }
+
 	//Do AI stuff in this function
-	static private void AITurn()
+	private void AITurn()
 	{
 		foreach(BaseTarget t in sTargets)
 		{
@@ -102,6 +112,30 @@ static public class GameManager
 			{
 				t.mTargetTurn = false;
 			}
+		}
+	}
+
+	void OnPhotonSerializeView(PhotonStream stream,	PhotonMessageInfo info)
+	{
+		if (stream.isWriting)
+		{
+			//We own this player: send the others our data
+			stream.SendNext(sPlayersInLobby);
+			stream.SendNext(sPlayersTurn);
+			stream.SendNext(sPlayers);
+			stream.SendNext(sTargetsAlive);
+			stream.SendNext(sInstaniated);
+			stream.SendNext(sTargets);
+		}
+		else
+		{
+			//Network player, receive data
+			sPlayersInLobby = (int)stream.ReceiveNext();
+			sPlayersTurn = (int)stream.ReceiveNext();
+			sPlayers = (ArrayList)stream.ReceiveNext();
+			sTargetsAlive = (int)stream.ReceiveNext();
+			sInstaniated = (bool)stream.ReceiveNext();
+			sTargets = (ArrayList)stream.ReceiveNext();
 		}
 	}
 }
