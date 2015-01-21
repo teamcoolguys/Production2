@@ -1,14 +1,9 @@
 ﻿ using UnityEngine;
 using System.Collections;
 
-public class GameClient : MonoBehaviour 
-{
+public class GameClient : MonoBehaviour {
 
-	public GameObject player1Prefab;
-	public GameObject player2Prefab;
-	public GameObject player3Prefab;
-	public GameObject player4Prefab;
-	
+	public Player playerPrefab;
 	// Use this for initialization
 	void Awake () 
 	{
@@ -18,33 +13,18 @@ public class GameClient : MonoBehaviour
 			Application.LoadLevel(GameMenu.SceneNameMenu);
 			return;
 		}
-		if(!GameManager.sInstaniated)
+		if(!GameManager.Instaniated)
 		{
 			GameManager.Init();
 		}
 		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
-		switch (GameManager.sPlayersInLobby + 1)
-		{
-			case 1:
-				PhotonNetwork.Instantiate(player1Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 2:
-				PhotonNetwork.Instantiate(player2Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 3:
-				PhotonNetwork.Instantiate(player3Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 4:
-				PhotonNetwork.Instantiate(player4Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-				
-		}
+		PhotonNetwork.Instantiate(playerPrefab.name, transform.position, Quaternion.identity, 0);
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		if(GameManager.sPlayersInLobby > 0)
+		if(GameManager.PlayersInLobby > 0)
 		{
 			GameManager.GameLoop ();
 		}
@@ -52,9 +32,9 @@ public class GameClient : MonoBehaviour
 
 	void OnGUI()
 	{
-		if(GameManager.sPlayersTurn <= GameManager.sPlayersInLobby)
+		if(GameManager.PlayersTurn <= GameManager.PlayersInLobby)
 		{
-			GUI.Button(new Rect(10,400,100 ,50),"Players Turn " + (GameManager.sPlayersTurn+1).ToString());
+			GUI.Button(new Rect(10,400,100 ,50),"Players Turn " + (GameManager.PlayersTurn+1).ToString());
 		}
 		else
 		{
