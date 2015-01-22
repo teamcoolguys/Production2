@@ -1,117 +1,169 @@
-﻿using UnityEngine;
+﻿//Created by Dylan Fraser
+//Prodcution 1
+//Updated by Jack Ng
+//Production 1
+//Updated by Jack Ng
+//Jan 8th
+using UnityEngine;
 
-public class DTileMap {
-	
-	/*protected class DTile {
-		bool isWalkable = false;
-		int tileGraphicId = 0;
-		string name = "Unknown";
-	}
-	
-	List<DTile> tileTypes;
-	
-	void InitTiles() {
-		tileType[1].name = "Floor";
-		tileType[1].isWalkable = true;
-		tileType[1].tileGraphicId = 1;
-		tileType[1].damagePerTurn = 0;
-	}*/
-	
+
+[RequireComponent(typeof(TileMap))]
+public class DTileMap
+{	
+	//Jack Ng
+	//Search Graph
+	public Graph mGraph;
+	GameObject mTileMapObject;
+	TileMap mInfo;
+
+	//>>>>>>>>>>>>>>>>>>>
+	//<<<<<<<<<<<<<<<<<<<
 	int size_x;
 	int size_y;
+	
 
-	public struct V2
-	{
-		public float x;
-		public float y;
-	}
+	//public struct V2
+	//{
+	//	public float x;
+	//	public float y;
+	//}
 
 	public Vector3[] mPositionData;
 
 	public int[] map_data;
-
 	
 	public enum TileType
 	{
-		Unknown,	//0
-		Floor,		//1
+		Floor,		//0
+		Walkable,	//1
 		Wall,		//2
-		Player,		//3
-		Target,		//4		
-		Guard,		//5
-		Shop,		//6
-		Buildings	//7
+		Path,		//3
+		Player,		//4
+		Target,		//5		
+		Guard,		//6
+		Shop,		//7
+		Buildings	//8
 	};
-	public DTileMap(int sizex, int sizey)
+	public void CreateMap(int sizex, int sizey)
 	{
+		mTileMapObject=GameObject.Find("CurrentTileMap");
 
-		this.size_x = sizex;
-		this.size_y = sizey;
-		
-		map_data = new int[sizex*sizey];
-		for(int y=0;y<sizey;y++)
-		{
-			for(int x=0;x<sizex;x++) 
-			{
-				map_data[(y*size_x)+x] = 1;
-			}
-		}
-		map_data[9] = 0;
-		//Position
+		mInfo = mTileMapObject.GetComponent<TileMap>();
+		map_data = new int[size_x*size_y];
+		//Graph Search Structure
+		mGraph=new Graph();
+		mGraph.Create (size_x, size_y);
+		//Map position structure
 		Vector3 startLocation;
 		startLocation.x = 0.5f;
 		startLocation.y = 0.5f;
-		startLocation.z = 0.5f;
-
+		startLocation.z = 0.5f;	
+		
 		mPositionData = new Vector3[sizex*sizey];
+		
 		for(int y=0;y<sizey;y++)
 		{
 			for(int x=0;x<sizex;x++) 
 			{
-				float yIncrease;
-				float xIncrease;
+				//Setting Map
+				map_data[(y*size_x)+x] = 0;
+				
+				
+				//Setting Map position
 				Vector3 currentLocation = startLocation;
 				currentLocation.x += x*1.0f;
 				currentLocation.z += y*1.0f;
 				mPositionData[(y*size_x)+x] =currentLocation;
+				//Seting Graph Search
+				
+				Node node = mGraph.GetNodeInfo(x,y);
+				int type = map_data[(y*size_x)+x];
+				int i= (y*size_x)+x;
+				if(type==0)
+				{
+					node.walkable = true;
+				}
+				else
+				{
+					node.walkable = false;
+				}
+				if(i==1)
+				{
+					node.walkable = false;
+				}
+				if(i==1)
+				{
+					node.walkable = false;
+				}
 			}
 		}
+		map_data [1] = 2;
 	}
-
+	public DTileMap(int sizex, int sizey)
+	{
+		//Map Structure
+		this.size_x = sizex;
+		this.size_y = sizey;
+		CreateMap (sizex, sizey);
+	}
+	public int XYToIndex(int x, int y)
+	{
+		return ((y * size_x) + x);
+	}
 	public int GetTileType(int x, int y)
 	{
 		return map_data[(y*size_x)+x];
 	}
-	public void SetTileType(int x, int y, int i)
+	public void SetTileType(int x, int y, int t)
 	{
-		map_data[(y*size_x)+x]=i;
-		return;
+		map_data[(y*size_x)+x]=t;
+
+		mInfo.UpdateTexture (x,y);
 	}
+	public void SetTileTypeIndex(int index, int t)
+	{
+		map_data[index]=t;
+		int x= 0, y = 0;
+		IndexToXY (index,out x, out y);
+		mInfo.UpdateTexture (x,y);
+	}
+	public void IndexToXY(int index, out int x, out int y)
+	{
+		int count = 0;
+		while(index>=size_x)
+		{
+			index-=size_x;
+			count++;
+		}
+		y = count;
+		x = index;
+	}
+
 	public Vector3 GetTileLocation(int x, int y)
 	{
 		return mPositionData[(y*size_x)+x];
 	}
-	public V2 GetTileXY(Vector3 location)
-	{
-		for(int y=0;y<size_x;y++)
-		{
-			for(int x=0;x<size_y;x++) 
-			{
-				Vector3 tempPosition=mPositionData[(y*size_x)+x];
-				if(location.x == tempPosition.x
-				   && location.y == tempPosition.y
-				   && location.z == tempPosition.z)
-				{
-					V2 tileXY;
-					tileXY.x=x;
-					tileXY.y=y;
-					return tileXY;
-				}
-			}
-		}
-		V2 error;
-		error.x = -1;
-		error.y = -1;
-		return error;
-	}
+	//public V2 GetTileXY(Vector3 location)
+	//{
+	//	for(int y=0;y<size_x;y++)
+	//	{
+	//		for(int x=0;x<size_y;x++) 
+	//		{
+	//			Vector3 tempPosition=mPositionData[(y*size_x)+x];
+	//			if(location.x == tempPosition.x
+	//			   && location.y == tempPosition.y
+	//			   && location.z == tempPosition.z)
+	//			{
+	//				V2 tileXY;
+	//				tileXY.x=x;
+	//				tileXY.y=y;
+	//				return tileXY;
+	//			}
+	//		}
+	//	}
+	//	V2 error;
+	//	error.x = -1;
+	//	error.y = -1;
+	//	return error;
+	//}
 }

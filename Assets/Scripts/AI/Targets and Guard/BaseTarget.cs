@@ -4,33 +4,53 @@
 
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
-public class BaseTarget : MonoBehaviour {
 
-	//public int mStartingPositionX;
-	//public int mStartingPositionY;
-
-	private int mPositionX;
-	private int mPositionY;
-
-	public int mDefense;
-	public int mCurDefense;
-	
-	public int mMovement;
-	public int mRunMovement;
-	
-	public int mInfarmy;
-	public int mGold;
-	
-	public int mDetectionRun;
-	public int mDetectionWalk;
-	public int mDetectionSee;
-
-	public bool TargetTurn;
-
+[RequireComponent(typeof(GraphSearch))]
+[RequireComponent(typeof(Graph))]
+[RequireComponent(typeof(Node))]
+public class BaseTarget : MonoBehaviour
+{
+	//Imformation Needed for the Game
 	TileMap mTileMap;
 	TileMapMouse mMouse;
 	GameObject mTileMapObject;
+	GameObject mPlayer;
+
+	//needed to reference the manager
+	GameManager mManager;
+
+	////Current Position
+	private int mPositionX;
+	private int mPositionY;
+
+	//Current Stats
+	public int mDefense;
+	public int mMovement;
+	public int mRunMovement;
+	public int mInfamy;
+
+	//3 nodes to move around
+	public int mNodeAX;
+	public int mNodeAY;
+	public int mWeightA;
+
+	public int mNodeBX;
+	public int mNodeBY;
+	public int mWeightB;
+
+	public int mNodeCX;
+	public int mNodeCY;
+	public int mWeightC;
+
+	//List to Track Graph
+	public List<Node>mCloseList;
+	public List<Node>mPath;
+
+	public bool mTargetTurn;
+
+
 	//privates
 	private int mMouseX;
 	private int mMouseY;
@@ -43,130 +63,113 @@ public class BaseTarget : MonoBehaviour {
 		//Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mPositionX, mPositionY);
 		//Move(v3Temp);
 		//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-		TargetTurn = false;
+		mTargetTurn = false;
 		//mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
+		//mPlayer=GameObject.Find("Player");
+		//mTileMap = mTileMapObject.GetComponent<Player>();
+
 
 		mTileMapObject=GameObject.Find("CurrentTileMap");
+		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
 
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		//mMouseX = mMouse.mMouseHitX;
 		////fixed for negatvie Z values
 		//mMouseY = mMouse.mMouseHitY;
 		//Hard fixed for negative Z values
-		GameManager.AddTarget (this);
+		mManager.AddTarget (this);
 	}
-	
+
 	// Update is called once per frame
 	void Update () 
 	{
-		//mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
+		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
-		//mMouseX = mMouse.mMouseHitX;
+		mMouseX = mMouse.mMouseHitX;
 		
 		//fixed for negatvie Z values
-		//mMouseY = mMouse.mMouseHitY;
+		mMouseY = mMouse.mMouseHitY;
 		//fixed for negatvie Z values
+		if (Input.GetKey ("c")) 
+		{
+			//mTileMap = GetComponent<Player>();
+
+		}
+		if (Input.GetKey ("b"))
+		{
+			UpdateTarget ();
+		}
 	}
 	public bool UpdateTarget()
 	{
 		bool rc = false;
 		bool walk = false;
-		while(walk==false)
-		{
-
-			//Random movement
-			int totalMove = Random.Range(0,mMovement); //4
-			//int possibleMoveX = 0;
-			//int possibleMoveY = 0;
-			//int checkX;
-			//int checkY;
-			//for(possibleMoveY=0;possibleMoveY<totalMove; possibleMoveY++)
-			//{
-			//	for(possibleMoveX = 0; possibleMoveX<=totalMove-possibleMoveY; possibleMoveX++)
-			//	{
-			//		checkX = mPositionX + possibleMoveY;
-			//		checkY = mPositionY + possibleMoveY; 
-			//		if (possibleMoveX > 9) 
-			//		{
-			//			possibleMoveX = 9;
-			//		}
-			//		if(possibleMoveX<0)
-			//		{
-			//			possibleMoveX = 0;
-			//		}
-			//		if (possibleMoveY > 9) 
-			//		{
-			//			possibleMoveY = 9;
-			//		}
-			//		if(possibleMoveY<0)
-			//		{
-			//			possibleMoveY = 0;
-			//		}
-			//		if(mTileMap.MapInfo.GetTileType(possibleMoveX,possibleMoveY)==1)
-			//		mTileMap.MapInfo.SetTileType(possibleMoveX,possibleMoveY, 0);
-			//	}
-			//}
-			//Debug.Log ("breakpoint1");
-			int MoveX = Random.Range (0,totalMove);
-			int MoveY = totalMove - MoveX;
-			Debug.Log ("Moved: " + MoveX + ", " + MoveY);
-			MoveX = Random.Range (-MoveX, MoveX);
-			MoveY = Random.Range (-MoveY, MoveY);
-			Debug.Log ("MovedSecond: " + MoveX + ", " + MoveY);
-			MoveX += mPositionX;
-			MoveY += mPositionY; 
-			if (MoveX > 9) 
-			{
-				MoveX = 9;
-			}
-			if(MoveX<0)
-			{
-				MoveX = 0;
-			}
-			if (MoveY > 9) 
-			{
-				MoveY = 9;
-			}
-			if(MoveY<0)
-			{
-				MoveY = 0;
-			}
-
-			int temp=mTileMap.MapInfo.GetTileType(MoveX, MoveX);
+			int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
 			//Random moveMent;
-
-			Debug.Log ("TargetMoved: " + MoveX + ", " + MoveY);
-			Debug.Log (temp);
 			switch(temp)
 			{
-
-			case 1:
-				Debug.Log ("Target::Floor");
-				Debug.Log ("Target: " + MoveX + ", " + MoveY);
-				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
-				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(MoveX, MoveY);
-				Move(v3Temp);
-				mPositionX = MoveX;
-				mPositionY = MoveY;
-				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-				TargetTurn = true;
-				rc = true;
-				walk = true;
-				break;
-			case 2:
-				Debug.Log ("Target::Wall");
-				break;
-			default:
-				Debug.Log ("Target::Fuck Off");
-				break;
+				case 1:
+					{
+						Debug.Log ("Target::Floor");
+						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
+						Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+						Move(v3Temp);
+						mPositionX = mMouseX;
+						mPositionY = mMouseY;
+						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
+						mTargetTurn = true;
+						rc = true;
+						walk = true;
+						break;
+					}
+				case 2:
+					{
+						Debug.Log ("Target::Wall");
+						break;
+					}
+				default:
+					{
+						Debug.Log ("Target::Fuck Off");
+						break;
+					}
 			}
-		}
+			if(walk == true)
+			{
+				Debug.Log("Walking");
+			}
+		//}
 		return rc;
 	}
 	void Move(Vector3 pos)
 	{
 		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
 	}
-
+	void PathFind(int startX, int startY, int endX, int endY)
+	{
+		GraphSearch mSearch= new GraphSearch(mTileMap.MapInfo.mGraph);
+		mSearch.Run(startX, startY, endX, endY);
+		if(mSearch.IsFound())
+		{
+			mCloseList = mSearch.GetCloseList();
+			mPath= mSearch.GetPathList();
+		}
+		foreach(Node i in mPath)
+		{
+			mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+		}
+	}	
+	void ResetPath()
+	{
+		if (mPath == null) 
+		{
+			return;
+		}
+		for (int i=0; i<mPath.Count; i++)
+		{
+			int x = mPath[i].mIndex;
+			mTileMap.MapInfo.SetTileTypeIndex (x,0);
+		}
+		mPath.Clear ();
+	}
 }
