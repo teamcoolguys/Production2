@@ -30,8 +30,12 @@ public class GraphSearch
 	}
 	public void Run(int startX, int startY, int endX, int endY)
 	{
-		Node startNode = mGraph.GetNode (startX, startY);
-		Node endNode = mGraph.GetNode (endX, endY);
+		mOpenList = new List<Node>();
+		mCloseList = new List<Node>();
+		mPath = new List<Node>();
+
+		Node startNode = mGraph.GetNodeInfo (startX, startY);
+		Node endNode = mGraph.GetNodeInfo (endX, endY);
 
 		mEndNode = endNode;
 
@@ -49,7 +53,7 @@ public class GraphSearch
 
 		while (done==false && mOpenList.Count!=0) 
 		{
-			Node node = GetEndNode();
+			Node node = GetNextNode();
 			if(node == endNode)
 			{
 				done = true;
@@ -63,7 +67,6 @@ public class GraphSearch
 					if(neighbor!=null && neighbor.walkable==true)
 					{
 						ExpandNode(node, neighbor);
-
 					}
 
 				}
@@ -119,12 +122,11 @@ public class GraphSearch
 	public List<Node> GetPathList()
 	{
 		List<Node>path;
-		path = null;
-		Node endNode=mEndNode;
-		while(endNode!=null)
+		path = new List<Node>();
+		while(mEndNode!=null)
 		{
-			path.Add(endNode);
-			endNode=endNode.mParent;
+			path.Add(mEndNode);
+			mEndNode=mEndNode.mParent;
 		}
 		return path;
 	}
