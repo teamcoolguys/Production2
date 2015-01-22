@@ -13,20 +13,19 @@ public class BaseTarget : MonoBehaviour {
 	private int mPositionX;
 	private int mPositionY;
 
+
+
 	public int mDefense;
-	public int mCurDefense;
-	
-	public int mMovement;
-	public int mRunMovement;
-	
-	public int mInfarmy;
-	public int mGold;
-	
+	public uint mMovement;
+	public uint mRunMovement;
+	public uint mInfarmy;
+
+	//Vision range
 	public int mDetectionRun;
 	public int mDetectionWalk;
 	public int mDetectionSee;
 
-	public bool TargetTurn;
+	public bool mTargetTurn;
 
 	TileMap mTileMap;
 	TileMapMouse mMouse;
@@ -34,16 +33,24 @@ public class BaseTarget : MonoBehaviour {
 	//privates
 	private int mMouseX;
 	private int mMouseY;
+
+	//Wyatt
+	private GameManager mManager;
+	void Awake()
+	{
+		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+
+	}
+
 	// Use this for initialization
 	void Start () 
 	{
 		mPositionX = 0;
 		mPositionY = 0;
-		
 		//Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mPositionX, mPositionY);
 		//Move(v3Temp);
 		//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-		TargetTurn = false;
+		mTargetTurn = false;
 		//mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 
 		mTileMapObject=GameObject.Find("CurrentTileMap");
@@ -53,30 +60,35 @@ public class BaseTarget : MonoBehaviour {
 		////fixed for negatvie Z values
 		//mMouseY = mMouse.mMouseHitY;
 		//Hard fixed for negative Z values
-		GameManager.AddTarget (this);
+		mManager.AddTarget (this);
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		//mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
+		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
-		//mMouseX = mMouse.mMouseHitX;
+		mMouseX = mMouse.mMouseHitX;
 		
 		//fixed for negatvie Z values
-		//mMouseY = mMouse.mMouseHitY;
+		mMouseY = mMouse.mMouseHitY;
 		//fixed for negatvie Z values
+		if (Input.GetKey ("b"))
+		{
+			UpdateTarget ();
+		}
 	}
 	public bool UpdateTarget()
 	{
 		bool rc = false;
 		bool walk = false;
-		while(walk==false)
-		{
+
+		//while(walk==false)
+		//{
 
 			//Random movement
-			int totalMove = Random.Range(0,mMovement); //4
+			//int totalMove = Random.Range(0,mMovement); //4
 			//int possibleMoveX = 0;
 			//int possibleMoveY = 0;
 			//int checkX;
@@ -108,60 +120,67 @@ public class BaseTarget : MonoBehaviour {
 			//	}
 			//}
 			//Debug.Log ("breakpoint1");
-			int MoveX = Random.Range (0,totalMove);
-			int MoveY = totalMove - MoveX;
-			Debug.Log ("Moved: " + MoveX + ", " + MoveY);
-			MoveX = Random.Range (-MoveX, MoveX);
-			MoveY = Random.Range (-MoveY, MoveY);
-			Debug.Log ("MovedSecond: " + MoveX + ", " + MoveY);
-			MoveX += mPositionX;
-			MoveY += mPositionY; 
-			if (MoveX > 9) 
-			{
-				MoveX = 9;
-			}
-			if(MoveX<0)
-			{
-				MoveX = 0;
-			}
-			if (MoveY > 9) 
-			{
-				MoveY = 9;
-			}
-			if(MoveY<0)
-			{
-				MoveY = 0;
-			}
+			//int MoveX = Random.Range (0,totalMove);
+			//int MoveY = totalMove - MoveX;
+			//Debug.Log ("Moved: " + MoveX + ", " + MoveY);
+			//MoveX = Random.Range (-MoveX, MoveX);
+			//MoveY = Random.Range (-MoveY, MoveY);
+			//Debug.Log ("MovedSecond: " + MoveX + ", " + MoveY);
+			//MoveX += mPositionX;
+			//MoveY += mPositionY; 
+			//if (MoveX > 9) 
+			//{
+			//	MoveX = 9;
+			//}
+			//if(MoveX<0)
+			//{
+			//	MoveX = 0;
+			//}
+			//if (MoveY > 9) 
+			//{
+			//	MoveY = 9;
+			//}
+			//if(MoveY<0)
+			//{
+			//	MoveY = 0;
+			//}
 
-			int temp=mTileMap.MapInfo.GetTileType(MoveX, MoveX);
+			int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
 			//Random moveMent;
 
-			Debug.Log ("TargetMoved: " + MoveX + ", " + MoveY);
-			Debug.Log (temp);
 			switch(temp)
 			{
-
-			case 1:
-				Debug.Log ("Target::Floor");
-				Debug.Log ("Target: " + MoveX + ", " + MoveY);
-				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
-				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(MoveX, MoveY);
-				Move(v3Temp);
-				mPositionX = MoveX;
-				mPositionY = MoveY;
-				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-				TargetTurn = true;
-				rc = true;
-				walk = true;
-				break;
-			case 2:
-				Debug.Log ("Target::Wall");
-				break;
-			default:
-				Debug.Log ("Target::Fuck Off");
-				break;
+				case 1:
+					{
+						Debug.Log ("Target::Floor");
+						Debug.Log ("Target: " + mMouseX + ", " + mMouseY);
+						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
+						Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+						Move(v3Temp);
+						mPositionX = mMouseX;
+						mPositionY = mMouseY;
+						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
+						mTargetTurn = true;
+						rc = true;
+						walk = true;
+						break;
+					}
+				case 2:
+					{
+						Debug.Log ("Target::Wall");
+						break;
+					}
+				default:
+					{
+						Debug.Log ("Target::Fuck Off");
+						break;
+					}
 			}
-		}
+			if(walk == true)
+			{
+				Debug.Log("Walking");
+			}
+		//}
 		return rc;
 	}
 	void Move(Vector3 pos)

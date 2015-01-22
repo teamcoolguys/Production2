@@ -4,10 +4,16 @@ using System.Collections.Generic;
 
 public class HUD : MonoBehaviour 
 {
-	private baseCharacter ch;
+	//publix
 	public List<GameObject> deck = new List<GameObject>();
 	public List<GUITexture> infamsprites = new List<GUITexture>();
 	public double uoff = 0;
+	public GUITexture bar, backbar, turns, stats;
+	public GUITexture combar, atkbar, defbar, atkprt, defprt, cardslots;
+	public GUIText str, def, mov, inf;
+
+	//privates
+	private baseCharacter ch;
 	private List<GameObject> discard = new List<GameObject>();
 	private List<GameObject> cards = new List<GameObject>();
 	private List<GameObject> hand = new List<GameObject>();
@@ -16,14 +22,17 @@ public class HUD : MonoBehaviour
 	private bool[] cs = new bool[3];
 	private bool showR = false;
 	private bool combui = false;
-	private GameObject player = GameObject.Find("GameClient");
-	public GUITexture bar, backbar, turns, stats;
-	public GUITexture combar, atkbar, defbar, atkprt, defprt, cardslots;
-	public GUIText str, def, mov, inf;
+
+	//wyatt
+	private GameManager mManager;
+	//
 
 	public float maxinfamy, infamy, percent;
 
-
+	void Awake()
+	{
+		mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager 
+	}
 	void Start ()
 	{
 
@@ -308,19 +317,17 @@ public class HUD : MonoBehaviour
 
 	}
 
-	void Rearrangeinfamy()
-	{
-		int w =24, h =24, x = -128, y = -80;
-		for (int i=0; i < maxinfamy; i++)
-		{
-			transform.position = Vector3.zero;
-			transform.localScale = Vector3.zero;
-			infamsprites[i].pixelInset = new Rect(x,y,w,h);
-				x = x + 24;
-		}
-		
-		
-	}
+//	void Rearrangeinfamy()
+//	{
+//		int w =24, h =24, x = -128, y = -80;
+//		for (int i=0; i < maxinfamy; i++)
+//		{
+//			transform.position = Vector3.zero;
+//			transform.localScale = Vector3.zero;
+//			infamsprites[i].pixelInset = new Rect(x,y,w,h);
+//				x = x + 24;
+//		}
+//	}
 
 	void Update()
 	{
@@ -343,7 +350,7 @@ public class HUD : MonoBehaviour
 
 		}
 
-		Rearrangeinfamy ();
+		//Rearrangeinfamy ();
 		//bar = GameObject.Find("frontbr").guiTexture;
 
 
