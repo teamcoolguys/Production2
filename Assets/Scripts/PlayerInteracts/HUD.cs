@@ -31,7 +31,7 @@ public class HUD : MonoBehaviour
 
 	void Awake()
 	{
-		mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager 
+		mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager
 	}
 	void Start ()
 	{

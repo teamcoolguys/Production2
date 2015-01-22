@@ -8,14 +8,18 @@
 //December 10, 2014
 //Jack Ng
 //Jan 8th, 2015
-//Wyatt Gibbs
-//Jan 14th 2015
 
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+
 
 [RequireComponent(typeof(TileMap))]
 [RequireComponent(typeof(TileMapMouse))]
+
+[RequireComponent(typeof(GraphSearch))]
+[RequireComponent(typeof(Graph))]
+[RequireComponent(typeof(Node))]
 public class Player : MonoBehaviour
 {
 
@@ -29,7 +33,7 @@ public class Player : MonoBehaviour
 	public uint mAttack;
 	public uint mDefence;
 	public uint mMovement;
-	public uint mRange;
+	public int mRange;
 	
 	//Mouse Info
 	private int mMouseX;
@@ -38,14 +42,22 @@ public class Player : MonoBehaviour
 	//Tracking current Spot//
 	public int mPositionX;
 	public int mPositionY;
+	
+	//List to Track Graph
+	public List<Node>mCloseList;
+	public List<Node>mPath;
+	public List<int>mWalkRangeIndex;
 
-
+	//Player Loop
+	bool mWalkRange;
+	bool mAttackRange;
 	//Wyatt//
 	//stuff I am using for Game Loop
 	public bool mMoved;
-	public bool mAttacked;
 	public Hand mHand;
+	public bool mAttacked;
 	private Vector3 syncEndPosition = Vector3.zero;
+	private GameManager mManager;
 	//made this public so I could reference it in the Game Manager to pass to the HUD 
 	//allows game loop to move forwardcurrently//
 	
@@ -53,17 +65,11 @@ public class Player : MonoBehaviour
 	public GameObject Self;
 	public int mInfamy = 0;
 
-	//Wyatt
-	private GameManager mManager;
-	void Awake()
-	{
-		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
-		
-	}
 	// Use this for initialization
 	void Start()
 	{
 		mTileMapObject=GameObject.Find("CurrentTileMap");
+		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		mMouseX = mMouse.mMouseHitX;
@@ -72,10 +78,14 @@ public class Player : MonoBehaviour
 		//fixed for negative Z values
 		//instantiates the objects in this object
 		mMoved = false;
-		mHand = new Hand();
-		mDeck = new Deck ();
+		mWalkRange = false;
+		mAttackRange = false;
+		//mHand = new Hand();
+		//mDeck = new Deck ();
 		mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 		Debug.Log ("Player Created");
+		mWalkRangeIndex = new List<int> ();
+		//mTileMap.MapInfo.SetTileType(0, 0, 4);
 	}
 
 	void Update()
@@ -84,60 +94,69 @@ public class Player : MonoBehaviour
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
 		mMouseX = mMouse.mMouseHitX;
-
-		//fixed for negatvie Z values
 		mMouseY = mMouse.mMouseHitY;
-		//fixed for negatvie Z values
-
-		//if (Input.GetKey ("escape")) 
-		//{
-		//	Application.Quit ();
-		//}
+		if (Input.GetKey ("w"))
+		{
+			UpdatePlayer ();
+		}
+		if (Input.GetKey ("o")) 
+		{
+			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, 2);
+			Debug.Log ("Tile: " + mMouseX + "," +mMouseY);
+			Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
+			node.walkable=false;
+		}
+		if (Input.GetKey ("p")) 
+		{
+			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, 0);
+			Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
+			node.walkable=true;
+		}
 	}
 
 	public bool UpdatePlayer()
 	{
-		if(networkView.isMine)
-		{
-			//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
-			//Debug.Log ("Tile: " + mMouseX + ", " + mMouseY);
-			//Debug.Log (mTileMap.MapInfo.GetTileType(mMouseX,mMouseY));
-			int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
-			//Random moveMent;
-			//Debug.Log (temp);
-			switch(temp)
+		//if(mWalkRange==false)
+		//{
+		//	UpdateWalkRange (mRange);
+		//}
+			//if(networkView.isMine)
+			//{
+		if (Input.GetMouseButtonDown (0))
 			{
-			case 1:
-				Debug.Log ("Target::Floor");
-				if(!mMoved)
+				ResetPath();
+				int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
+				switch(temp)
 				{
-					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
+				//case 0:
+				//	Debug.Log ("Target::Floor(out of range)");
+				//	mMoved = false;
+				//	break;
+				case 0:
+					
+					Debug.Log ("Target::Walkable");
+					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 0);
 					Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
 					Move(v3Temp);
+					PathFind (mPositionX, mPositionY, mMouseX, mMouseY);
 					mPositionX=mMouseX;
 					mPositionY=mMouseY;
 					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 3);
 					mMoved = true;
+					//ResetWalkRange();
+					mWalkRange = false;
+					break;
+				case 2:
+					Debug.Log ("Target::Wall");
+					mMoved = false;
+					break;
+				default:
+					//Debug.Log ("Target::Default");
+					mMoved = false;
+					break;
 				}
-				break;
-			case 2:
-				Debug.Log ("Target::Wall");
-				mMoved = false;
-				break;
-			case 3:
-			case 4:
-			case 5:
-				Debug.Log("Combat Here");
-				mAttacked = true;
-				Combat();
-				break;
-			default:
-				//Debug.Log ("Target::Fuck Off");
-				mMoved = false;
-				break;
 			}
-		}
-		return true;
+			return true;
 	}
 
 	void Move(Vector3 pos)
@@ -145,26 +164,94 @@ public class Player : MonoBehaviour
 		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
 	}
 
-	void Combat ()
+	void PathFind(int startX, int startY, int endX, int endY)
 	{
-
+		GraphSearch mSearch= new GraphSearch(mTileMap.MapInfo.mGraph);
+		mSearch.Run(startX, startY, endX, endY);
+		if(mSearch.IsFound())
+		{
+			mCloseList = mSearch.GetCloseList();
+			mPath= mSearch.GetPathList();
+		}
+		foreach(Node i in mPath)
+		{
+			mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+		}
+	}	
+	void ResetPath()
+	{
+		if (mPath == null) 
+		{
+			return;
+		}
+		for (int i=0; i<mPath.Count; i++)
+		{
+			int x = mPath[i].mIndex;
+			mTileMap.MapInfo.SetTileTypeIndex (x,0);
+		}
+		mPath.Clear ();
 	}
-
+	void UpdateWalkRange(int range)
+	{
+		mWalkRangeIndex.Clear ();
+		List<int>Temp =  new List<int> ();
+		for(int possibleMoveY=0;possibleMoveY<=range; possibleMoveY++)
+		{
+			for(int possibleMoveX = 0; possibleMoveX<=range-possibleMoveY; possibleMoveX++)
+			{
+				int checkX = mPositionX + possibleMoveX;
+				int checkY = mPositionY + possibleMoveY; 
+				if(mTileMap.MapInfo.GetTileType(checkX,checkY)==0)
+				{
+					if (checkX > 9) 
+					{
+						checkX = 9;
+					}
+					if(checkX<0)
+					{
+						checkX = 0;
+					}
+					if (checkY > 9) 
+					{
+						checkY = 9;
+					}
+					if(checkY<0)
+					{
+						checkY = 0;
+					}
+					mTileMap.MapInfo.SetTileType(checkX,checkY, 1);
+					int index = mTileMap.MapInfo.XYToIndex(checkX,checkY);
+					Temp.Add (index);
+				}
+				else
+				{
+					continue;
+				}
+			}
+		}
+		mWalkRangeIndex = Temp;
+		Debug.Log(mWalkRangeIndex.Count);
+		mWalkRange = true;
+	}
+	void ResetWalkRange()
+	{
+		for (int i=0; i<mWalkRangeIndex.Count; i++)
+		{
+			mTileMap.MapInfo.SetTileTypeIndex (mWalkRangeIndex[i],0);
+		}
+		mWalkRangeIndex.Clear ();
+	}
 	//added this to try to fix some issues
-	void OnPhotonSerializeView(PhotonStream stream,
-	                           PhotonMessageInfo info)
+	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
 		if (stream.isWriting)
 		{
-			//We own this player: send the others our data
-			stream.SendNext(transform.position);
-			stream.SendNext(transform.rotation);
+			stream.SendNext(rigidbody.position);
 		}
 		else
 		{
-			//Network player, receive data
-			transform.position = (Vector3)stream.ReceiveNext();
-			transform.rotation = (Quaternion)stream.ReceiveNext();
+			syncEndPosition = (Vector3)stream.ReceiveNext();
+			mManager.sPlayersTurn++;
 		}
 	}
 }

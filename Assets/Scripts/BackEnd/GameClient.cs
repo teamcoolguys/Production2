@@ -11,7 +11,7 @@ public class GameClient : MonoBehaviour
 	private GameObject mGameManager;
 	private GameManager mManager;
 	// Use this for initialization
-	void Start () 
+	void Awake()
 	{
 		// in case we started this demo with the wrong scene being active, simply load the menu scene
 		if (!PhotonNetwork.connected)
@@ -19,6 +19,9 @@ public class GameClient : MonoBehaviour
 			Application.LoadLevel(GameMenu.SceneNameMenu);
 			return;
 		}
+	}
+	void Start () 
+	{
 		mGameManager = GameObject.Find("GameManager");
 		mManager = mGameManager.GetComponent<GameManager>();
 		if(!mManager.sInstaniated)
