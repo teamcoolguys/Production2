@@ -17,8 +17,6 @@ public class Graph
 	public int mWidth;
 	public int mHeight;
 
-
-
 	//Constructor
 	public Graph()
 	{

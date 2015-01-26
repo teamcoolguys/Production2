@@ -73,9 +73,7 @@ public class Player : MonoBehaviour
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		mMouseX = mMouse.mMouseHitX;
-		//fixed for negatvie Z values
 		mMouseY = mMouse.mMouseHitY;
-		//fixed for negative Z values
 		//instantiates the objects in this object
 		mMoved = false;
 		mWalkRange = false;

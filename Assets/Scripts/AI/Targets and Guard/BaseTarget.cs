@@ -12,18 +12,27 @@ using System.Collections.Generic;
 [RequireComponent(typeof(Node))]
 public class BaseTarget : MonoBehaviour
 {
-	//Imformation Needed for the Game
+	public enum State
+	{
+		NormalState,
+		RunState,
+		DieState,
+		Count
+	}
+	//Imformation Checking for the Game
 	TileMap mTileMap;
 	TileMapMouse mMouse;
 	GameObject mTileMapObject;
 	GameObject mPlayer;
+								//privates
+	private int mPositionX;		//Current Position
+	private int mPositionY;		//Current Position
+	private int mMouseX;		//Mouse Location
+	private int mMouseY;		//Mouse Location
 
-	//needed to reference the manager
+	//Network Stuff
 	GameManager mManager;
-
-	////Current Position
-	private int mPositionX;
-	private int mPositionY;
+	public bool mTargetTurn;
 
 	//Current Stats
 	public int mDefense;
@@ -47,14 +56,8 @@ public class BaseTarget : MonoBehaviour
 	//List to Track Graph
 	public List<Node>mCloseList;
 	public List<Node>mPath;
+	
 
-	public bool mTargetTurn;
-
-
-	//privates
-	private int mMouseX;
-	private int mMouseY;
-	// Use this for initialization
 	void Start () 
 	{
 		mPositionX = 0;
@@ -73,29 +76,15 @@ public class BaseTarget : MonoBehaviour
 		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
 
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
-		//mMouseX = mMouse.mMouseHitX;
-		////fixed for negatvie Z values
-		//mMouseY = mMouse.mMouseHitY;
-		//Hard fixed for negative Z values
 		mManager.AddTarget (this);
 	}
-
-	// Update is called once per frame
 	void Update () 
 	{
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
-		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
 		mMouseX = mMouse.mMouseHitX;
-		
-		//fixed for negatvie Z values
 		mMouseY = mMouse.mMouseHitY;
-		//fixed for negatvie Z values
-		if (Input.GetKey ("c")) 
-		{
-			//mTileMap = GetComponent<Player>();
 
-		}
 		if (Input.GetKey ("b"))
 		{
 			UpdateTarget ();
@@ -105,7 +94,7 @@ public class BaseTarget : MonoBehaviour
 	{
 		bool rc = false;
 		bool walk = false;
-			int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
+		int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
 			//Random moveMent;
 			switch(temp)
 			{
@@ -145,6 +134,21 @@ public class BaseTarget : MonoBehaviour
 	{
 		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
 	}
+	void UpdateNormal()
+	{
+
+
+	}
+	void UpdateRun()
+	{
+
+
+	}
+	void UpdateDie()
+	{
+
+	}
+	//Path Find Parts
 	void PathFind(int startX, int startY, int endX, int endY)
 	{
 		GraphSearch mSearch= new GraphSearch(mTileMap.MapInfo.mGraph);
