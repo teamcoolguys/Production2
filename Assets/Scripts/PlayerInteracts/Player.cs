@@ -69,7 +69,7 @@ public class Player : MonoBehaviour
 	void Start()
 	{
 		mTileMapObject=GameObject.Find("CurrentTileMap");
-		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+		//mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		mMouseX = mMouse.mMouseHitX;
@@ -80,7 +80,7 @@ public class Player : MonoBehaviour
 		mAttackRange = false;
 		//mHand = new Hand();
 		//mDeck = new Deck ();
-		mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+		//mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 		Debug.Log ("Player Created");
 		mWalkRangeIndex = new List<int> ();
 		//mTileMap.MapInfo.SetTileType(0, 0, 4);

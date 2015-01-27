@@ -14,11 +14,13 @@ public class BaseTarget : MonoBehaviour
 {
 	public enum State
 	{
-		NormalState,
-		RunState,
-		DieState,
+		Normal,
+		Run,
+		Die,
 		Count
 	}
+	//State Currently in
+	private State mState;
 	//Imformation Checking for the Game
 	TileMap mTileMap;
 	TileMapMouse mMouse;
@@ -53,33 +55,39 @@ public class BaseTarget : MonoBehaviour
 	public int mNodeCY;
 	public int mWeightC;
 
-	//List to Track Graph
-	public List<Node>mCloseList;
-	public List<Node>mPath;
+	public int mTowardNodeX;
+	public int mTowardNodeY;
+	public int mTowardChoice;
 	
+	private bool mPathTrue;
+	//List to Track Graph
+	public List<Node>mTowardPath;
+	public List<Node>mCurrentPath;
+
+	private bool firstTime;
 
 	void Start () 
 	{
-		mPositionX = 0;
-		mPositionY = 0;
-		
-		//Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mPositionX, mPositionY);
-		//Move(v3Temp);
-		//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-		mTargetTurn = false;
-		//mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
-		//mPlayer=GameObject.Find("Player");
-		//mTileMap = mTileMapObject.GetComponent<Player>();
 
-
-		mTileMapObject=GameObject.Find("CurrentTileMap");
-		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
-
-		mTileMap = mTileMapObject.GetComponent<TileMap>();
-		mManager.AddTarget (this);
+		firstTime = true;
 	}
 	void Update () 
 	{
+		if(firstTime==true)
+		{
+			firstTime = false;
+			mPositionX = 0;
+			mPositionY = 0;
+			mTargetTurn = false;
+			mTileMapObject=GameObject.Find("CurrentTileMap");
+			//mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+			mTileMap = mTileMapObject.GetComponent<TileMap>();
+			//mManager.AddTarget (this);
+			mState = State.Normal;
+			//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 5);
+			Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+			Move(v3Temp);
+		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		mMouseX = mMouse.mMouseHitX;
@@ -94,6 +102,23 @@ public class BaseTarget : MonoBehaviour
 	{
 		bool rc = false;
 		bool walk = false;
+		switch (mState)
+		{
+		case State.Normal:
+			UpdateNormal ();
+			break;
+		case State.Run:
+			UpdateRun ();
+			break;
+		case State.Die:
+			UpdateDie ();
+			break;
+		default:
+			Debug.Log ("Unknown state!");
+			break;
+		}
+		return true;
+		/*
 		int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
 			//Random moveMent;
 			switch(temp)
@@ -129,15 +154,21 @@ public class BaseTarget : MonoBehaviour
 			}
 		//}
 		return rc;
+		*/
 	}
-	void Move(Vector3 pos)
-	{
-		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
-	}
+
 	void UpdateNormal()
 	{
+		//Decide on a Path;
+		PathDecision ();
+		Debug.Log("CurrentChoice : " + mTowardChoice);
+		//Find Path;
+		mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
 
-
+		if(Input.GetKey ("v"))
+		{
+			mState=State.Run;
+		}
 	}
 	void UpdateRun()
 	{
@@ -148,32 +179,93 @@ public class BaseTarget : MonoBehaviour
 	{
 
 	}
-	//Path Find Parts
-	void PathFind(int startX, int startY, int endX, int endY)
+	void PathDecision()//Decision on Paths
 	{
+		//Weight calulation for decision on which path
+		int totalWeight = mWeightA + mWeightB + mWeightC;
+		int randomInt = Random.Range (0, totalWeight);
+		int temp = mWeightA + mWeightB;
+		if(randomInt<mWeightA)
+		{
+			mTowardNodeX = mNodeAX;
+			mTowardNodeY = mNodeAY;
+			mTowardChoice = 0;
+		}
+		else if(randomInt>=mWeightA&&randomInt<temp)
+		{
+			mTowardNodeX = mNodeBX;
+			mTowardNodeY = mNodeBY;
+			mTowardChoice = 1;
+		}
+		else
+		{
+			mTowardNodeX = mNodeCX;
+			mTowardNodeY = mNodeCY;
+			mTowardChoice = 2;
+		}
+
+	}
+	//Path Find Parts
+	List<Node> PathFind(int startX, int startY, int endX, int endY)
+	{
+		List<Node> Path = null;
 		GraphSearch mSearch= new GraphSearch(mTileMap.MapInfo.mGraph);
 		mSearch.Run(startX, startY, endX, endY);
 		if(mSearch.IsFound())
 		{
-			mCloseList = mSearch.GetCloseList();
-			mPath= mSearch.GetPathList();
+			//mCloseList = mSearch.GetCloseList();
+			Path= mSearch.GetPathList();
+			foreach(Node i in Path)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+			}
 		}
-		foreach(Node i in mPath)
+		else
 		{
-			mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+			Debug.Log("No Path is found");
 		}
+		return Path;
 	}	
-	void ResetPath()
+	static List<Node> PathFindRange(ref List<Node> totalPath, int range)
 	{
-		if (mPath == null) 
+		List<Node> Path = null;
+		if (totalPath.Count >= range) 
+		{
+			return Path;
+		}
+		//foreach(Node i in totalPath)
+		//{
+		//
+		//}
+		//foreach(Node i in Path)
+		//{
+		//	mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+		//}
+		return Path;
+	}	
+	void ResetPath(ref List<Node> Path)
+	{
+		if (Path == null) 
 		{
 			return;
 		}
-		for (int i=0; i<mPath.Count; i++)
+		for (int i=0; i<Path.Count; i++)
 		{
-			int x = mPath[i].mIndex;
+			int x = Path[i].mIndex;
 			mTileMap.MapInfo.SetTileTypeIndex (x,0);
 		}
-		mPath.Clear ();
+		Path.Clear ();
+	}
+	void Travel(int x, int y)
+	{
+		mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 5);
+		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(x, y);
+		Move(v3Temp);
+		mPositionX = x;
+		mPositionY = y;
+	}
+	void Move(Vector3 pos)
+	{
+		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
 	}
 }
