@@ -42,7 +42,9 @@ public class BaseTarget : MonoBehaviour
 	public int mRunMovement;
 	public int mInfamy;
 
-	//3 nodes to move around
+	//Node currently going to
+	public int mTowardChoice;
+	//4 nodes to move around
 	public int mNodeAX;
 	public int mNodeAY;
 	public int mWeightA;
@@ -55,11 +57,33 @@ public class BaseTarget : MonoBehaviour
 	public int mNodeCY;
 	public int mWeightC;
 
-	public int mTowardNodeX;
-	public int mTowardNodeY;
-	public int mTowardChoice;
+	public int mNodeDX;
+	public int mNodeDY;
+	public int mWeightD;
+
+	private int mTowardNodeX;
+	private int mTowardNodeY;
+
+
+	//4 nodes to Run around
+	public int mNodeRAX;
+	public int mNodeRAY;
+	public int mWeightRA;
 	
-	private bool mPathTrue;
+	public int mNodeRBX;
+	public int mNodeRBY;
+	public int mWeightRB;
+	
+	public int mNodeRCX;
+	public int mNodeRCY;
+	public int mWeightRC;
+	
+	public int mNodeRDX;
+	public int mNodeRDY;
+	public int mWeightRD;
+
+	private bool mWalkPathTrue;
+	private bool mRunPathTrue;
 	//List to Track Graph
 	public List<Node>mTowardPath;
 	public List<Node>mCurrentPath;
@@ -70,7 +94,8 @@ public class BaseTarget : MonoBehaviour
 	{
 
 		firstTime = true;
-		mPathTrue = false;
+		mWalkPathTrue = false;
+		mRunPathTrue = false;
 		mTargetTurn = false;
 	}
 	void Update () 
@@ -96,10 +121,6 @@ public class BaseTarget : MonoBehaviour
 		mMouseY = mMouse.mMouseHitY;
 
 		if (Input.GetKeyDown ("b"))
-		{
-			mTargetTurn = true;
-		}
-		if(mTargetTurn==true)
 		{
 			UpdateTarget();
 		}
@@ -130,15 +151,15 @@ public class BaseTarget : MonoBehaviour
 
 	void UpdateNormal()
 	{
-		if(mPathTrue==false)
+		if(mWalkPathTrue==false)
 		{
 			ResetPath(ref mTowardPath);
 			//Decide on a Path;
-			PathDecision ();
+			PathDecision (true);
 			//Find Target Node path;
 			mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
 			Debug.Log("CurrentChoice : " + mTowardChoice);
-			mPathTrue = true;
+			mWalkPathTrue = true;
 		}
 		//Find Range, and find current path
 		mCurrentPath = PathFindRange (ref mTowardPath, mMovement);
@@ -154,49 +175,120 @@ public class BaseTarget : MonoBehaviour
 		if(mPositionX == mTowardNodeX && mPositionY == mTowardNodeY)
 		{
 			ResetPath (ref mTowardPath);
-			mPathTrue = false;
+			mWalkPathTrue = false;
 		}	
-		if(Input.GetKey ("v"))
+		if(Input.GetKey ("r"))
 		{
+			ResetPath (ref mCurrentPath);
 			ResetPath (ref mTowardPath);
+			mRunPathTrue = false;
 			mState=State.Run;
 		}
 	}
 	void UpdateRun()
 	{
-
-		mPathTrue = false;
-
+		if(mRunPathTrue==false)
+		{
+			ResetPath(ref mTowardPath);
+			//Decide on a Path;
+			PathDecision (false);
+			//Find Target Node path;
+			mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
+			Debug.Log("CurrentChoice : " + mTowardChoice);
+			mRunPathTrue = true;
+		}
+		mCurrentPath = PathFindRange (ref mTowardPath, mRunMovement);
+		//Find x,y to travel to spot
+		int indexCount = mCurrentPath.Count;
+		int index = mCurrentPath [indexCount - 1].mIndex;
+		int tempX = 0;
+		int tempY = 0;
+		mTileMap.MapInfo.IndexToXY (index, out tempX, out tempY);
+		Travel (tempX, tempY);
+		//Reset currentPath
+		ResetPath (ref mCurrentPath);
+		if(mPositionX == mTowardNodeX && mPositionY == mTowardNodeY)
+		{
+			ResetPath (ref mTowardPath);
+			mRunPathTrue = false;
+		}
+		if(Input.GetKey ("n"))
+		{
+			ResetPath (ref mCurrentPath);
+			ResetPath (ref mTowardPath);
+			mWalkPathTrue = false;
+			mState=State.Run;
+		}
 	}
 	void UpdateDie()
 	{
 
 	}
-	void PathDecision()//Decision on Paths
+	void PathDecision(bool WalkTrue)//Decision on Paths
 	{
-		//Weight calulation for decision on which path
-		int totalWeight = mWeightA + mWeightB + mWeightC;
-		int randomInt = Random.Range (0, totalWeight);
-		int temp = mWeightA + mWeightB;
-		if(randomInt<mWeightA)
+		if(WalkTrue == true)
 		{
-			mTowardNodeX = mNodeAX;
-			mTowardNodeY = mNodeAY;
-			mTowardChoice = 0;
-		}
-		else if(randomInt>=mWeightA&&randomInt<temp)
-		{
-			mTowardNodeX = mNodeBX;
-			mTowardNodeY = mNodeBY;
-			mTowardChoice = 1;
+			//Weight calulation for decision on which path
+			int totalWeight = mWeightA + mWeightB + mWeightC + mWeightD;
+			int randomInt = Random.Range (0, totalWeight);
+			int tempAB = mWeightA + mWeightB;
+			int tempABC = mWeightA + mWeightB + mWeightC;
+			if(randomInt<mWeightA)
+			{
+				mTowardNodeX = mNodeAX;
+				mTowardNodeY = mNodeAY;
+				mTowardChoice = 0;
+			}
+			else if(randomInt >= mWeightA && randomInt < tempAB)
+			{
+				mTowardNodeX = mNodeBX;
+				mTowardNodeY = mNodeBY;
+				mTowardChoice = 1;
+			}
+			else if(randomInt >= tempAB && randomInt < tempABC)
+			{
+				mTowardNodeX = mNodeCX;
+				mTowardNodeY = mNodeCY;
+				mTowardChoice = 2;
+			}
+			else
+			{
+				mTowardNodeX = mNodeDX;
+				mTowardNodeY = mNodeDY;
+				mTowardChoice = 3;
+			}
 		}
 		else
 		{
-			mTowardNodeX = mNodeCX;
-			mTowardNodeY = mNodeCY;
-			mTowardChoice = 2;
+			int totalWeight = mWeightRA + mWeightRB + mWeightRC + mWeightRD;
+			int randomInt = Random.Range (0, totalWeight);
+			int tempAB = mWeightRA + mWeightRB;
+			int tempABC = mWeightRA + mWeightRB + mWeightRC;
+			if(randomInt<mWeightRA)
+			{
+				mTowardNodeX = mNodeRAX;
+				mTowardNodeY = mNodeRAY;
+				mTowardChoice = 4;
+			}
+			else if(randomInt >= mWeightRA && randomInt < tempAB)
+			{
+				mTowardNodeX = mNodeRBX;
+				mTowardNodeY = mNodeRBY;
+				mTowardChoice = 5;
+			}
+			else if(randomInt >= tempAB && randomInt < tempABC)
+			{
+				mTowardNodeX = mNodeRCX;
+				mTowardNodeY = mNodeRCY;
+				mTowardChoice = 6;
+			}
+			else
+			{
+				mTowardNodeX = mNodeRDX;
+				mTowardNodeY = mNodeRDY;
+				mTowardChoice = 7;
+			}
 		}
-
 	}
 	//Path Find Parts
 	List<Node> PathFind(int startX, int startY, int endX, int endY)
