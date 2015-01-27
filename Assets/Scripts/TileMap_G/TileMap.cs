@@ -81,7 +81,7 @@ public class TileMap : MonoBehaviour {
 		MeshRenderer mesh_renderer = GetComponent<MeshRenderer>();
 		Material newMaterial = new Material(mesh_renderer.sharedMaterial);
 		newMaterial.mainTexture = texture;
-		Debug.Log (texture.GetInstanceID());
+		//Debug.Log (texture.GetInstanceID());
 		mesh_renderer.material = newMaterial;
 		
 		Debug.Log ("Done Texture!");
@@ -113,7 +113,7 @@ public class TileMap : MonoBehaviour {
 				uv[ z * vsize_x + x ] = new Vector2( (float)x / size_x, (float)(size_z-z) / size_z );
 			}
 		}
-		Debug.Log ("Done Verts!");
+		//Debug.Log ("Done Verts!");
 		
 		for(z=0; z < size_z; z++) 
 		{
@@ -131,7 +131,7 @@ public class TileMap : MonoBehaviour {
 			}
 		}
 		
-		Debug.Log ("Done Triangles!");
+		//Debug.Log ("Done Triangles!");
 		
 		// Create a new Mesh and populate with the data
 		Mesh mesh = new Mesh();

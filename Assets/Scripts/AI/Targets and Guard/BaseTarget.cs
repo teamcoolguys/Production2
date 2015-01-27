@@ -70,6 +70,8 @@ public class BaseTarget : MonoBehaviour
 	{
 
 		firstTime = true;
+		mPathTrue = false;
+		mTargetTurn = false;
 	}
 	void Update () 
 	{
@@ -93,88 +95,77 @@ public class BaseTarget : MonoBehaviour
 		mMouseX = mMouse.mMouseHitX;
 		mMouseY = mMouse.mMouseHitY;
 
-		if (Input.GetKey ("b"))
+		if (Input.GetKeyDown ("b"))
 		{
-			UpdateTarget ();
+			mTargetTurn = true;
+		}
+		if(mTargetTurn==true)
+		{
+			UpdateTarget();
 		}
 	}
 	public bool UpdateTarget()
 	{
-		bool rc = false;
-		bool walk = false;
+
 		switch (mState)
 		{
 		case State.Normal:
 			UpdateNormal ();
+			mTargetTurn = false;
 			break;
 		case State.Run:
 			UpdateRun ();
+			mTargetTurn = false;
 			break;
 		case State.Die:
 			UpdateDie ();
+			mTargetTurn = false;
 			break;
 		default:
 			Debug.Log ("Unknown state!");
 			break;
 		}
 		return true;
-		/*
-		int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
-			//Random moveMent;
-			switch(temp)
-			{
-				case 1:
-					{
-						Debug.Log ("Target::Floor");
-						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
-						Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
-						Move(v3Temp);
-						mPositionX = mMouseX;
-						mPositionY = mMouseY;
-						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-						mTargetTurn = true;
-						rc = true;
-						walk = true;
-						break;
-					}
-				case 2:
-					{
-						Debug.Log ("Target::Wall");
-						break;
-					}
-				default:
-					{
-						Debug.Log ("Target::Fuck Off");
-						break;
-					}
-			}
-			if(walk == true)
-			{
-				Debug.Log("Walking");
-			}
-		//}
-		return rc;
-		*/
 	}
 
 	void UpdateNormal()
 	{
-		//Decide on a Path;
-		PathDecision ();
-		Debug.Log("CurrentChoice : " + mTowardChoice);
-		//Find Path;
-		mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
+		if(mPathTrue==false)
+		{
+			ResetPath(ref mTowardPath);
+			//Decide on a Path;
+			PathDecision ();
+			//Find Target Node path;
+			mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
+			Debug.Log("CurrentChoice : " + mTowardChoice);
+			mPathTrue = true;
+		}
+		//Find Range, and find current path
 		mCurrentPath = PathFindRange (ref mTowardPath, mMovement);
-		int index = mCurrentPath.Count;
-
+		//Find x,y to travel to spot
+		int indexCount = mCurrentPath.Count;
+		int index = mCurrentPath [indexCount - 1].mIndex;
+		int tempX = 0;
+		int tempY = 0;
+		mTileMap.MapInfo.IndexToXY (index, out tempX, out tempY);
+		Travel (tempX, tempY);
+		//Reset currentPath
+		ResetPath (ref mCurrentPath);
+		if(mPositionX == mTowardNodeX && mPositionY == mTowardNodeY)
+		{
+			ResetPath (ref mTowardPath);
+			mPathTrue = false;
+		}	
 		if(Input.GetKey ("v"))
 		{
+			ResetPath (ref mTowardPath);
 			mState=State.Run;
 		}
 	}
 	void UpdateRun()
 	{
 
+		mPathTrue = false;
 
 	}
 	void UpdateDie()
@@ -231,9 +222,10 @@ public class BaseTarget : MonoBehaviour
 	List<Node> PathFindRange(ref List<Node> totalPath, int range)
 	{
 		List<Node> Path = new List<Node>();
-		if (totalPath.Count >= range) 
+		if (totalPath.Count <= range) 
 		{
-			return Path;
+			totalPath.Reverse ();
+			return totalPath;
 		}
 		else
 		{
@@ -275,11 +267,12 @@ public class BaseTarget : MonoBehaviour
 	}
 	void Travel(int x, int y)
 	{
-		mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 5);
-		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(x, y);
+		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, 0);
+		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(x, y);		
 		Move(v3Temp);
 		mPositionX = x;
 		mPositionY = y;
+		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, 5);
 	}
 	void Move(Vector3 pos)
 	{
