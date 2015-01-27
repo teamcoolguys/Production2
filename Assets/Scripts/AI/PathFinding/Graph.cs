@@ -17,8 +17,6 @@ public class Graph
 	public int mWidth;
 	public int mHeight;
 
-
-
 	//Constructor
 	public Graph()
 	{
@@ -81,7 +79,7 @@ public class Graph
 
 	public Node GetNodeInfo(int x, int y)
 	{
-		Debug.Log ("x:" + x +",y:"+y);
+		//Debug.Log ("x:" + x +",y:"+y);
 		if(x >= 0 && x < mWidth &&
 		   y >= 0 && y < mHeight)
 		{

@@ -143,6 +143,12 @@ public class DTileMap
 	{
 		return mPositionData[(y*size_x)+x];
 	}
+	public Vector3 GetTileLocationIndex(int index)
+	{
+		int x= 0, y = 0;
+		IndexToXY (index, out x, out y);
+		return mPositionData [(y * size_x) + x];
+	}
 	//public V2 GetTileXY(Vector3 location)
 	//{
 	//	for(int y=0;y<size_x;y++)

@@ -12,18 +12,29 @@ using System.Collections.Generic;
 [RequireComponent(typeof(Node))]
 public class BaseTarget : MonoBehaviour
 {
-	//Imformation Needed for the Game
+	public enum State
+	{
+		Normal,
+		Run,
+		Die,
+		Count
+	}
+	//State Currently in
+	private State mState;
+	//Imformation Checking for the Game
 	TileMap mTileMap;
 	TileMapMouse mMouse;
 	GameObject mTileMapObject;
 	GameObject mPlayer;
+								//privates
+	private int mPositionX;		//Current Position
+	private int mPositionY;		//Current Position
+	private int mMouseX;		//Mouse Location
+	private int mMouseY;		//Mouse Location
 
-	//needed to reference the manager
+	//Network Stuff
 	GameManager mManager;
-
-	////Current Position
-	private int mPositionX;
-	private int mPositionY;
+	public bool mTargetTurn;
 
 	//Current Stats
 	public int mDefense;
@@ -44,132 +55,227 @@ public class BaseTarget : MonoBehaviour
 	public int mNodeCY;
 	public int mWeightC;
 
+	public int mTowardNodeX;
+	public int mTowardNodeY;
+	public int mTowardChoice;
+	
+	private bool mPathTrue;
 	//List to Track Graph
-	public List<Node>mCloseList;
-	public List<Node>mPath;
+	public List<Node>mTowardPath;
+	public List<Node>mCurrentPath;
 
-	public bool mTargetTurn;
+	private bool firstTime;
 
-
-	//privates
-	private int mMouseX;
-	private int mMouseY;
-	// Use this for initialization
 	void Start () 
 	{
-		mPositionX = 0;
-		mPositionY = 0;
-		
-		//Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mPositionX, mPositionY);
-		//Move(v3Temp);
-		//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
+
+		firstTime = true;
+		mPathTrue = false;
 		mTargetTurn = false;
-		//mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
-		//mPlayer=GameObject.Find("Player");
-		//mTileMap = mTileMapObject.GetComponent<Player>();
-
-
-		mTileMapObject=GameObject.Find("CurrentTileMap");
-		mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
-
-		mTileMap = mTileMapObject.GetComponent<TileMap>();
-		//mMouseX = mMouse.mMouseHitX;
-		////fixed for negatvie Z values
-		//mMouseY = mMouse.mMouseHitY;
-		//Hard fixed for negative Z values
-		mManager.AddTarget (this);
 	}
-
-	// Update is called once per frame
 	void Update () 
 	{
+		if(firstTime==true)
+		{
+			firstTime = false;
+			mPositionX = 0;
+			mPositionY = 0;
+			mTargetTurn = false;
+			mTileMapObject=GameObject.Find("CurrentTileMap");
+			//mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+			mTileMap = mTileMapObject.GetComponent<TileMap>();
+			//mManager.AddTarget (this);
+			mState = State.Normal;
+			//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 5);
+			Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+			Move(v3Temp);
+		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
-		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
 		mMouseX = mMouse.mMouseHitX;
-		
-		//fixed for negatvie Z values
 		mMouseY = mMouse.mMouseHitY;
-		//fixed for negatvie Z values
-		if (Input.GetKey ("c")) 
-		{
-			//mTileMap = GetComponent<Player>();
 
-		}
-		if (Input.GetKey ("b"))
+		if (Input.GetKeyDown ("b"))
 		{
-			UpdateTarget ();
+			mTargetTurn = true;
+		}
+		if(mTargetTurn==true)
+		{
+			UpdateTarget();
 		}
 	}
 	public bool UpdateTarget()
 	{
-		bool rc = false;
-		bool walk = false;
-			int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
-			//Random moveMent;
-			switch(temp)
-			{
-				case 1:
-					{
-						Debug.Log ("Target::Floor");
-						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 1);
-						Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
-						Move(v3Temp);
-						mPositionX = mMouseX;
-						mPositionY = mMouseY;
-						mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 4);
-						mTargetTurn = true;
-						rc = true;
-						walk = true;
-						break;
-					}
-				case 2:
-					{
-						Debug.Log ("Target::Wall");
-						break;
-					}
-				default:
-					{
-						Debug.Log ("Target::Fuck Off");
-						break;
-					}
-			}
-			if(walk == true)
-			{
-				Debug.Log("Walking");
-			}
-		//}
-		return rc;
+
+		switch (mState)
+		{
+		case State.Normal:
+			UpdateNormal ();
+			mTargetTurn = false;
+			break;
+		case State.Run:
+			UpdateRun ();
+			mTargetTurn = false;
+			break;
+		case State.Die:
+			UpdateDie ();
+			mTargetTurn = false;
+			break;
+		default:
+			Debug.Log ("Unknown state!");
+			break;
+		}
+		return true;
 	}
-	void Move(Vector3 pos)
+
+	void UpdateNormal()
 	{
-		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
+		if(mPathTrue==false)
+		{
+			ResetPath(ref mTowardPath);
+			//Decide on a Path;
+			PathDecision ();
+			//Find Target Node path;
+			mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
+			Debug.Log("CurrentChoice : " + mTowardChoice);
+			mPathTrue = true;
+		}
+		//Find Range, and find current path
+		mCurrentPath = PathFindRange (ref mTowardPath, mMovement);
+		//Find x,y to travel to spot
+		int indexCount = mCurrentPath.Count;
+		int index = mCurrentPath [indexCount - 1].mIndex;
+		int tempX = 0;
+		int tempY = 0;
+		mTileMap.MapInfo.IndexToXY (index, out tempX, out tempY);
+		Travel (tempX, tempY);
+		//Reset currentPath
+		ResetPath (ref mCurrentPath);
+		if(mPositionX == mTowardNodeX && mPositionY == mTowardNodeY)
+		{
+			ResetPath (ref mTowardPath);
+			mPathTrue = false;
+		}	
+		if(Input.GetKey ("v"))
+		{
+			ResetPath (ref mTowardPath);
+			mState=State.Run;
+		}
 	}
-	void PathFind(int startX, int startY, int endX, int endY)
+	void UpdateRun()
 	{
+
+		mPathTrue = false;
+
+	}
+	void UpdateDie()
+	{
+
+	}
+	void PathDecision()//Decision on Paths
+	{
+		//Weight calulation for decision on which path
+		int totalWeight = mWeightA + mWeightB + mWeightC;
+		int randomInt = Random.Range (0, totalWeight);
+		int temp = mWeightA + mWeightB;
+		if(randomInt<mWeightA)
+		{
+			mTowardNodeX = mNodeAX;
+			mTowardNodeY = mNodeAY;
+			mTowardChoice = 0;
+		}
+		else if(randomInt>=mWeightA&&randomInt<temp)
+		{
+			mTowardNodeX = mNodeBX;
+			mTowardNodeY = mNodeBY;
+			mTowardChoice = 1;
+		}
+		else
+		{
+			mTowardNodeX = mNodeCX;
+			mTowardNodeY = mNodeCY;
+			mTowardChoice = 2;
+		}
+
+	}
+	//Path Find Parts
+	List<Node> PathFind(int startX, int startY, int endX, int endY)
+	{
+		List<Node> Path = null;
 		GraphSearch mSearch= new GraphSearch(mTileMap.MapInfo.mGraph);
 		mSearch.Run(startX, startY, endX, endY);
 		if(mSearch.IsFound())
 		{
-			mCloseList = mSearch.GetCloseList();
-			mPath= mSearch.GetPathList();
+			//mCloseList = mSearch.GetCloseList();
+			Path= mSearch.GetPathList();
+			foreach(Node i in Path)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,3);
+			}
 		}
-		foreach(Node i in mPath)
+		else
 		{
-			mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+			Debug.Log("No Path is found");
 		}
+		return Path;
 	}	
-	void ResetPath()
+	List<Node> PathFindRange(ref List<Node> totalPath, int range)
 	{
-		if (mPath == null) 
+		List<Node> Path = new List<Node>();
+		if (totalPath.Count <= range) 
+		{
+			totalPath.Reverse ();
+			return totalPath;
+		}
+		else
+		{
+			int temp = totalPath.Count-range;
+			for (int i=(totalPath.Count-1); i>=temp; i--)
+			{
+				Path.Add (totalPath[i]);
+				totalPath.RemoveAt (i);
+			}
+			foreach(Node i in Path)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+			}
+			return Path;
+		}
+
+		//foreach(Node i in totalPath)
+		//{
+		//
+		//}
+		//foreach(Node i in Path)
+		//{
+		//	mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+		//}
+		return Path;
+	}	
+	void ResetPath(ref List<Node> Path)
+	{
+		if (Path == null) 
 		{
 			return;
 		}
-		for (int i=0; i<mPath.Count; i++)
+		for (int i=0; i<Path.Count; i++)
 		{
-			int x = mPath[i].mIndex;
+			int x = Path[i].mIndex;
 			mTileMap.MapInfo.SetTileTypeIndex (x,0);
 		}
-		mPath.Clear ();
+		Path.Clear ();
+	}
+	void Travel(int x, int y)
+	{
+		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, 0);
+		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(x, y);		
+		Move(v3Temp);
+		mPositionX = x;
+		mPositionY = y;
+		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, 5);
+	}
+	void Move(Vector3 pos)
+	{
+		gameObject.transform.position = pos + new Vector3(0.0f, 1.0f, 0.0f);
 	}
 }
