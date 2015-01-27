@@ -164,6 +164,8 @@ public class BaseTarget : MonoBehaviour
 		Debug.Log("CurrentChoice : " + mTowardChoice);
 		//Find Path;
 		mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
+		mCurrentPath = PathFindRange (ref mTowardPath, mMovement);
+		int index = mCurrentPath.Count;
 
 		if(Input.GetKey ("v"))
 		{
@@ -217,7 +219,7 @@ public class BaseTarget : MonoBehaviour
 			Path= mSearch.GetPathList();
 			foreach(Node i in Path)
 			{
-				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,3);
 			}
 		}
 		else
@@ -226,13 +228,28 @@ public class BaseTarget : MonoBehaviour
 		}
 		return Path;
 	}	
-	static List<Node> PathFindRange(ref List<Node> totalPath, int range)
+	List<Node> PathFindRange(ref List<Node> totalPath, int range)
 	{
-		List<Node> Path = null;
+		List<Node> Path = new List<Node>();
 		if (totalPath.Count >= range) 
 		{
 			return Path;
 		}
+		else
+		{
+			int temp = totalPath.Count-range;
+			for (int i=(totalPath.Count-1); i>=temp; i--)
+			{
+				Path.Add (totalPath[i]);
+				totalPath.RemoveAt (i);
+			}
+			foreach(Node i in Path)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+			}
+			return Path;
+		}
+
 		//foreach(Node i in totalPath)
 		//{
 		//
