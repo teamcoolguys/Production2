@@ -29,21 +29,12 @@ public class HUD : MonoBehaviour
 
 	public float maxinfamy, infamy, percent;
 
-	void Awake()
-	{
-		if(PhotonNetwork.isMasterClient)
-		{
-			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
-		}
-	}
 	void Start ()
 	{
 
 		for (int i = 0; i < maxinfamy; i++)
 		{
-
 			GameObject go = GameObject.Instantiate(infamsprites[i]) as GameObject;
-
 		}
 		maxinfamy = 8; infamy = 0;
 		//Compute Player stats here

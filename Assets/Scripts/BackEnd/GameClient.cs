@@ -30,20 +30,21 @@ public class GameClient : MonoBehaviour
 		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
 		if(PhotonNetwork.isMasterClient)
 		{
-			switch (mManager.sPlayersInRoom)
+			if(mManager.sPlayersInRoom == 0)
 			{
-			case 0:
 				PhotonNetwork.Instantiate(player1Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 1:
+			}
+			else if(mManager.sPlayersInRoom == 1)
+			{
 				PhotonNetwork.Instantiate(player2Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 2:
+			}
+			else if(mManager.sPlayersInRoom == 2)
+			{
 				PhotonNetwork.Instantiate(player3Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 3:
+			}
+			else if(mManager.sPlayersInRoom == 3)
+			{
 				PhotonNetwork.Instantiate(player4Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
 			}
 		}
 	}
@@ -58,20 +59,21 @@ public class GameClient : MonoBehaviour
 		{
 			mGameManager = GameObject.Find("GameManager(Clone)");
 			mManager = mGameManager.GetComponent<GameManager>();
-			switch (mManager.sPlayersInRoom)
+			if(mManager.sPlayersInRoom == 0)
 			{
-			case 0:
 				PhotonNetwork.Instantiate(player1Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 1:
+			}
+			else if(mManager.sPlayersInRoom == 1)
+			{
 				PhotonNetwork.Instantiate(player2Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 2:
+			}
+			else if(mManager.sPlayersInRoom == 2)
+			{
 				PhotonNetwork.Instantiate(player3Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
-			case 3:
+			}
+			else if(mManager.sPlayersInRoom == 3)
+			{
 				PhotonNetwork.Instantiate(player4Prefab.name, transform.position, Quaternion.identity, 0);
-				break;
 			}
 		}
 		if(mManager)
@@ -87,13 +89,14 @@ public class GameClient : MonoBehaviour
 	{
 		if(mManager)
 		{
-			if(mManager.sPlayersTurn <= mManager.sPlayersInRoom)
+			if(mManager.sPlayersTurn < mManager.sPlayersInRoom)
 			{
 				GUI.TextArea(new Rect(10,400,100 ,50),"Players Turn " + (mManager.sPlayersTurn+1).ToString());
 			}
 			else
 			{
 				GUI.TextArea(new Rect(10,400,100 ,50),"AI Turn");
+				Debug.Log(mManager.sPlayersTurn.ToString());
 			}
 			
 			if(GUI.Button(new Rect (10, 500, 100, 50), "End Turn"))

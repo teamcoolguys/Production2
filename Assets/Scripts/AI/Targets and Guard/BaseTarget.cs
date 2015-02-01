@@ -110,9 +110,9 @@ public class BaseTarget : MonoBehaviour
 			if(PhotonNetwork.isMasterClient)
 			{
 				mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+				mManager.AddTarget (this);	
 			}
 			mTileMap = mTileMapObject.GetComponent<TileMap>();
-			mManager.AddTarget (this);
 			mState = State.Normal;
 			//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 5);
 			Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);

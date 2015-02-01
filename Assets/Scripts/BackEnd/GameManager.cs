@@ -33,24 +33,30 @@ public class GameManager : MonoBehaviour
 	//Adds Players to the game
 	public bool AddPlayer(Player p)
 	{
+		bool rc = true;
 		if(sPlayers.Length == 0)
 		{
 			sPlayers.SetValue(p, 0);
 			sPlayersInRoom++;
-			return true;
 		}
-		foreach(Player j in sPlayers)
+		else
 		{
-			if(Equals(p,j))
+			foreach(Player j in sPlayers)
 			{
-				Debug.Log("player already exists");
-				return false;
+				if(Equals(p,j))
+				{
+					Debug.Log("player already exists");
+					rc = false;
+				}
+			}
+			if(rc)
+			{
+				sPlayers.SetValue (p, sPlayersInRoom);
+				sPlayersInRoom++;
 			}
 		}
-		sPlayers.SetValue(p, sPlayersInRoom);
-		sPlayersInRoom++;
 		Debug.Log(sPlayersTurn);
-		return true;
+		return rc;
 	}
 
 	//Adds targets into the game
@@ -69,20 +75,15 @@ public class GameManager : MonoBehaviour
     // Call this to Have the game logic function
 	public void GameLoop()
     {
-//		if(sLastPlayer != (Player)sPlayers[sPlayersTurn])
-//		{
-//			sLastPlayer.mMoved = false;
-//			sLastPlayer.mHand.PlayedCard = false;
-//			sLastPlayer.mAttacked = false;
-//			sLastPlayer = (Player)sPlayers[sPlayersTurn];
-//		}
-		if(sPlayersTurn <= sPlayersInRoom)
+		if(sPlayersTurn < sPlayersInRoom)
 		{
 			PlayerTurn((Player)sPlayers[sPlayersTurn]);
+			Debug.Log(sPlayersTurn);
 		}
-		if (sPlayersTurn > sPlayersInRoom)
+		else if (sPlayersTurn >= sPlayersInRoom)
 		{
 			AITurn();
+			sPlayersTurn++;
 			sPlayersTurn = sPlayersTurn % (sPlayersInRoom + 1);
 			Debug.Log(sPlayersTurn);
 		}
@@ -91,24 +92,27 @@ public class GameManager : MonoBehaviour
 	//this is what the player can do on their turn
 	private void PlayerTurn(Player p)
     {
-		if(!p.mMoved)
+		if(p)
 		{
-			if(Input.GetMouseButtonDown (0))
+			if(!p.mMoved)
 			{
-				if(p.networkView.isMine)
+				if(Input.GetMouseButtonDown (0))
 				{
-					p.UpdatePlayer();
-					Debug.Log(sPlayersTurn);
+					if(p.networkView.isMine)
+					{
+						p.UpdatePlayer();
+						Debug.Log(sPlayersTurn);
+					}
 				}
 			}
-		}
-		else
-		{
-			p.mAttacked = false;
-			p.mMoved = false;
-			//p.mHand.PlayedCard = false;
-			sPlayersTurn++;
-			Debug.Log(sPlayersTurn);
+			else
+			{
+				p.mAttacked = false;
+				p.mMoved = false;
+				//p.mHand.PlayedCard = false;
+				sPlayersTurn++;
+				Debug.Log(sPlayersTurn);
+			}
 		}
     }
 
@@ -117,9 +121,12 @@ public class GameManager : MonoBehaviour
 	{
 		foreach(BaseTarget t in sTargets)
 		{
-			if(t.UpdateTarget())
+			if(t)
 			{
-				t.mTargetTurn = false;
+				if(t.UpdateTarget())
+				{
+					t.mTargetTurn = false;
+				}
 			}
 		}
 	}
