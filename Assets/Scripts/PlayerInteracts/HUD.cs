@@ -31,7 +31,10 @@ public class HUD : MonoBehaviour
 
 	void Awake()
 	{
-		mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager
+		if(PhotonNetwork.isMasterClient)
+		{
+			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+		}
 	}
 	void Start ()
 	{
@@ -331,7 +334,10 @@ public class HUD : MonoBehaviour
 
 	void Update()
 	{
-
+		if(!mManager)
+		{
+			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>();
+		}
 		str.text = infamy.ToString();
 		if (Input.GetKeyDown("space"))
 		{

@@ -107,9 +107,12 @@ public class BaseTarget : MonoBehaviour
 			mPositionY = 0;
 			mTargetTurn = false;
 			mTileMapObject=GameObject.Find("CurrentTileMap");
-			//mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+			if(PhotonNetwork.isMasterClient)
+			{
+				mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+			}
 			mTileMap = mTileMapObject.GetComponent<TileMap>();
-			//mManager.AddTarget (this);
+			mManager.AddTarget (this);
 			mState = State.Normal;
 			//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 5);
 			Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
@@ -145,6 +148,14 @@ public class BaseTarget : MonoBehaviour
 		default:
 			Debug.Log ("Unknown state!");
 			break;
+		}
+		if (!mManager)
+		{
+			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+			if(mManager)
+			{
+				mManager.AddTarget(this);
+			}
 		}
 		return true;
 	}

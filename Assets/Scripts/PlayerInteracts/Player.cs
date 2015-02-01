@@ -69,7 +69,11 @@ public class Player : MonoBehaviour
 	void Start()
 	{
 		mTileMapObject=GameObject.Find("CurrentTileMap");
-		//mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+		if(PhotonNetwork.isMasterClient)
+		{
+			mManager = GameObject.Find ("GameManager(Clone)").GetComponent<GameManager>();
+			mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		mMouseX = mMouse.mMouseHitX;
@@ -80,7 +84,6 @@ public class Player : MonoBehaviour
 		mAttackRange = false;
 		//mHand = new Hand();
 		//mDeck = new Deck ();
-		//mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 		Debug.Log ("Player Created");
 		mWalkRangeIndex = new List<int> ();
 		//mTileMap.MapInfo.SetTileType(0, 0, 4);
@@ -88,6 +91,11 @@ public class Player : MonoBehaviour
 
 	void Update()
 	{
+		if(!mManager)
+		{
+			mManager = GameObject.Find ("GameManager(Clone)").GetComponent<GameManager>();
+			mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
