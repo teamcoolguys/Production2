@@ -99,7 +99,7 @@ public class Player : MonoBehaviour
 		}
 		if (Input.GetKey ("o")) 
 		{
-			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, 2);
+			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Wall);
 			Debug.Log ("Tile: " + mMouseX + "," +mMouseY);
 			Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
 			node.walkable=false;
@@ -139,7 +139,7 @@ public class Player : MonoBehaviour
 					PathFind (mPositionX, mPositionY, mMouseX, mMouseY);
 					mPositionX=mMouseX;
 					mPositionY=mMouseY;
-					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 3);
+					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, DTileMap.TileType.Player);
 					mMoved = true;
 					//ResetWalkRange();
 					mWalkRange = false;
@@ -173,7 +173,7 @@ public class Player : MonoBehaviour
 		}
 		foreach(Node i in mPath)
 		{
-			mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+			mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path);
 		}
 	}	
 	void ResetPath()
@@ -217,7 +217,7 @@ public class Player : MonoBehaviour
 					{
 						checkY = 0;
 					}
-					mTileMap.MapInfo.SetTileType(checkX,checkY, 1);
+					mTileMap.MapInfo.SetTileType(checkX,checkY, DTileMap.TileType.Floor);
 					int index = mTileMap.MapInfo.XYToIndex(checkX,checkY);
 					Temp.Add (index);
 				}

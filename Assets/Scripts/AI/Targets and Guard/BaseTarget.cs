@@ -302,7 +302,7 @@ public class BaseTarget : MonoBehaviour
 			Path= mSearch.GetPathList();
 			foreach(Node i in Path)
 			{
-				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,3);
+				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path);
 			}
 		}
 		else
@@ -329,7 +329,7 @@ public class BaseTarget : MonoBehaviour
 			}
 			foreach(Node i in Path)
 			{
-				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Floor);
 			}
 			return Path;
 		}
@@ -359,12 +359,12 @@ public class BaseTarget : MonoBehaviour
 	}
 	void Travel(int x, int y)
 	{
-		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, 0);
+		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, DTileMap.TileType.Floor);
 		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(x, y);		
 		Move(v3Temp);
 		mPositionX = x;
 		mPositionY = y;
-		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, 5);
+		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, DTileMap.TileType.Target);
 	}
 	void Move(Vector3 pos)
 	{
