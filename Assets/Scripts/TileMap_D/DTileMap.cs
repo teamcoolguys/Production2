@@ -35,7 +35,7 @@ public class DTileMap
 	public enum TileType
 	{
 		Floor,		//0
-		Walkable,	//1
+		Range,		//1
 		Wall,		//2
 		Path,		//3
 		Player,		//4
@@ -66,7 +66,7 @@ public class DTileMap
 			for(int x=0;x<sizex;x++) 
 			{
 				//Setting Map
-				map_data[(y*size_x)+x] = 0;
+				map_data[(y*size_x)+x] = (int)TileType.Floor;
 				
 				
 				//Setting Map position
@@ -79,7 +79,7 @@ public class DTileMap
 				Node node = mGraph.GetNodeInfo(x,y);
 				int type = map_data[(y*size_x)+x];
 				int i= (y*size_x)+x;
-				if(type==0)
+				if(type==(int)TileType.Floor)
 				{
 					node.walkable = true;
 				}
@@ -91,13 +91,9 @@ public class DTileMap
 				{
 					node.walkable = false;
 				}
-				if(i==1)
-				{
-					node.walkable = false;
-				}
 			}
 		}
-		map_data [1] = 2;
+		map_data [1] = (int)TileType.Wall;
 	}
 	public DTileMap(int sizex, int sizey)
 	{
@@ -114,15 +110,15 @@ public class DTileMap
 	{
 		return map_data[(y*size_x)+x];
 	}
-	public void SetTileType(int x, int y, int t)
+	public void SetTileType(int x, int y, TileType t)
 	{
-		map_data[(y*size_x)+x]=t;
+		map_data[(y*size_x)+x]=(int)t;
 
 		mInfo.UpdateTexture (x,y);
 	}
-	public void SetTileTypeIndex(int index, int t)
+	public void SetTileTypeIndex(int index, TileType t)
 	{
-		map_data[index]=t;
+		map_data[index]=(int)t;
 		int x= 0, y = 0;
 		IndexToXY (index,out x, out y);
 		mInfo.UpdateTexture (x,y);
