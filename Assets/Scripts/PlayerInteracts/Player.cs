@@ -107,14 +107,14 @@ public class Player : MonoBehaviour
 		}
 		if (Input.GetKey ("o")) 
 		{
-			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, 2);
+			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Wall);
 			Debug.Log ("Tile: " + mMouseX + "," +mMouseY);
 			Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
 			node.walkable=false;
 		}
 		if (Input.GetKey ("p")) 
 		{
-			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, 0);
+			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Floor);
 			Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
 			node.walkable=true;
 		}
@@ -126,43 +126,41 @@ public class Player : MonoBehaviour
 		//{
 		//	UpdateWalkRange (mRange);
 		//}
-			//if(networkView.isMine)
-			//{
 		if (Input.GetMouseButtonDown (0))
+		{
+			ResetPath();
+			DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
+			switch((int)temp)
 			{
-				ResetPath();
-				int temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
-				switch(temp)
-				{
-				//case 0:
-				//	Debug.Log ("Target::Floor(out of range)");
-				//	mMoved = false;
-				//	break;
-				case 0:
-					
-					Debug.Log ("Target::Walkable");
-					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 0);
-					Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
-					Move(v3Temp);
-					PathFind (mPositionX, mPositionY, mMouseX, mMouseY);
-					mPositionX=mMouseX;
-					mPositionY=mMouseY;
-					mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 3);
-					mMoved = true;
-					//ResetWalkRange();
-					mWalkRange = false;
-					break;
-				case 2:
-					Debug.Log ("Target::Wall");
-					mMoved = false;
-					break;
-				default:
-					//Debug.Log ("Target::Default");
-					mMoved = false;
-					break;
-				}
+			//case 0:
+			//	Debug.Log ("Target::Floor(out of range)");
+			//	mMoved = false;
+			//	break;
+			case 0:
+				
+				Debug.Log ("Target::Walkable");
+				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, DTileMap.TileType.Floor);
+				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+				Move(v3Temp);
+				PathFind (mPositionX, mPositionY, mMouseX, mMouseY);
+				mPositionX=mMouseX;
+				mPositionY=mMouseY;
+				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, DTileMap.TileType.Player);
+				mMoved = true;
+				//ResetWalkRange();
+				mWalkRange = false;
+				break;
+			case 2:
+				Debug.Log ("Target::Wall");
+				mMoved = false;
+				break;
+			default:
+				//Debug.Log ("Target::Default");
+				mMoved = false;
+				break;
 			}
-			return true;
+		}
+		return true;
 	}
 
 	void Move(Vector3 pos)
@@ -181,7 +179,7 @@ public class Player : MonoBehaviour
 		}
 		foreach(Node i in mPath)
 		{
-			mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
+			mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Player);
 		}
 	}	
 	void ResetPath()
@@ -193,7 +191,7 @@ public class Player : MonoBehaviour
 		for (int i=0; i<mPath.Count; i++)
 		{
 			int x = mPath[i].mIndex;
-			mTileMap.MapInfo.SetTileTypeIndex (x,0);
+			mTileMap.MapInfo.SetTileTypeIndex (x,DTileMap.TileType.Floor);
 		}
 		mPath.Clear ();
 	}
@@ -225,7 +223,7 @@ public class Player : MonoBehaviour
 					{
 						checkY = 0;
 					}
-					mTileMap.MapInfo.SetTileType(checkX,checkY, 1);
+					mTileMap.MapInfo.SetTileType(checkX,checkY, DTileMap.TileType.Walkable);
 					int index = mTileMap.MapInfo.XYToIndex(checkX,checkY);
 					Temp.Add (index);
 				}
