@@ -10,6 +10,8 @@ public class GameClient : MonoBehaviour
 	public GameObject mGameManager;
 
 	private GameManager mManager;
+	private int playersInRoom = 0;
+	private GameObject[] players;
 	// Use this for initialization
 	void Awake()
 	{
@@ -30,53 +32,65 @@ public class GameClient : MonoBehaviour
 		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
 		if(PhotonNetwork.isMasterClient)
 		{
-			if(mManager.sPlayersInRoom == 0)
+			if (players == null)
+			{
+				players = GameObject.FindGameObjectsWithTag("Player");		
+				foreach (Object player in players) 
+				{
+					playersInRoom++;
+				}
+			}
+			if(playersInRoom == 0)
 			{
 				PhotonNetwork.Instantiate(player1Prefab.name, transform.position, Quaternion.identity, 0);
 			}
-			else if(mManager.sPlayersInRoom == 1)
+			else if(playersInRoom == 1)
 			{
 				PhotonNetwork.Instantiate(player2Prefab.name, transform.position, Quaternion.identity, 0);
 			}
-			else if(mManager.sPlayersInRoom == 2)
+			else if(playersInRoom == 2)
 			{
 				PhotonNetwork.Instantiate(player3Prefab.name, transform.position, Quaternion.identity, 0);
 			}
-			else if(mManager.sPlayersInRoom == 3)
+			else if(playersInRoom == 3)
 			{
 				PhotonNetwork.Instantiate(player4Prefab.name, transform.position, Quaternion.identity, 0);
 			}
 		}
-	}
-	void OnPlayerConnected()
-	{
-
 	}
 	// Update is called once per frame
 	void Update () 
 	{
 		if(!mManager)
 		{
+			if (players == null)
+			{
+				players = GameObject.FindGameObjectsWithTag("Player");		
+				foreach (Object player in players) 
+				{
+					playersInRoom++;
+				}
+			}
 			mGameManager = GameObject.Find("GameManager(Clone)");
 			mManager = mGameManager.GetComponent<GameManager>();
-			if(mManager.sPlayersInRoom == 0)
+			if(playersInRoom == 0)
 			{
 				PhotonNetwork.Instantiate(player1Prefab.name, transform.position, Quaternion.identity, 0);
 			}
-			else if(mManager.sPlayersInRoom == 1)
+			else if(playersInRoom == 1)
 			{
 				PhotonNetwork.Instantiate(player2Prefab.name, transform.position, Quaternion.identity, 0);
 			}
-			else if(mManager.sPlayersInRoom == 2)
+			else if(playersInRoom == 2)
 			{
 				PhotonNetwork.Instantiate(player3Prefab.name, transform.position, Quaternion.identity, 0);
 			}
-			else if(mManager.sPlayersInRoom == 3)
+			else if(playersInRoom == 3)
 			{
 				PhotonNetwork.Instantiate(player4Prefab.name, transform.position, Quaternion.identity, 0);
 			}
 		}
-		if(mManager)
+		else //if(mManager)
 		{
 			if(mManager.sPlayersInRoom > 0)
 			{

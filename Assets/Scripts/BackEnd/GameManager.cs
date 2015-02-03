@@ -1,4 +1,4 @@
-﻿//Created December 10, 2014
+//Created December 10, 2014
 //Updated December 16, 2014
 //Copywrite Wyatt 2014
 using UnityEngine;
@@ -51,11 +51,11 @@ public class GameManager : MonoBehaviour
 			}
 			if(rc)
 			{
-				sPlayers.SetValue (p, sPlayersInRoom);
+				sPlayers.SetValue (p, sPlayersInRoom - 1);
 				sPlayersInRoom++;
 			}
 		}
-		Debug.Log(sPlayersTurn);
+		Debug.Log(sPlayersInRoom);
 		return rc;
 	}
 
@@ -78,14 +78,14 @@ public class GameManager : MonoBehaviour
 		if(sPlayersTurn < sPlayersInRoom)
 		{
 			PlayerTurn((Player)sPlayers[sPlayersTurn]);
-			Debug.Log(sPlayersTurn);
+			//Debug.Log(sPlayersTurn);
 		}
 		else if (sPlayersTurn >= sPlayersInRoom)
 		{
 			AITurn();
 			sPlayersTurn++;
 			sPlayersTurn = sPlayersTurn % (sPlayersInRoom + 1);
-			Debug.Log(sPlayersTurn);
+			//Debug.Log(sPlayersTurn);
 		}
     }
 
@@ -101,7 +101,7 @@ public class GameManager : MonoBehaviour
 					if(p.networkView.isMine)
 					{
 						p.UpdatePlayer();
-						Debug.Log(sPlayersTurn);
+						//Debug.Log(sPlayersTurn);
 					}
 				}
 			}
@@ -131,65 +131,122 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	public byte[] SerializeGameManager(object customObject)
-	{
-		GameManager gm = (GameManager)customObject;
-		int index = 0;
-		byte[] playerBytes = ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayers);
-		byte[] targetBytes = ExitGames.Client.Photon.Protocol.Serialize (gm.sTargets);
-		byte[] bytes = new byte[playerBytes.Length + targetBytes.Length + 16];
-		ExitGames.Client.Photon.Protocol.Serialize (playerBytes.Length, bytes, ref index);
-		System.Array.Copy (playerBytes, 0, bytes, index, playerBytes.Length);
-		index += playerBytes.Length;
-		ExitGames.Client.Photon.Protocol.Serialize (targetBytes.Length, bytes, ref index);
-		System.Array.Copy (targetBytes, 0, bytes, index, targetBytes.Length);
-		index += targetBytes.Length;
-		ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayersInRoom, bytes, ref index);
-		ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayersTurn, bytes, ref index);
-		ExitGames.Client.Photon.Protocol.Serialize (gm.sTargetsAlive, bytes, ref index);
-		ExitGames.Client.Photon.Protocol.Serialize (gm.sInstaniated, bytes, ref index);
-		return bytes;
-	}
-	public object DeserializeMethod(byte[] bytes)
-	{
-		GameManager gm = new GameManager();
-		int index = 0;
-		int playerBytesLength;
-		int targetBytesLength;
-		ExitGames.Client.Photon.Protocol.Deserialize (out playerBytesLength, bytes, ref index);
-		byte[] playerBytes = new byte[playerBytesLength];
-		System.Array.Copy(bytes, index, playerBytes, 0, playerBytesLength);
-		gm.sPlayers = ((Player[])ExitGames.Client.Photon.Protocol.Deserialize (playerBytes));
-		index += playerBytesLength;
-		ExitGames.Client.Photon.Protocol.Deserialize (out targetBytesLength, bytes, ref index);
-		byte[] targetBytes = new byte[targetBytesLength];
-		System.Array.Copy(bytes, index, targetBytes, 0, targetBytesLength);
-		gm.sPlayers = ((Player[])ExitGames.Client.Photon.Protocol.Deserialize(targetBytes));
-		index += targetBytesLength;
-		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sPlayersInRoom, bytes, ref index);
-		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sPlayersTurn, bytes, ref index);
-		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sTargetsAlive, bytes, ref index);
-		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sInstaniated, bytes, ref index);
-		return gm;
-	}
-	
-	void OnPhotonSerializeView(PhotonStream stream,	PhotonMessageInfo info)
+//	[RPC]
+//	public byte[] SerializeGameManager(object customObject)
+//	{
+//		GameManager gm = (GameManager)customObject;
+//		int index = 0;
+//		byte[] playerBytes = ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayers);
+//		byte[] targetBytes = ExitGames.Client.Photon.Protocol.Serialize (gm.sTargets);
+//		byte[] bytes = new byte[playerBytes.Length + targetBytes.Length + 16];
+//		ExitGames.Client.Photon.Protocol.Serialize (playerBytes.Length, bytes, ref index);
+//		System.Array.Copy (playerBytes, 0, bytes, index, playerBytes.Length);
+//		index += playerBytes.Length;
+//		ExitGames.Client.Photon.Protocol.Serialize (targetBytes.Length, bytes, ref index);
+//		System.Array.Copy (targetBytes, 0, bytes, index, targetBytes.Length);
+//		index += targetBytes.Length;
+//		ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayersInRoom, bytes, ref index);
+//		ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayersTurn, bytes, ref index);
+//		ExitGames.Client.Photon.Protocol.Serialize (gm.sTargetsAlive, bytes, ref index);
+//		ExitGames.Client.Photon.Protocol.Serialize (gm.sInstaniated, bytes, ref index);
+//		return bytes;
+//	}
+//
+//	[RPC]
+//	public object DeserializeMethod(byte[] bytes)
+//	{
+//		GameManager gm = new GameManager();
+//		int index = 0;
+//		int playerBytesLength;
+//		int targetBytesLength;
+//		ExitGames.Client.Photon.Protocol.Deserialize (out playerBytesLength, bytes, ref index);
+//		byte[] playerBytes = new byte[playerBytesLength];
+//		System.Array.Copy(bytes, index, playerBytes, 0, playerBytesLength);
+//		gm.sPlayers = ((Player[])ExitGames.Client.Photon.Protocol.Deserialize (playerBytes));
+//		index += playerBytesLength;
+//		ExitGames.Client.Photon.Protocol.Deserialize (out targetBytesLength, bytes, ref index);
+//		byte[] targetBytes = new byte[targetBytesLength];
+//		System.Array.Copy(bytes, index, targetBytes, 0, targetBytesLength);
+//		gm.sPlayers = ((Player[])ExitGames.Client.Photon.Protocol.Deserialize(targetBytes));
+//		index += targetBytesLength;
+//		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sPlayersInRoom, bytes, ref index);
+//		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sPlayersTurn, bytes, ref index);
+//		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sTargetsAlive, bytes, ref index);
+//		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sInstaniated, bytes, ref index);
+//		return gm;
+//	}
+//
+//	[RPC]
+//	public void SetPlayersInRoom(int iPlayersInRoom)
+//	{
+//		if(PhotonNetwork.isMasterClient)
+//		{
+//			networkView.RPC("SetPlayersInRoom", RPCMode.Others, iPlayersInRoom);
+//		}
+//		sPlayersInRoom = iPlayersInRoom;
+//	}
+//
+//	[RPC]
+//	public void SetPlayersTurn(int iPlayersTurn)
+//	{
+//		if(PhotonNetwork.isMasterClient)
+//		{
+//			networkView.RPC("SetPlayersTurn", RPCMode.Others, iPlayersTurn);
+//		}
+//		sPlayersTurn = iPlayersTurn;
+//	}
+//
+//	void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
+//	{
+//		int Instantiated = 0;
+//		int PlayersInRoom = 0;
+//		int PlayersTurn = 0;
+//		int TargetsAlive = 0;
+//		if (stream.isWriting)
+//		{
+//			//We own this player: send the others our data
+//			Instantiated = sInstaniated;
+//			PlayersInRoom = sPlayersInRoom;
+//			PlayersTurn = sPlayersTurn;
+//			TargetsAlive = sTargetsAlive;
+//
+//			stream.Serialize(ref Instantiated);
+//			stream.Serialize(ref PlayersInRoom);
+//			stream.Serialize(ref PlayersTurn);
+//			stream.Serialize(ref TargetsAlive);
+//		}
+//		else
+//		{
+//			//Network player, receive data
+//			stream.Serialize(ref Instantiated);
+//			stream.Serialize(ref PlayersInRoom);
+//			stream.Serialize(ref PlayersTurn);
+//			stream.Serialize(ref TargetsAlive);
+//
+//			sInstaniated = Instantiated;
+//			sPlayersInRoom = PlayersInRoom;
+//			sPlayersTurn = PlayersTurn;
+//			sTargetsAlive = TargetsAlive;
+//		}
+//	}
+
+	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
 		if (stream.isWriting)
 		{
-			//We own this player: send the others our data
-			stream.SendNext(this);
+			//We own this player: send the others our data			
+			stream.SendNext( sInstaniated );
+			stream.SendNext( sPlayersInRoom );
+			stream.SendNext( sPlayersTurn );
+			stream.SendNext( sTargetsAlive );
 		}
 		else
 		{
-			GameManager networks = (GameManager)stream.ReceiveNext();
 			//Network player, receive data
-			sInstaniated = networks.sInstaniated;
-			sPlayersInRoom = networks.sPlayersInRoom;
-			sPlayers = networks.sPlayers;
-			sTargets = networks.sTargets;
-			sPlayersTurn = networks.sPlayersTurn;
-			sTargetsAlive = networks.sTargetsAlive;
+			sInstaniated = (int)stream.ReceiveNext();
+			sPlayersInRoom = (int)stream.ReceiveNext();
+			sPlayersTurn = (int)stream.ReceiveNext();
+			sTargetsAlive = (int)stream.ReceiveNext();
 		}
 	}
 }
