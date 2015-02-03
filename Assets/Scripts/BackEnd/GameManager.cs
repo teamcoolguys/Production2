@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
 			}
 			if(rc)
 			{
-				sPlayers.SetValue (p, sPlayersInRoom - 1);
+				sPlayers.SetValue (p, sPlayersInRoom);
 				sPlayersInRoom++;
 			}
 		}
@@ -66,7 +66,7 @@ public class GameManager : MonoBehaviour
 		sTargetsAlive++;
 		return true;
 	}
-
+	   
 	public Player CurrentPlayer()
 	{
 		return (Player)sPlayers [sPlayersTurn];
@@ -77,14 +77,28 @@ public class GameManager : MonoBehaviour
     {
 		if(sPlayersTurn < sPlayersInRoom)
 		{
-			PlayerTurn((Player)sPlayers[sPlayersTurn]);
+			if(PhotonNetwork.isMasterClient)
+			{
+				PlayerTurn((Player)sPlayers[sPlayersTurn]);
+			}
+			else
+			{
+				PlayerTurn((Player)sPlayers[sPlayersTurn+1]);
+			}
 			//Debug.Log(sPlayersTurn);
 		}
 		else if (sPlayersTurn >= sPlayersInRoom)
 		{
 			AITurn();
-			sPlayersTurn++;
-			sPlayersTurn = sPlayersTurn % (sPlayersInRoom + 1);
+			if(PhotonNetwork.isMasterClient)
+			{
+				sPlayersTurn++;
+				sPlayersTurn = sPlayersTurn % (sPlayersInRoom + 1);
+			}
+			else
+			{
+				sPlayersTurn = 1;
+			}
 			//Debug.Log(sPlayersTurn);
 		}
     }

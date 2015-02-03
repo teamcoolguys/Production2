@@ -9,7 +9,7 @@ public class Map : MonoBehaviour {
 	public Player[] player;
 
 	//privates
-	private int currentPlayer;
+	//private int currentPlayer;
 
 	// Use this for initialization
 	void Start () 
@@ -22,7 +22,7 @@ public class Map : MonoBehaviour {
 	{
 		if (Input.GetMouseButton (0)) 
 		{
-			player[currentPlayer].GetComponent<Player>();
+			//player[currentPlayer].GetComponent<Player>();
 		}
 	}
 }

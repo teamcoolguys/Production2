@@ -5,113 +5,118 @@ using System.Collections.Generic;
 public class HUD : MonoBehaviour 
 {
 	//publix
-	public List<GameObject> deck = new List<GameObject>();
+	public GameObject[] deck = new GameObject[10];
 	public List<GUITexture> infamsprites = new List<GUITexture>();
 	public double uoff = 0;
 	public GUITexture bar, backbar, turns, stats;
 	public GUITexture combar, atkbar, defbar, atkprt, defprt, cardslots;
 	public GUIText str, def, mov, inf;
-
+	
 	//privates
+	private int decksize, cdel;
 	private baseCharacter ch;
-	private List<GameObject> discard = new List<GameObject>();
-	private List<GameObject> cards = new List<GameObject>();
-	private List<GameObject> hand = new List<GameObject>();
-	private int cardsDealt = 0;
+	private GameObject[] discard = new GameObject[10];
+	private GameObject[] cards = new GameObject[10];
+	private GameObject[] hand = new GameObject[5];
 	private int cardsheld = 0;
+	private int cardsDealt = 0;
 	private bool[] cs = new bool[3];
 	private bool showR = false;
 	private bool combui = false;
-
+	private int attackeratk, attackerdef, defenderatk, defenderdef, bartotal, barpercent;
+	
 	//wyatt
 	private GameManager mManager;
 	//
-
+	
 	public float maxinfamy, infamy, percent;
-
+	
 	void Start ()
 	{
-
-		for (int i = 0; i < maxinfamy; i++)
-		{
-			GameObject go = GameObject.Instantiate(infamsprites[i]) as GameObject;
-		}
 		maxinfamy = 8; infamy = 0;
 		//Compute Player stats here
-
-		//str.text = player.GetComponent<GameClient> ().playerPrefab.mCharacter.mInputAttack.ToString();
-		//def.text = player.GetComponent<GameClient> ().playerPrefab.mCharacter.mInputDefence.ToString();
-		//mov.text = player.GetComponent<GameClient>().playerPrefab.mCharacter.mInputMovement.ToString();
-
+		decksize = deck.Length;
+		
+		
 		ResetDeck ();
 	}
-
+	
 	void ResetDeck()
 	{
-		cardsDealt = 0;
-		for (int i = 0; i < hand.Count; i++) 
+		for (int i = 0; i < hand.Length; i++) 
 		{
-			Destroy(hand[i]);	
+			hand[i] = null;	
 		}
-		for (int i = 0; i < discard.Count; i++) 
+		for (int i = 0; i < discard.Length; i++) 
 		{
-			Destroy(discard[i]);
+			discard[i] = null;	
 		}
-		discard.Clear ();
-		hand.Clear ();
-		cards.Clear ();
-		cards.AddRange (deck);
+		System.Array.Copy (deck, cards, cards.Length);
 		showR = false;
-		cardsheld = 0;
-		cardsDealt = 0;
-	}
-
-	void Playcard(GameObject cardd)
-	{
-		GameObject al;
-		al = cardd.transform.parent.gameObject;
-		discard.Add (al);
-		hand.Remove (al);
-		Destroy (al);
-		//do card stuff
-	}
-
-	GameObject DealCard()
-	{
-		if (cards.Count == 0) 
-		{
-			showR = true;
-			return null;
-			// alternately reset deck with ResetDeck();
-		}
-		int card = Random.Range (0, cards.Count - 1);
-		GameObject go = GameObject.Instantiate (cards [card]) as GameObject;
-		cards.RemoveAt (card);
-		cardsheld++;
-		return go;
-	}
-
-	void Gameover()
-	{
-		cardsDealt = 0;
-		for (int i = 0; i < hand.Count; i++) 
-		{
-			Destroy(hand[i]);	
-		}
-		for (int i = 0; i < discard.Count; i++) 
-		{
-			Destroy(discard[i]);
-		}
-		discard.Clear ();
-		hand.Clear ();
-		cards.Clear ();
-		cards.AddRange (deck);
-		showR = false;
+		cdel = 0;
 		cardsheld = 0;
 		cardsDealt = 0;
 	}
 	
-
+	void Playcard(GameObject cardd)
+	{
+		GameObject al;
+		al = cardd.transform.parent.gameObject;
+		for (int i = 0; i <discard.Length; i++)
+		{
+			if (discard[i] == null)
+			{
+				discard[i] = cardd;
+			}
+		}
+		Destroy (al);
+		//do card stuff
+	}
+	
+	GameObject DealCard()
+	{
+		if (cardsheld == 5) 
+		{
+			return null;
+			// alternately reset deck with ResetDeck();
+		}
+		
+		System.Random rand = new System.Random();
+		int card = rand.Next (10);
+		while(true)
+		{
+			if (cards [card] == null)
+			{
+				card = rand.Next (10);
+				Debug.Log(card);
+			}
+			else
+				break;
+		}
+		GameObject go = GameObject.Instantiate (cards [card]) as GameObject;
+		cards [card] = null;
+		if (hand[0] == null)
+			hand[0] = go;
+		else if (hand[1] == null)
+			hand[1] = go;
+		else if (hand[2] == null)
+			hand[2] = go;
+		else if (hand[3] == null)
+			hand[3] = go;
+		else if (hand[4] == null)
+			hand[4] = go;
+		cardsheld++;
+		cdel++;
+		return go;
+	}
+	
+	void Gameover()
+	{
+		ResetDeck();
+		infamy = 0;
+	}
+	
+	
 	Rect ResizeGUI(Rect _rect)
 	{
 		float FilScreenWidth = _rect.width / 800;
@@ -123,7 +128,7 @@ public class HUD : MonoBehaviour
 		
 		return new Rect(rectX,rectY,rectWidth,rectHeight);
 	}
-
+	
 	void OnGUI()
 	{
 		
@@ -145,7 +150,10 @@ public class HUD : MonoBehaviour
 			GUI.Box(new Rect((Screen.width/2) + 5,220,50,185), "");//Middle Defense bar
 			GUI.Box(new Rect((Screen.width/2) - 20,215,100,10), "");//Middle Clash bar
 			GUI.Box(new Rect((Screen.width/2) - 180,80,100,100), "");//Attacker Port box
-			GUI.Box(new Rect((Screen.width/2) - 180,40,100,20), "PlayerName");//Attacker name box
+			if(mManager)
+			{
+				GUI.Box(new Rect((Screen.width/2) - 180,40,100,20), mManager.CurrentPlayer().networkView.name);//Attacker name box
+			}
 			GUI.Box(new Rect((Screen.width/2) + 210,430,100,100), "");//Def port box
 			GUI.Box(new Rect((Screen.width/2) + 210,390,100,20), "Defendername");//Def name box
 		}
@@ -157,7 +165,7 @@ public class HUD : MonoBehaviour
 			{percent = 190; infamy = maxinfamy;}
 			else
 				percent = 190 * (infamy/maxinfamy);
-
+			
 			GUI.DrawTexture(new Rect((Screen.width/2) - 100, (Screen.height/2) - (Screen.height/2) + 25, 200, 30), backbar.texture , ScaleMode.StretchToFill, true, 0.0f);
 			GUI.DrawTexture(new Rect((Screen.width/2) - 95, (Screen.height/2) - (Screen.height/2) + 30, percent, 20), bar.texture , ScaleMode.StretchToFill, true, 0.0f);
 			inf.text = "Infamy"; //Infamy text and spacing it out
@@ -165,7 +173,7 @@ public class HUD : MonoBehaviour
 			GUI.DrawTexture(new Rect((Screen.width/2) - 470, (Screen.height/2) - 240, 200, 300), turns.texture , ScaleMode.StretchToFill, true, 0.0f);
 			//stats
 			GUI.DrawTexture(new Rect((Screen.width/2) + 260, (Screen.height/2) - 240, 200, 300), stats.texture , ScaleMode.StretchToFill, true, 0.0f);
-
+			
 			if (GUI.Button(new Rect(40,40,50, 30), "INFAMY BOOOST"))
 			{
 				infamy = infamy+1;
@@ -191,13 +199,13 @@ public class HUD : MonoBehaviour
 			}
 		}
 		//GameObject go = GameObject.Instantiate
-
+		
 	}
-
+	
 	void MoveDealtCard()
 	{
 		GameObject newCard = DealCard ();
-
+		
 		if (newCard == null)
 		{
 			Debug.Log("Out of Cards");
@@ -209,12 +217,28 @@ public class HUD : MonoBehaviour
 		newCard.transform.position = hudd.transform.position;
 		newCard.transform.rotation = hudd.transform.rotation;
 		newCard.transform.position = new Vector3(newCard.transform.position.x - offset, newCard.transform.position.y, newCard.transform.position.z + offset);
-		hand.Add (newCard);
+		//hand.Add (newCard);
 		cardsDealt++;
 	}
-
+	
 	void Rearrangehand()
 	{
+		GameObject[] tempdeck = new GameObject[5];
+		int cintd = 0;
+		for (int i = 0; i < hand.Length; i++) 
+		{
+			if (hand[i] != null)
+			{
+				tempdeck[cintd] = hand[i];
+				cintd++;
+			}
+		}
+		
+		for (int i = 0; i < hand.Length; i++) 
+		{
+			hand[i] = tempdeck[i];
+		}
+		
 		GameObject hudd = GameObject.FindGameObjectWithTag("HUD");
 		float offset = (float)-.5;
 		offset = offset + (float)uoff;
@@ -246,9 +270,9 @@ public class HUD : MonoBehaviour
 			hand[0].transform.position = new Vector3(hand[0].transform.position.x , hand[0].transform.position.y- 5, hand[0].transform.position.z );
 			hand[0].transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up);
 			offset = offset + 1;
-
+			
 			hand[1].transform.position = Camera.main.transform.position + Camera.main.transform.forward  * 6;
-
+			
 			hand[1].transform.position = new Vector3(hand[1].transform.position.x , hand[1].transform.position.y- 5, hand[1].transform.position.z );
 			hand[1].transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up);
 			offset = offset + 1;
@@ -307,27 +331,44 @@ public class HUD : MonoBehaviour
 			hand[4].transform.position = new Vector3(hand[4].transform.position.x , hand[4].transform.position.y - 5, hand[4].transform.position.z );
 			hand[4].transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up);
 		}
-
-
+		
+		
 	}
-
-//	void Rearrangeinfamy()
-//	{
-//		int w =24, h =24, x = -128, y = -80;
-//		for (int i=0; i < maxinfamy; i++)
-//		{
-//			transform.position = Vector3.zero;
-//			transform.localScale = Vector3.zero;
-//			infamsprites[i].pixelInset = new Rect(x,y,w,h);
-//				x = x + 24;
-//		}
-//	}
-
+	
+	//	void Rearrangeinfamy()
+	//	{
+	//		int w =24, h =24, x = -128, y = -80;
+	//		for (int i=0; i < maxinfamy; i++)
+	//		{
+	//			transform.position = Vector3.zero;
+	//			transform.localScale = Vector3.zero;
+	//			infamsprites[i].pixelInset = new Rect(x,y,w,h);
+	//				x = x + 24;
+	//		}
+	//	}
+	
 	void Update()
 	{
 		if(!mManager)
 		{
-			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>();
+			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+			if(mManager)
+			{
+				str.text = mManager.CurrentPlayer ().mAttack.ToString();
+				def.text = mManager.CurrentPlayer ().mDefence.ToString();
+				mov.text = mManager.CurrentPlayer ().mMovement.ToString();
+			}
+		}
+		if (combui)
+		{
+			bool killed = false;
+			//if attacker is attacking
+			bartotal = attackeratk + defenderdef;
+			
+			//import bar code from other bar
+			
+			//if defender is attacking
+			bartotal = defenderatk + attackerdef;
 		}
 		str.text = infamy.ToString();
 		if (Input.GetKeyDown("space"))
@@ -337,22 +378,9 @@ public class HUD : MonoBehaviour
 			else
 				combui = false;
 		}
-
-		if (combui) 
-		{
-
-		} 
-		else 
-		{
-
-		}
-
-		//Rearrangeinfamy ();
-		//bar = GameObject.Find("frontbr").guiTexture;
-
-
+		
 		Rearrangehand ();
-		if (cardsheld == 5 || cards.Count == 0) 
+		if (cdel == decksize) 
 		{
 			showR = true;
 		}
@@ -377,9 +405,7 @@ public class HUD : MonoBehaviour
 		}
 		
 	}
-
-
-
+	
+	
+	
 }
-
-
