@@ -349,14 +349,30 @@ public class HUD : MonoBehaviour
 	
 	void Update()
 	{
-		if(!mManager)
+		if(PhotonNetwork.offlineMode)
 		{
-			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
-			if(mManager)
+			if(!mManager)
 			{
-				str.text = mManager.CurrentPlayer ().mAttack.ToString();
-				def.text = mManager.CurrentPlayer ().mDefence.ToString();
-				mov.text = mManager.CurrentPlayer ().mMovement.ToString();
+				mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager
+				if(mManager)
+				{
+					str.text = mManager.CurrentPlayer ().mAttack.ToString();
+					def.text = mManager.CurrentPlayer ().mDefence.ToString();
+					mov.text = mManager.CurrentPlayer ().mMovement.ToString();
+				}
+			}
+		}
+		else
+		{
+			if(!mManager)
+			{
+				mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+				if(mManager)
+				{
+					str.text = mManager.CurrentPlayer ().mAttack.ToString();
+					def.text = mManager.CurrentPlayer ().mDefence.ToString();
+					mov.text = mManager.CurrentPlayer ().mMovement.ToString();
+				}
 			}
 		}
 		if (combui)

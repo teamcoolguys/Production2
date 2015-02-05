@@ -109,8 +109,19 @@ public class BaseTarget : MonoBehaviour
 			mTileMapObject=GameObject.Find("CurrentTileMap");
 			if(PhotonNetwork.isMasterClient)
 			{
-				mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
-				mManager.AddTarget (this);	
+				if(!mManager)
+				{
+					if(PhotonNetwork.offlineMode)
+					{
+						mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager
+						mManager.AddTarget (this);	
+					}
+					else
+					{
+						mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+						mManager.AddTarget (this);	
+					}
+				}
 			}
 			mTileMap = mTileMapObject.GetComponent<TileMap>();
 			mState = State.Normal;

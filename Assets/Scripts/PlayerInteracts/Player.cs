@@ -69,11 +69,6 @@ public class Player : MonoBehaviour
 	void Start()
 	{
 		mTileMapObject=GameObject.Find("CurrentTileMap");
-		if(PhotonNetwork.isMasterClient)
-		{
-			mManager = GameObject.Find ("GameManager(Clone)").GetComponent<GameManager>();
-			mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
-		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
 		mMouseX = mMouse.mMouseHitX;
@@ -93,8 +88,17 @@ public class Player : MonoBehaviour
 	{
 		if(!mManager)
 		{
-			mManager = GameObject.Find ("GameManager(Clone)").GetComponent<GameManager>();
-			mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+			if(!PhotonNetwork.offlineMode)
+			{
+
+				mManager = GameObject.Find ("GameManager(Clone)").GetComponent<GameManager>();
+				mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+			}
+			else
+			{
+				mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
+				mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+			}
 		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();

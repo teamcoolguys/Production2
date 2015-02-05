@@ -101,10 +101,17 @@ public class GameManager : MonoBehaviour
 		{
 			if(!p.mMoved)
 			{
-				if(p.networkView.isMine)
+				if(PhotonNetwork.offlineMode)
 				{
 					p.UpdatePlayer();
-					//Debug.Log(sPlayersTurn);
+				}
+				else
+				{
+					if(p.networkView.isMine)
+					{
+						p.UpdatePlayer();
+						//Debug.Log(sPlayersTurn);
+					}
 				}
 			}
 			else
@@ -267,5 +274,21 @@ public class GameManager : MonoBehaviour
 			sPlayersTurn = (int)stream.ReceiveNext();
 			sTargetsAlive = (int)stream.ReceiveNext();
 		}
+	}
+	void Awake()
+	{
+		if(GameObject.Find("GameClient"))
+		{
+			PhotonNetwork.offlineMode = false;
+		}
+		else
+		{
+			PhotonNetwork.offlineMode = true;
+		}
+	}
+
+	void Update()
+	{
+		GameLoop ();
 	}
 }
