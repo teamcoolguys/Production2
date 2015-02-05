@@ -78,11 +78,18 @@ public class GameManager : MonoBehaviour
     {
 		if(newPlayerAdded)
 		{
-			CheckPlayers();
+			//CheckPlayers();
 		}
 		if(sPlayersTurn < sPlayersInRoom)
 		{
-			PlayerTurn((Player)sPlayers[sPlayersTurn]);
+			if(PhotonNetwork.isMasterClient)
+			{
+				PlayerTurn((Player)sPlayers[sPlayersTurn]);
+			}
+			else
+			{
+				PlayerTurn((Player)sPlayers[sPlayersTurn + 1]);
+			}
 			//Debug.Log(sPlayersTurn);
 		}
 		else if (sPlayersTurn >= sPlayersInRoom)
@@ -90,6 +97,10 @@ public class GameManager : MonoBehaviour
 			AITurn();
 			sPlayersTurn++;
 			sPlayersTurn = sPlayersTurn % (sPlayersTurn);
+			if(!PhotonNetwork.isMasterClient)
+			{
+				sPlayersTurn++;
+			}
 			//Debug.Log(sPlayersTurn);
 		}
     }

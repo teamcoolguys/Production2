@@ -151,6 +151,7 @@ public class Player : MonoBehaviour
 				mPositionY=mMouseY;
 				mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, DTileMap.TileType.Player);
 				mMoved = true;
+				mManager.sPlayersTurn++;
 				//ResetWalkRange();
 				mWalkRange = false;
 				break;

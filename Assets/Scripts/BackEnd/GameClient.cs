@@ -15,6 +15,14 @@ public class GameClient : MonoBehaviour
 	// Use this for initialization
 	void Awake()
 	{
+		if (!PhotonNetwork.offlineMode && players == null)
+		{
+			players = GameObject.FindGameObjectsWithTag("Player");		
+			foreach (Object player in players) 
+			{
+				Destroy(player);
+			}
+		}
 		// in case we started this demo with the wrong scene being active, simply load the menu scene
 		if (!PhotonNetwork.connected)
 		{
@@ -34,6 +42,8 @@ public class GameClient : MonoBehaviour
 		{
 			if (players == null)
 			{
+				playersInRoom = 0;
+
 				players = GameObject.FindGameObjectsWithTag("Player");		
 				foreach (Object player in players) 
 				{
