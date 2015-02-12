@@ -100,24 +100,25 @@ public class BaseTarget : MonoBehaviour
 	}
 	void Update () 
 	{
-		if(firstTime==true)
+		if(firstTime == true)
 		{
 			firstTime = false;
 			mPositionX = 0;
 			mPositionY = 0;
 			mTargetTurn = false;
-			mTileMapObject=GameObject.Find("CurrentTileMap");
 			if(PhotonNetwork.isMasterClient)
 			{
 				if(!mManager)
 				{
 					if(PhotonNetwork.offlineMode)
 					{
+						mTileMapObject = GameObject.Find("CurrentTileMap");
 						mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager
 						mManager.AddTarget (this);	
 					}
 					else
 					{
+						mTileMapObject=GameObject.Find("CurrentTileMap(Clone)");
 						mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
 						mManager.AddTarget (this);	
 					}

@@ -58,6 +58,7 @@ public class Player : MonoBehaviour
 	public bool mAttacked;
 	private Vector3 syncEndPosition = Vector3.zero;
 	private GameManager mManager;
+	private PhotonView photonView;
 	//made this public so I could reference it in the Game Manager to pass to the HUD 
 	//allows game loop to move forwardcurrently//
 	
@@ -68,11 +69,7 @@ public class Player : MonoBehaviour
 	// Use this for initialization
 	void Start()
 	{
-		mTileMapObject=GameObject.Find("CurrentTileMap");
-		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
-		mTileMap = mTileMapObject.GetComponent<TileMap>();
-		mMouseX = mMouse.mMouseHitX;
-		mMouseY = mMouse.mMouseHitY;
+
 		//instantiates the objects in this object
 		mMoved = false;
 		mWalkRange = false;
@@ -82,6 +79,7 @@ public class Player : MonoBehaviour
 		Debug.Log ("Player Created");
 		mWalkRangeIndex = new List<int> ();
 		//mTileMap.MapInfo.SetTileType(0, 0, 4);
+		photonView = GetComponent<PhotonView> ();
 	}
 
 	void Update()
@@ -90,37 +88,45 @@ public class Player : MonoBehaviour
 		{
 			if(!PhotonNetwork.offlineMode)
 			{
-
+				mTileMapObject=GameObject.Find("CurrentTileMap(Clone)");
 				mManager = GameObject.Find ("GameManager(Clone)").GetComponent<GameManager>();
 				mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 			}
 			else
 			{
+				mTileMapObject=GameObject.Find("CurrentTileMap");
+				mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
+				mTileMap = mTileMapObject.GetComponent<TileMap>();
+				mMouseX = mMouse.mMouseHitX;
+				mMouseY = mMouse.mMouseHitY;
 				mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
 				mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 			}
 		}
-		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
-		mTileMap = mTileMapObject.GetComponent<TileMap>();
-		//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
-		mMouseX = mMouse.mMouseHitX;
-		mMouseY = mMouse.mMouseHitY;
-		if (Input.GetKey ("w"))
+		if(mTileMapObject)
 		{
-			UpdatePlayer ();
-		}
-		if (Input.GetKey ("o")) 
-		{
-			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Wall);
-			Debug.Log ("Tile: " + mMouseX + "," +mMouseY);
-			Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
-			node.walkable=false;
-		}
-		if (Input.GetKey ("p")) 
-		{
-			mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Floor);
-			Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
-			node.walkable=true;
+			mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
+			mTileMap = mTileMapObject.GetComponent<TileMap>();
+			//Debug.Log ("Tile: " + mMouse.mMouseHitX + ", " + mMouse.mMouseHitY);
+			mMouseX = mMouse.mMouseHitX;
+			mMouseY = mMouse.mMouseHitY;
+			if (Input.GetKey ("w"))
+			{
+				UpdatePlayer ();
+			}
+			if (Input.GetKey ("o")) 
+			{
+				mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Wall);
+				Debug.Log ("Tile: " + mMouseX + "," +mMouseY);
+				Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
+				node.walkable=false;
+			}
+			if (Input.GetKey ("p")) 
+			{
+				mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Floor);
+				Node node = mTileMap.MapInfo.mGraph.GetNodeInfo(mMouseX,mMouseY);
+				node.walkable=true;
+			}
 		}
 	}
 

@@ -31,6 +31,8 @@ internal static class CustomTypes
         PhotonPeer.RegisterType(typeof(Vector3), (byte)'V', SerializeVector3, DeserializeVector3);
         PhotonPeer.RegisterType(typeof(Quaternion), (byte)'Q', SerializeQuaternion, DeserializeQuaternion);
         PhotonPeer.RegisterType(typeof(PhotonPlayer), (byte)'P', SerializePhotonPlayer, DeserializePhotonPlayer);
+		PhotonPeer.RegisterType(typeof(GameManager), (byte)'O', SerializeGameManager, DeserializeGameManager);
+		
     }
 
     #region Custom De/Serializer Methods
@@ -172,6 +174,47 @@ internal static class CustomTypes
             return null;
         }
     }
+	private static byte[] SerializeGameManager(object customObject)
+	{
+		GameManager gm = (GameManager)customObject;
+		int index = 0;
+		byte[] playerBytes = ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayers);
+		byte[] targetBytes = ExitGames.Client.Photon.Protocol.Serialize (gm.sTargets);
+		byte[] bytes = new byte[playerBytes.Length + targetBytes.Length + 16];
+		ExitGames.Client.Photon.Protocol.Serialize (playerBytes.Length, bytes, ref index);
+		System.Array.Copy (playerBytes, 0, bytes, index, playerBytes.Length);
+		index += playerBytes.Length;
+		ExitGames.Client.Photon.Protocol.Serialize (targetBytes.Length, bytes, ref index);
+		System.Array.Copy (targetBytes, 0, bytes, index, targetBytes.Length);
+		index += targetBytes.Length;
+		ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayersInRoom, bytes, ref index);
+		ExitGames.Client.Photon.Protocol.Serialize (gm.sPlayersTurn, bytes, ref index);
+		ExitGames.Client.Photon.Protocol.Serialize (gm.sTargetsAlive, bytes, ref index);
+		ExitGames.Client.Photon.Protocol.Serialize (gm.sInstaniated, bytes, ref index);
+		return bytes;
+	}
+	private static object DeserializeGameManager(byte[] bytes)
+	{
+		GameManager gm = new GameManager();
+		int index = 0;
+		int playerBytesLength;
+		int targetBytesLength;
+		ExitGames.Client.Photon.Protocol.Deserialize (out playerBytesLength, bytes, ref index);
+		byte[] playerBytes = new byte[playerBytesLength];
+		System.Array.Copy(bytes, index, playerBytes, 0, playerBytesLength);
+		gm.sPlayers = ((Player[])ExitGames.Client.Photon.Protocol.Deserialize (playerBytes));
+		index += playerBytesLength;
+		ExitGames.Client.Photon.Protocol.Deserialize (out targetBytesLength, bytes, ref index);
+		byte[] targetBytes = new byte[targetBytesLength];
+		System.Array.Copy(bytes, index, targetBytes, 0, targetBytesLength);
+		gm.sPlayers = ((Player[])ExitGames.Client.Photon.Protocol.Deserialize(targetBytes));
+		index += targetBytesLength;
+		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sPlayersInRoom, bytes, ref index);
+		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sPlayersTurn, bytes, ref index);
+		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sTargetsAlive, bytes, ref index);
+		ExitGames.Client.Photon.Protocol.Deserialize (out gm.sInstaniated, bytes, ref index);
+		return gm;
+	}
 
     #endregion
 }

@@ -38,9 +38,9 @@ public class TileMapMouse : MonoBehaviour {
 			}
 			currentTileCoord.x = x;
 			currentTileCoord.z = z;
-			mMouseHitX=x;
-			mMouseHitY=z;
-			mMousePosition=currentTileCoord*_tileMap.tileSize+ new Vector3(0.5f,selectionCube.position.y,0.5f);
+			mMouseHitX = x;
+			mMouseHitY = z;
+			mMousePosition = currentTileCoord*_tileMap.tileSize+ new Vector3(0.5f,selectionCube.position.y,0.5f);
 			selectionCube.transform.position = mMousePosition;
 		}
 		else

@@ -3,15 +3,17 @@ using System.Collections;
 
 public class GameClient : MonoBehaviour 
 {
-	public GameObject player1Prefab;
-	public GameObject player2Prefab;
-	public GameObject player3Prefab;
-	public GameObject player4Prefab;
+	public GameObject mPlayer1Prefab;
+	public GameObject mPlayer2Prefab;
+	public GameObject mPlayer3Prefab;
+	public GameObject mPlayer4Prefab;
 	public GameObject mGameManager;
+	public GameObject mTileMap;
 
 	private GameManager mManager;
 	private int playersInRoom = 0;
 	private GameObject[] players;
+	private GameObject[] mTileMaps;
 	// Use this for initialization
 	void Awake()
 	{
@@ -40,31 +42,32 @@ public class GameClient : MonoBehaviour
 		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
 		if(PhotonNetwork.isMasterClient)
 		{
-			if (players == null)
+			mTileMaps = GameObject.FindGameObjectsWithTag("Map");
+			foreach (Object player in mTileMaps) 
 			{
-				playersInRoom = 0;
-
-				players = GameObject.FindGameObjectsWithTag("Player");		
-				foreach (Object player in players) 
-				{
-					playersInRoom++;
-				}
+				Destroy(player);
 			}
-			if(playersInRoom == 0)
+			PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
+			players = GameObject.FindGameObjectsWithTag("Player");		
+			foreach (Object player in players) 
 			{
-				PhotonNetwork.Instantiate(player1Prefab.name, transform.position, Quaternion.identity, 0);
+				playersInRoom++;
 			}
-			else if(playersInRoom == 1)
+			if(playersInRoom - 5 == 0)
 			{
-				PhotonNetwork.Instantiate(player2Prefab.name, transform.position, Quaternion.identity, 0);
+				PhotonNetwork.Instantiate(mPlayer1Prefab.name, transform.position, Quaternion.identity, 0);
 			}
-			else if(playersInRoom == 2)
+			else if(playersInRoom - 5 == 1)
 			{
-				PhotonNetwork.Instantiate(player3Prefab.name, transform.position, Quaternion.identity, 0);
+				PhotonNetwork.Instantiate(mPlayer2Prefab.name, transform.position, Quaternion.identity, 0);
 			}
-			else if(playersInRoom == 3)
+			else if(playersInRoom - 5 == 2)
 			{
-				PhotonNetwork.Instantiate(player4Prefab.name, transform.position, Quaternion.identity, 0);
+				PhotonNetwork.Instantiate(mPlayer3Prefab.name, transform.position, Quaternion.identity, 0);
+			}
+			else if(playersInRoom - 5 == 3)
+			{
+				PhotonNetwork.Instantiate(mPlayer4Prefab.name, transform.position, Quaternion.identity, 0);
 			}
 		}
 	}
@@ -73,31 +76,28 @@ public class GameClient : MonoBehaviour
 	{
 		if(!mManager)
 		{
-			if (players == null)
+			players = GameObject.FindGameObjectsWithTag("Player");		
+			foreach (Object player in players) 
 			{
-				players = GameObject.FindGameObjectsWithTag("Player");		
-				foreach (Object player in players) 
-				{
-					playersInRoom++;
-				}
+				playersInRoom++;
 			}
 			mGameManager = GameObject.Find("GameManager(Clone)");
 			mManager = mGameManager.GetComponent<GameManager>();
 			if(playersInRoom == 0)
 			{
-				PhotonNetwork.Instantiate(player1Prefab.name, transform.position, Quaternion.identity, 0);
+				PhotonNetwork.Instantiate(mPlayer1Prefab.name, transform.position, Quaternion.identity, 0);
 			}
 			else if(playersInRoom == 1)
 			{
-				PhotonNetwork.Instantiate(player2Prefab.name, transform.position, Quaternion.identity, 0);
+				PhotonNetwork.Instantiate(mPlayer2Prefab.name, transform.position, Quaternion.identity, 0);
 			}
 			else if(playersInRoom == 2)
 			{
-				PhotonNetwork.Instantiate(player3Prefab.name, transform.position, Quaternion.identity, 0);
+				PhotonNetwork.Instantiate(mPlayer3Prefab.name, transform.position, Quaternion.identity, 0);
 			}
 			else if(playersInRoom == 3)
 			{
-				PhotonNetwork.Instantiate(player4Prefab.name, transform.position, Quaternion.identity, 0);
+				PhotonNetwork.Instantiate(mPlayer4Prefab.name, transform.position, Quaternion.identity, 0);
 			}
 		}
 		else //if(mManager)
@@ -120,7 +120,7 @@ public class GameClient : MonoBehaviour
 			else
 			{
 				GUI.TextArea(new Rect(10,400,100 ,50),"AI Turn");
-				Debug.Log(mManager.sPlayersTurn.ToString());
+				//Debug.Log(mManager.sPlayersTurn.ToString());
 			}
 			
 			if(GUI.Button(new Rect (10, 500, 100, 50), "End Turn"))
