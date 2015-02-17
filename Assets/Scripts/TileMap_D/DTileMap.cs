@@ -69,14 +69,17 @@ public class DTileMap
 		startLocation.z = 0.5f;	
 		
 		mPositionData = new Vector3[sizex*sizey];
+
+		int[] readData = new int[size_x*size_y];
+
+		readData = ReadMap ();
 		
 		for(int y=0; y<sizey; y++)
 		{
 			for(int x=0; x<sizex; x++) 
 			{
 				//Setting Map
-				map_data[(y*size_x)+x] = (int)TileType.Floor;
-				
+				map_data[(y*size_x)+x] = readData[(y*size_x)+x];
 				
 				//Setting Map position
 				Vector3 currentLocation = startLocation;
@@ -99,6 +102,31 @@ public class DTileMap
 			}
 		}
 		map_data [1] = (int)TileType.Wall;
+	}
+
+	public int[] ReadMap()
+	{
+		int[] readData;
+
+		string[] lines = System.IO.File.ReadAllLines (Application.dataPath + "/map.txt");
+		char[] delimiterChars = {' ', ',', '.'};
+
+		for(int i = 0; i < lines.Length; ++i)
+		{
+			string[] entries = lines[i].Split (delimiterChars);
+
+			int len = entries.Length;
+			if(len > 0)
+			{
+				for(int j = 0; j < len; ++j)
+				{
+					int entry = int.Parse (entries[j]);
+
+					readData[(i * len) + j] = entry;
+				}
+			}
+		}
+		return readData;
 	}
 
 	public DTileMap(int sizex, int sizey)

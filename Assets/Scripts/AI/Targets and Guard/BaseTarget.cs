@@ -161,14 +161,6 @@ public class BaseTarget : MonoBehaviour
 			Debug.Log ("Unknown state!");
 			break;
 		}
-		if (!mManager)
-		{
-			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
-			if(mManager)
-			{
-				mManager.AddTarget(this);
-			}
-		}
 		return true;
 	}
 

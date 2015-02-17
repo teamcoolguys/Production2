@@ -48,28 +48,7 @@ public class GameClient : MonoBehaviour
 		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
 		if(PhotonNetwork.isMasterClient)
 		{
-
-			players = GameObject.FindGameObjectsWithTag("Player");		
-			foreach (Object player in players) 
-			{
-				playersInRoom++;
-			}
-			if(playersInRoom - 5 == 0)
-			{
-				PhotonNetwork.Instantiate(mPlayer1Prefab.name, transform.position, Quaternion.identity, 0);
-			}
-			else if(playersInRoom - 5 == 1)
-			{
-				PhotonNetwork.Instantiate(mPlayer2Prefab.name, transform.position, Quaternion.identity, 0);
-			}
-			else if(playersInRoom - 5 == 2)
-			{
-				PhotonNetwork.Instantiate(mPlayer3Prefab.name, transform.position, Quaternion.identity, 0);
-			}
-			else if(playersInRoom - 5 == 3)
-			{
-				PhotonNetwork.Instantiate(mPlayer4Prefab.name, transform.position, Quaternion.identity, 0);
-			}
+			PhotonNetwork.Instantiate(mPlayer1Prefab.name, transform.position, Quaternion.identity, 0);
 		}
 	}
 	// Update is called once per frame

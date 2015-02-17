@@ -97,8 +97,9 @@ public class GameManager : MonoBehaviour
 		{
 			AITurn();
 			sPlayersTurn++;
+			Debug.Log(sPlayersTurn);
 			sPlayersTurn = sPlayersTurn % (sPlayersTurn);
-			//Debug.Log(sPlayersTurn);
+			Debug.Log(sPlayersTurn);
 		}
     }
 
