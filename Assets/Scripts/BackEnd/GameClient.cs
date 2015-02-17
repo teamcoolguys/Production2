@@ -17,24 +17,30 @@ public class GameClient : MonoBehaviour
 	// Use this for initialization
 	void Awake()
 	{
-		if (!PhotonNetwork.offlineMode && players == null)
-		{
-			players = GameObject.FindGameObjectsWithTag("Player");		
-			foreach (Object player in players) 
-			{
-				Destroy(player);
-			}
-		}
 		// in case we started this demo with the wrong scene being active, simply load the menu scene
 		if (!PhotonNetwork.connected)
 		{
 			Application.LoadLevel(GameMenu.SceneNameMenu);
 			return;
 		}
+		if (!PhotonNetwork.offlineMode)
+		{
+			players = GameObject.FindGameObjectsWithTag("Player");		
+			foreach (Object player in players) 
+			{
+				Destroy(player);
+			}
+			mTileMaps = GameObject.FindGameObjectsWithTag("Map");
+			foreach (Object player in mTileMaps) 
+			{
+				Destroy(player);
+			}
+		}
 		if(PhotonNetwork.isMasterClient)
 		{
 			mGameManager = PhotonNetwork.Instantiate(mGameManager.name, transform.position, Quaternion.identity, 0);
 			mManager = mGameManager.GetComponent<GameManager>();
+			mTileMap = PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
 		}
 	}
 	void Start () 
@@ -42,12 +48,7 @@ public class GameClient : MonoBehaviour
 		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
 		if(PhotonNetwork.isMasterClient)
 		{
-			mTileMaps = GameObject.FindGameObjectsWithTag("Map");
-			foreach (Object player in mTileMaps) 
-			{
-				Destroy(player);
-			}
-			PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
+
 			players = GameObject.FindGameObjectsWithTag("Player");		
 			foreach (Object player in players) 
 			{

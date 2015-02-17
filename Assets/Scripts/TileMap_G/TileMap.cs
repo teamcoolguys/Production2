@@ -29,6 +29,7 @@ public class TileMap : MonoBehaviour {
 		texture.SetPixels(x*tileResolution, y*tileResolution, tileResolution, tileResolution, tilesRow);
 		texture.Apply();
 	}
+
 	// Use this for initialization
 	void Start ()
 	{
@@ -53,10 +54,13 @@ public class TileMap : MonoBehaviour {
 
 		return tiles;
 	}
+
+
 	void Update()
 	{
 
 	}
+
 	void BuildTexture()
 	{
 		int texWidth = size_x * tileResolution;
