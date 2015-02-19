@@ -12,7 +12,7 @@ public class TileMapMouse : MonoBehaviour {
 	
 	Vector3 currentTileCoord;
 	//public GameObject mCube;
-	public Transform selectionCube;
+	public GameObject selectionCube;
 	
 	void Start() 
 	{
@@ -20,6 +20,7 @@ public class TileMapMouse : MonoBehaviour {
 		mMousePosition = new Vector3(0.0f,0.0f,0.0f);
 		mMouseHitX = 0;
 		mMouseHitY = 0;
+		selectionCube = GameObject.FindGameObjectWithTag("mouse");
 	}
 
 	// Update is called once per frame
@@ -32,13 +33,15 @@ public class TileMapMouse : MonoBehaviour {
 			selectionCube.renderer.enabled = true;
 			int x = Mathf.FloorToInt( hitInfo.point.x / _tileMap.tileSize);
 			int z = Mathf.FloorToInt( hitInfo.point.z / _tileMap.tileSize);
-			//Debug.Log ("Tile: " + x + ", " + z);
-			
+			if(Input.GetKey ("t"))
+			{
+				Debug.Log ("Tile: " + x + ", " + z);
+			}
 			currentTileCoord.x = x;
 			currentTileCoord.z = z;
-			mMouseHitX=x;
-			mMouseHitY=z;
-			mMousePosition=currentTileCoord*_tileMap.tileSize+ new Vector3(0.5f,selectionCube.position.y,0.5f);
+			mMouseHitX = x;
+			mMouseHitY = z;
+			mMousePosition = currentTileCoord*_tileMap.tileSize+ new Vector3(0.5f,selectionCube.transform.position.y,0.5f);
 			selectionCube.transform.position = mMousePosition;
 		}
 		else
