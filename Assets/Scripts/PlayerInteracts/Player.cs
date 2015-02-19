@@ -58,7 +58,7 @@ public class Player : MonoBehaviour
 	public bool mAttacked;
 	private Vector3 syncEndPosition = Vector3.zero;
 	private GameManager mManager;
-	private PhotonView photonView;
+
 	//made this public so I could reference it in the Game Manager to pass to the HUD 
 	//allows game loop to move forwardcurrently//
 	
@@ -79,7 +79,6 @@ public class Player : MonoBehaviour
 		Debug.Log ("Player Created");
 		mWalkRangeIndex = new List<int> ();
 		//mTileMap.MapInfo.SetTileType(0, 0, 4);
-		photonView = GetComponent<PhotonView> ();
 	}
 
 	void Update()

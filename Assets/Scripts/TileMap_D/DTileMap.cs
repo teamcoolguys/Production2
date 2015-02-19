@@ -106,7 +106,7 @@ public class DTileMap
 
 	public int[] ReadMap()
 	{
-		int[] readData;
+		int[] readData = new int[size_x * size_y];
 
 		string[] lines = System.IO.File.ReadAllLines (Application.dataPath + "/map.txt");
 		char[] delimiterChars = {' ', ',', '.'};
