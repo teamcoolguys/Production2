@@ -14,6 +14,12 @@ public class GameManager : MonoBehaviour
 	public Player[] sPlayers;
 	public BaseTarget[] sTargets;
 
+	public DTileMap.TileType curDefending;
+	public DTileMap.TileType curAttacking;
+
+	public bool AttackWorked = false;
+	public bool CounterAttackWorked = false;
+
 	private bool newPlayerAdded = false;
 	
 	//Call this to restart the lobby
@@ -83,24 +89,18 @@ public class GameManager : MonoBehaviour
 		}
 		if(sPlayersTurn < sPlayersInRoom)
 		{
-			if(PhotonNetwork.isMasterClient)
-			{
-				PlayerTurn((Player)sPlayers[sPlayersTurn]);
-			}
-			else
-			{
-				PlayerTurn((Player)sPlayers[sPlayersTurn]);
-			}
+			PlayerTurn((Player)sPlayers[sPlayersTurn]);
 			//Debug.Log(sPlayersTurn);
 		}
 		else if (sPlayersTurn >= sPlayersInRoom)
 		{
 			AITurn();
 			sPlayersTurn++;
-			Debug.Log(sPlayersTurn);
+			//Debug.Log(sPlayersTurn);
 			sPlayersTurn = sPlayersTurn % (sPlayersTurn);
-			Debug.Log(sPlayersTurn);
+			//Debug.Log(sPlayersTurn);
 		}
+		curAttacking = (DTileMap.TileType)sPlayersTurn;
     }
 
 	//this is what the player can do on their turn
@@ -108,11 +108,12 @@ public class GameManager : MonoBehaviour
     {
 		if(p)
 		{
-			if(!p.mMoved)
+			if(!p.mTurn)
 			{
 				if(PhotonNetwork.offlineMode)
 				{
 					p.UpdatePlayer();
+
 				}
 				else
 				{
@@ -127,12 +128,17 @@ public class GameManager : MonoBehaviour
 			{
 				p.mAttacked = false;
 				p.mMoved = false;
+				p.mTurn = false;
+				p.mPlayerPhase = Player.PlayerPhase.Start;
+				AttackWorked = false;
+				CounterAttackWorked = false;
 				//p.mHand.PlayedCard = false;
 				sPlayersTurn++;
 				gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
 				//Debug.Log(sPlayersTurn);
 			}
 		}
+		//Debug.Log ("LoganFuckUP" + curDefending + ("WeFUCkUp") + CurrentPlayer().curTarget);
     }
 
 	//Do AI stuff in this function

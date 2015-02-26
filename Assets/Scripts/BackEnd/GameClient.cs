@@ -14,6 +14,7 @@ public class GameClient : MonoBehaviour
 	private int playersInRoom = 0;
 	private GameObject[] players;
 	private GameObject[] mTileMaps;
+
 	// Use this for initialization
 	void Awake()
 	{
@@ -25,11 +26,13 @@ public class GameClient : MonoBehaviour
 		}
 		if (!PhotonNetwork.offlineMode)
 		{
+			Debug.Log("GameClient::DestroyingPlayers");
 			players = GameObject.FindGameObjectsWithTag("Player");		
 			foreach (Object player in players) 
 			{
 				Destroy(player);
 			}
+			Debug.Log("GameClient::DestroyingMap");
 			mTileMaps = GameObject.FindGameObjectsWithTag("Map");
 			foreach (Object player in mTileMaps) 
 			{
@@ -38,9 +41,11 @@ public class GameClient : MonoBehaviour
 		}
 		if(PhotonNetwork.isMasterClient)
 		{
+			Debug.Log("GameClient::CreatingTileMap");
+			mTileMap = PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
+			Debug.Log("GameClient::CreatingGameManager");
 			mGameManager = PhotonNetwork.Instantiate(mGameManager.name, transform.position, Quaternion.identity, 0);
 			mManager = mGameManager.GetComponent<GameManager>();
-			mTileMap = PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
 		}
 	}
 	void Start () 
@@ -54,6 +59,12 @@ public class GameClient : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
 	{
+		if(!mTileMap) 
+		{
+			mGameManager = GameObject.Find("GameManager(Clone)");
+			Debug.Log("GameClient::CreatingTileMap");
+			mTileMap = PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
+		}
 		if(!mManager)
 		{
 			players = GameObject.FindGameObjectsWithTag("Player");		

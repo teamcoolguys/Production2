@@ -6,20 +6,24 @@ public class TileMouseOver : MonoBehaviour {
 	public Color highlightColor;
 	Color normalColor; 
 	
-	void Start() {
+	void Start() 
+	{
 		normalColor = renderer.material.color;
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	void Update () 
+	{
 		
 		Ray ray = Camera.main.ScreenPointToRay( Input.mousePosition );
 		RaycastHit hitInfo;
 		
-		if( collider.Raycast( ray, out hitInfo, Mathf.Infinity ) ) {
+		if( collider.Raycast( ray, out hitInfo, Mathf.Infinity ) ) 
+		{
 			renderer.material.color = highlightColor;
 		}
-		else {
+		else 
+		{
 			renderer.material.color = normalColor;
 		}
 		
