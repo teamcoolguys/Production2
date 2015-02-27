@@ -28,7 +28,91 @@ public class GraphSearch
 		mGraph = graph;
 		mFound = false;
 	}
-	public void Run(int startX, int startY, int endX, int endY)
+	//AttackRange
+	public void AttackRange(int startX, int startY, int range)
+	{
+		mOpenList = new List<Node>();
+		mCloseList = new List<Node>();
+		mPath = new List<Node>();
+		
+		Node startNode = mGraph.GetNodeInfo (startX, startY);
+		//Reset graph Node
+		mGraph.ResetNodes();
+		//Add start Node to open List
+		mOpenList.Add (startNode);
+		startNode.open = true;
+		//Search//
+		
+		while (mOpenList.Count!=0) 
+		{
+			Node node = GetNextNode();
+			//if(range==-1)
+			//{
+			//}
+			//else
+			//{
+			//	node = GetNextNode(range);
+			//}
+			for(int n = 0; n < 4; ++n)
+			{
+				Node neighbor = node.mNeighbors[n];
+				if(neighbor!=null)
+				{
+					ExpandNode(node, neighbor);
+				}
+				
+			}
+			if(node.g == range + 1)
+			{
+				break;
+			}
+			mCloseList.Add (node);
+			node.close = true;
+		}
+	}
+	//Serpeate the Run Function into PathFind and RangeSearch
+	public void RangeSearch(int startX, int startY, int range)
+	{
+		mOpenList = new List<Node>();
+		mCloseList = new List<Node>();
+		mPath = new List<Node>();
+		
+		Node startNode = mGraph.GetNodeInfo (startX, startY);
+		//Reset graph Node
+		mGraph.ResetNodes();
+		//Add start Node to open List
+		mOpenList.Add (startNode);
+		startNode.open = true;
+		//Search//
+		
+		while (mOpenList.Count!=0) 
+		{
+			Node node = GetNextNode();
+			//if(range==-1)
+			//{
+			//}
+			//else
+			//{
+			//	node = GetNextNode(range);
+			//}
+			for(int n = 0; n < 4; ++n)
+			{
+				Node neighbor = node.mNeighbors[n];
+				if(neighbor!=null && neighbor.walkable==true)
+				{
+					ExpandNode(node, neighbor);
+				}
+			
+			}
+			if(node.g == range + 1)
+			{
+				break;
+			}
+				mCloseList.Add (node);
+				node.close = true;
+		}
+}
+	public void PathFind(int startX, int startY, int endX, int endY)
 	{
 		mOpenList = new List<Node>();
 		mCloseList = new List<Node>();
@@ -54,6 +138,13 @@ public class GraphSearch
 		while (done==false && mOpenList.Count!=0) 
 		{
 			Node node = GetNextNode();
+			//if(range==-1)
+			//{
+			//}
+			//else
+			//{
+			//	node = GetNextNode(range);
+			//}
 			if(node == endNode)
 			{
 				done = true;
@@ -74,9 +165,8 @@ public class GraphSearch
 			mCloseList.Add (node);
 			node.close = true;
 		}
-
 	}
-	//A* code//
+	// code//
 	public Node GetNextNode()
 	{
 		Node lowestIter;
@@ -85,10 +175,10 @@ public class GraphSearch
 		foreach (Node i in mOpenList)
 		{
 			Node node = i;
-			float f = node.g + node.h;
-			if(f<lowestCost)
+
+			if(node.g < lowestCost)
 			{
-				lowestCost = f;
+				lowestCost = node.g;
 				lowestIter = i;
 			}
 		}
@@ -101,11 +191,9 @@ public class GraphSearch
 		if(!neighbor.close)
 		{
 			float g = node.g + 1.0f;
-			float h = 1.0f;
 			if(!neighbor.open)
 			{
 				neighbor.g = g;
-				neighbor.h = h;
 				neighbor.mParent = node;
 				mOpenList.Add (neighbor);
 				neighbor.open = true;
@@ -113,7 +201,6 @@ public class GraphSearch
 			else if(g < neighbor.g)
 			{
 				neighbor.g = g;
-				neighbor.h = h;
 				neighbor.mParent = node;
 			}
 		}
