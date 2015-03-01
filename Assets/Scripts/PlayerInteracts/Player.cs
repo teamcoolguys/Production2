@@ -688,6 +688,7 @@ public class Player : MonoBehaviour
 	{
 		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(TileX, TileY);
 		gameObject.transform.position = v3Temp + new Vector3(0.0f, 1.0f, 0.0f);
+		gameObject.GetPhotonView ().RPC ("NetworkUpdatePosition", PhotonTargets.Others, transform.position);
 		mPositionX=TileX;
 		mPositionY=TileY;
 		mTileMap.MapInfo.SetTileType(mPositionX,mPositionY,mPlayerIndex, false);
@@ -699,7 +700,11 @@ public class Player : MonoBehaviour
 		mPositionX = TileX;
 		mPositionY = TileY;
 	}
-	
+	[RPC]
+	void NetworkUpdatePosition(Vector3 newTransform)
+	{
+		transform.position = newTransform;
+	}
 	void PathFind(int startX, int startY, int endX, int endY)
 	{
 		ResetPath ();
@@ -1066,12 +1071,12 @@ public class Player : MonoBehaviour
 	{
 		if (stream.isWriting)
 		{
-			stream.SendNext(rigidbody.position);
+			stream.SendNext(transform.position);
 		}
 		else
 		{
 			syncEndPosition = (Vector3)stream.ReceiveNext();
-			mManager.sPlayersTurn++;
+			transform.position = syncEndPosition;
 		}
 	}
 }
