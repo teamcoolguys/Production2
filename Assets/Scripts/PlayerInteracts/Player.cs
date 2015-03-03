@@ -213,10 +213,10 @@ public class Player : MonoBehaviour
 		//Quick button checks
 
 		//Update the whole player function
-		if (Input.GetKey ("s"))
-		{
-			UpdatePlayer ();
-		}
+		//if (Input.GetKey ("s"))
+		//{
+		//	UpdatePlayer ();
+		//}
 		//Wall building code
 		//Wall building code
 		//if (Input.GetKey ("o")) 
@@ -510,7 +510,7 @@ public class Player : MonoBehaviour
 		{
 			mPlayerPhase = PlayerPhase.Play;
 		}
-		if(Input.GetKeyDown ("s") && mSkillsCD == 0 && mManager.CurrentPlayer() == this)
+		if(Input.GetKeyDown ("s") && mSkillsCD == 0 )//&& mManager.CurrentPlayer() == this)
 		{
 			if(mCharacter == Character.Thordrann)
 			{
@@ -519,6 +519,7 @@ public class Player : MonoBehaviour
 			}
 			mPlayerPhase = PlayerPhase.Special;
 		}
+		Debug.Log ("Player: "+ mPlayerIndex);
 	}
 	void UpdateMove()
 	{
