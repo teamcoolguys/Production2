@@ -44,7 +44,7 @@ public class HUD : MonoBehaviour
 	private GameManager mManager;
 	//
 	
-	public float maxinfamy, infamy, percent;
+	public float percent;
 
 	void Start ()
 	{
@@ -68,7 +68,6 @@ public class HUD : MonoBehaviour
 		//Compute Player stats here
 		decksize = deck.Length;
 
-		maxinfamy = 8; infamy = 0;
 		stat = new GameObject();
 		stat.AddComponent<GUITexture> ();
 		stat.transform.localScale = Vector3.zero;
@@ -204,7 +203,6 @@ public class HUD : MonoBehaviour
 	void Gameover()
 	{
 		ResetDeck();
-		infamy = 0;
 	}
 	
 	
@@ -258,6 +256,16 @@ public class HUD : MonoBehaviour
 		estat.guiTexture.texture = stats;
 		//GUI.DrawTexture(new Rect((Screen.width/2) + 275, 100 , 200, 300), stats , ScaleMode.StretchToFill, true, 0.0f);
 		//GUI.DrawTexture(new Rect((Screen.width/2) - 475, 100 , 200, 300), stats , ScaleMode.StretchToFill, true, 0.0f);
+
+		float infamy = 0;
+
+		//TODO
+		if(mManager.CurrentPlayer () != null)
+		{
+			infamy = mManager.CurrentPlayer().mInfamy;
+		}
+
+		float maxinfamy = 5;
 
 		if (infamy == 0)
 			percent = 0;
@@ -317,7 +325,7 @@ public class HUD : MonoBehaviour
 					{
 						if (p1c[i] == null)
 						{
-							PlayCardOnPlayer(p1c[i]);
+							p1c[i] = PlayCardOnPlayer(p1c[i]);
 						
 							break;
 						}
@@ -329,7 +337,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p2c[i] == null)
 							{
-								PlayCardOnPlayer(p2c[i]);
+								p2c[i] = PlayCardOnPlayer(p2c[i]);
 								
 								break;
 							}
@@ -341,7 +349,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p3c[i] == null)
 							{
-								PlayCardOnPlayer(p3c[i]);
+								p3c[i] = PlayCardOnPlayer(p3c[i]);
 								
 								break;
 							}
@@ -353,7 +361,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p4c[i] == null)
 							{
-								PlayCardOnPlayer(p4c[i]);
+								p4c[i] = PlayCardOnPlayer(p4c[i]);
 								
 								break;
 							}
@@ -365,7 +373,7 @@ public class HUD : MonoBehaviour
 						{
 							if (t1c[i] == null)
 							{
-								PlayCardOnPlayer(t1c[i]);
+								t1c[i] = PlayCardOnPlayer(t1c[i]);
 								
 								break;
 							}
@@ -377,7 +385,7 @@ public class HUD : MonoBehaviour
 						{
 							if (t2c[i] == null)
 							{
-								PlayCardOnPlayer(t2c[i]);
+								t2c[i] = PlayCardOnPlayer(t2c[i]);
 								
 								break;
 							}
@@ -389,7 +397,7 @@ public class HUD : MonoBehaviour
 						{
 							if (t3c[i] == null)
 							{
-								PlayCardOnPlayer(t3c[i]);
+								t3c[i] = PlayCardOnPlayer(t3c[i]);
 								
 								break;
 							}
@@ -399,8 +407,11 @@ public class HUD : MonoBehaviour
 				}
 			}
 
+
+
 			if (GUI.Button(new Rect((Screen.width) - 100,(Screen.height/2)- 200, 100, 40), "Play Card"))
 			{
+				Debug.Log ("Logan Code Sucks" + mManager.curAttacking);
 				choosing = false;
 
 				switch(mManager.curAttacking)
@@ -411,7 +422,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p1c[i] == null)
 							{
-								PlayCardOnPlayer(p1c[i]);
+								p1c[i] = PlayCardOnPlayer(p1c[i]);
 								
 								break;
 							}
@@ -423,7 +434,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p2c[i] == null)
 							{
-								PlayCardOnPlayer(p2c[i]);
+								p2c[i] = PlayCardOnPlayer(p2c[i]);
 								
 								break;
 							}
@@ -435,7 +446,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p3c[i] == null)
 							{
-								PlayCardOnPlayer(p3c[i]);
+								p3c[i] = PlayCardOnPlayer(p3c[i]);
 								
 								break;
 							}
@@ -447,7 +458,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p4c[i] == null)
 							{
-								PlayCardOnPlayer(p4c[i]);
+								p4c[i] = PlayCardOnPlayer(p4c[i]);
 								
 								break;
 							}
@@ -576,12 +587,13 @@ public class HUD : MonoBehaviour
 			mManager.curDefending += (int)DTileMap.TileType.Player1;
 		}
 	} 
-	void PlayCardOnPlayer(GameObject gObject)
+	GameObject PlayCardOnPlayer(GameObject gObject)
 	{
 		curcard.collider.gameObject.tag = "Untagged";
 		gObject = Instantiate(curcard.collider.gameObject.transform.parent.gameObject) as GameObject;
 		cardsheld--;
 		Destroy(curcard.collider.gameObject.transform.parent.gameObject);
+		return gObject;
 	}
 	
 	void MoveDealtCard()
@@ -658,7 +670,6 @@ public class HUD : MonoBehaviour
 
 		if (choosing) 
 		{		
-			Debug.Log ("choosing");
 			if (Input.GetMouseButtonDown (0)) 
 			{
 				Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
@@ -956,23 +967,20 @@ public class HUD : MonoBehaviour
 
 		tempatk = mManager.CurrentPlayer().mAttack;
 		tempdef = mManager.CurrentPlayer().mDefence;
-		if(mManager.curDefending >= DTileMap.TileType.Target1)
+
+		tardef = 0;
+		taratk = 0;
+
+		if(mManager.curDefending >= DTileMap.TileType.Target1 && mManager.curDefending <= DTileMap.TileType.Target3)
 		{
-			Debug.Log(mManager.curDefending);
-			mManager.curDefending -= DTileMap.TileType.Target1;
 			//Targets DO NOT ATTACK
 			taratk = 0;
-			Debug.Log(mManager.curDefending);
-			tardef = mManager.sTargets[(int)mManager.curDefending].mDefence;
-			mManager.curDefending += (int)DTileMap.TileType.Target1;
+			tardef = mManager.CurrentTargetDefender().mDefence;
 		}
-		else //(mManager.curDefending < DTileMap.TileType.Target1)
+		else if (mManager.curDefending >= DTileMap.TileType.Player1 && mManager.curDefending < DTileMap.TileType.Target1)
 		{
-			mManager.curDefending -= DTileMap.TileType.Player1;
-			//Debug.Log(mManager.curDefending + "::CurrentDefendingPlayer");
-			taratk = mManager.sPlayers[(int)mManager.curDefending].mAttack;
-			tardef = mManager.sPlayers[(int)mManager.curDefending].mDefence;
-			mManager.curDefending += (int)DTileMap.TileType.Player1;
+			taratk = mManager.CurrentPlayerDefender().mAttack;
+			tardef = mManager.CurrentPlayerDefender().mDefence;
 		}
 		//When cards are defined do card stuff
 		if (mManager.curAttacking == DTileMap.TileType.Player1)
@@ -1067,23 +1075,19 @@ public class HUD : MonoBehaviour
 		{
 			if(mManager.curDefending >= DTileMap.TileType.Target1)
 			{
-				mManager.curDefending -= DTileMap.TileType.Target1;
-				mManager.sPlayers[(int)mManager.curDefending].gameObject.renderer.enabled = false;
+				//mManager.CurrentTargetDefender().gameObject.renderer.enabled = false;
 				mManager.AttackWorked = true;
 				//Kill target.
-				mManager.curDefending += (int)DTileMap.TileType.Target1;
 			}
 			else
 			{
-				mManager.curDefending -= DTileMap.TileType.Player1;
-				mManager.sPlayers[(int)mManager.curDefending].gameObject.renderer.enabled = false;
+				//mManager.CurrentPlayerDefender().gameObject.renderer.enabled = false;
 				mManager.AttackWorked = true;
-				mManager.curDefending += (int)DTileMap.TileType.Player1;
 			}
 		}
 		else if (taratk > tempdef)
 		{
-			mManager.CurrentPlayer ().gameObject.renderer.enabled = false;
+			//mManager.CurrentPlayer ().gameObject.renderer.enabled = false;
 			mManager.CounterAttackWorked = true;
 			//Kill player.
 		}
