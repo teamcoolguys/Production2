@@ -62,12 +62,11 @@ public class Player : MonoBehaviour
 	//};
 
 	//Information needed in the game 
-	public Transform[] mAttackSelect = new Transform[4];
-	public Character mCharacter = 0  ;				//Character base stats
+	public Character mCharacter;					//Character base stats
 	private TileMap mTileMap;						//TileMap information
 	TileMapMouse mMouse;							//Current Mouse information
 	GameObject mTileMapObject;						//TileMap Object
-	//HUD mHud;
+	public Transform[] mAttackSelect = new Transform[4];	//Attack Transform
 
 	//Current Stats					
 	public int mAttack;								//Current Player Attack
@@ -280,53 +279,7 @@ public class Player : MonoBehaviour
 
 	void UpdateSewer()
 	{
-		int maxX = mTileMap.MapInfo.size_x;
-		int maxY = mTileMap.MapInfo.size_y;
-		int minX = 0;
-		int minY = 0;
-		int checkX = mPositionX;
-		int checkY = mPositionY;
-		if(checkX + 1 >maxX)
-		{
-			//do Nothing
-		}
-		else if(mTileMap.MapInfo.GetTileType (checkX + 1, checkY) == DTileMap.TileType.Floor)
-		{
-			mTileMap.MapInfo.SetTileType (checkX + 1 , checkY, DTileMap.TileType.Walkable, true);
-			int index = mTileMap.MapInfo.XYToIndex (checkX + 1, checkY );
-			mIntList.Add (index);
-		}
-		if(checkX - 1 <minX)
-		{
-			
-		}
-		else if(mTileMap.MapInfo.GetTileType (checkX - 1, checkY) == DTileMap.TileType.Floor)
-		{
-			mTileMap.MapInfo.SetTileType (checkX - 1, checkY, DTileMap.TileType.Walkable, true);
-			int index = mTileMap.MapInfo.XYToIndex (checkX - 1, checkY );
-			mIntList.Add (index);
-		}
-		if(checkY + 1 >maxY)
-		{
-			
-		}
-		else if(mTileMap.MapInfo.GetTileType (checkX, checkY + 1) == DTileMap.TileType.Floor)
-		{
-			mTileMap.MapInfo.SetTileType (checkX, checkY + 1, DTileMap.TileType.Walkable, true);
-			int index = mTileMap.MapInfo.XYToIndex (checkX, checkY + 1);
-			mIntList.Add (index);
-		}
-		
-		if(checkY - 1 < minY)
-		{
-			
-		}
-		else if(mTileMap.MapInfo.GetTileType (checkX, checkY - 1) == DTileMap.TileType.Floor)
-		{
-			mTileMap.MapInfo.SetTileType (checkX, checkY - 1, DTileMap.TileType.Walkable, true);
-			int index = mTileMap.MapInfo.XYToIndex (checkX, checkY - 1);
-			mIntList.Add (index);
-		}
+		FindWalkRange (1);
 		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.Walkable)
 		{
@@ -377,7 +330,7 @@ public class Player : MonoBehaviour
 			//Debug.Log ("Player::StateStart");
 			if(mMoved==false)
 			{
-				FindWalkRange ();	//FInd all walkable Tiles
+				FindWalkRange (mMovement);	//FInd all walkable Tiles
 			}
 			else
 			{
@@ -510,7 +463,7 @@ public class Player : MonoBehaviour
 		{
 			mPlayerPhase = PlayerPhase.Play;
 		}
-		if(Input.GetKeyDown ("s") && mSkillsCD == 0 )//&& mManager.CurrentPlayer() == this)
+		if(Input.GetKeyDown ("s") && mSkillsCD == 0 )
 		{
 			if(mCharacter == Character.Thordrann)
 			{
@@ -519,7 +472,7 @@ public class Player : MonoBehaviour
 			}
 			mPlayerPhase = PlayerPhase.Special;
 		}
-		Debug.Log ("Player: "+ mPlayerIndex);
+		//Debug.Log ("Player: "+ mPlayerIndex);
 	}
 	void UpdateMove()
 	{
@@ -550,7 +503,6 @@ public class Player : MonoBehaviour
 	}
 	void UpdateSpecial()
 	{
-		//Debug.Log ("PlayerTurn::Special");
 		switch(mCharacter)
 		{
 		case Character.Anchorbeard:
@@ -566,18 +518,41 @@ public class Player : MonoBehaviour
 			break;
 			
 		case Character.Weldington:
-			Weldington ();
+			WeldingtonActive ();
 			break;
 		}
 	}
 	void UpdateAttack()
 	{
-		//mHud = mHud.GetComponent<HUD>();
-		//mHud.combui = true;
+		DTileMap.TileType AttackingTarget = mManager.curDefending;
+		if(AttackingTarget>=DTileMap.TileType.Target1)
+		{
+			//Player curAttacking = mManager.CurrentTargetDefender();
+		}
+		else
+		{
+			//BaseTarget curAttacking = mManager.CurrentPlayerDefender ();
+		}
+		if(mManager.AttackWorked)
+		{
+			Debug.Log ("Attack Worked");
+			Debug.Log ("you die");
+			//if()
+			
+		}
+		else if(mManager.CounterAttackWorked)
+		{
+			Debug.Log ("Counter Attack Worked");
+			Debug.Log ("I die");
+			gameObject.renderer.enabled = false;
+		}
+		else
+		{
+			Debug.Log ("Both Live");
+		}
 		//Debug.Log ("PlayerTurn::Attack");
 		if(Input.GetMouseButtonDown(0))
 		{
-			//mHud.combui = false;
 			mPlayerPhase = PlayerPhase.End;
 		}
 
@@ -593,14 +568,18 @@ public class Player : MonoBehaviour
 	void UpdateEnd()
 	{
 		ResetFindAttackRange ();
-
+		ResetWalkRange ();
 		//Debug.Log ("PlayerTurn Ended");
+		if(mSkillsCD!=0)
+		{
+			mSkillsCD--;
+		}
 		mTurn = true;
 	}
-	public void FindWalkRange()
+	public void FindWalkRange(int movement)
 	{
 		GraphSearch mSearch = new GraphSearch(mTileMap.MapInfo.mGraph);
-		mSearch.RangeSearch(mPositionX, mPositionY, mMovement);
+		mSearch.RangeSearch(mPositionX, mPositionY, movement);
 		mWalkRangeList = mSearch.GetCloseList();
 		foreach(Node i in mWalkRangeList)
 		{
@@ -1048,7 +1027,7 @@ public class Player : MonoBehaviour
 		}
 	}
 	
-	void Weldington()
+	void WeldingtonActive()
 	{
 		WeldingtonAutomaton i = new WeldingtonAutomaton ();
 		if(mIsU == true)
