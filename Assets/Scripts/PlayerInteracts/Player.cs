@@ -213,10 +213,10 @@ public class Player : MonoBehaviour
 		//Quick button checks
 
 		//Update the whole player function
-		if (Input.GetKey ("s"))
-		{
-			UpdatePlayer ();
-		}
+		//if (Input.GetKey ("s"))
+		//{
+		//	UpdatePlayer ();
+		//}
 		//Wall building code
 		//Wall building code
 		//if (Input.GetKey ("o")) 
@@ -510,7 +510,7 @@ public class Player : MonoBehaviour
 		{
 			mPlayerPhase = PlayerPhase.Play;
 		}
-		if(Input.GetKeyDown ("s") && mSkillsCD == 0 && mManager.CurrentPlayer() == this)
+		if(Input.GetKeyDown ("s") && mSkillsCD == 0 )//&& mManager.CurrentPlayer() == this)
 		{
 			if(mCharacter == Character.Thordrann)
 			{
@@ -519,6 +519,7 @@ public class Player : MonoBehaviour
 			}
 			mPlayerPhase = PlayerPhase.Special;
 		}
+		Debug.Log ("Player: "+ mPlayerIndex);
 	}
 	void UpdateMove()
 	{
@@ -688,6 +689,7 @@ public class Player : MonoBehaviour
 	{
 		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(TileX, TileY);
 		gameObject.transform.position = v3Temp + new Vector3(0.0f, 1.0f, 0.0f);
+		gameObject.GetPhotonView ().RPC ("NetworkUpdatePosition", PhotonTargets.Others, transform.position);
 		mPositionX=TileX;
 		mPositionY=TileY;
 		mTileMap.MapInfo.SetTileType(mPositionX,mPositionY,mPlayerIndex, false);
@@ -699,7 +701,11 @@ public class Player : MonoBehaviour
 		mPositionX = TileX;
 		mPositionY = TileY;
 	}
-	
+	[RPC]
+	void NetworkUpdatePosition(Vector3 newTransform)
+	{
+		transform.position = newTransform;
+	}
 	void PathFind(int startX, int startY, int endX, int endY)
 	{
 		ResetPath ();
@@ -1066,12 +1072,12 @@ public class Player : MonoBehaviour
 	{
 		if (stream.isWriting)
 		{
-			stream.SendNext(rigidbody.position);
+			stream.SendNext(transform.position);
 		}
 		else
 		{
 			syncEndPosition = (Vector3)stream.ReceiveNext();
-			mManager.sPlayersTurn++;
+			transform.position = syncEndPosition;
 		}
 	}
 }
