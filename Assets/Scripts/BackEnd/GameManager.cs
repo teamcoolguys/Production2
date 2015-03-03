@@ -6,20 +6,20 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
-    //publics
+	//publics
 	public int sPlayersInRoom;
 	public int sPlayersTurn;
 	public int sTargetsAlive;
 	public int sInstaniated = 0;
 	public Player[] sPlayers;
 	public BaseTarget[] sTargets;
-
+	
 	public DTileMap.TileType curDefending;
 	public DTileMap.TileType curAttacking;
-
+	
 	public bool AttackWorked = false;
 	public bool CounterAttackWorked = false;
-
+	
 	private bool newPlayerAdded = false;
 	
 	//Call this to restart the lobby
@@ -36,7 +36,7 @@ public class GameManager : MonoBehaviour
 			sInstaniated = 1;
 		}
 	}
-
+	
 	//Adds Players to the game
 	public bool AddPlayer(Player p)
 	{
@@ -66,7 +66,7 @@ public class GameManager : MonoBehaviour
 		newPlayerAdded = rc;
 		return rc;
 	}
-
+	
 	//Adds targets into the game
 	public bool AddTarget(BaseTarget t)
 	{
@@ -74,15 +74,25 @@ public class GameManager : MonoBehaviour
 		sTargetsAlive++;
 		return true;
 	}
-	   
+	
 	public Player CurrentPlayer()
 	{
 		return (Player)sPlayers [sPlayersTurn];
 	}
-
-    // Call this to Have the game logic function
+	
+	public Player CurrentPlayerDefender()
+	{
+		return sPlayers [curDefending - DTileMap.TileType.Player1];
+	}
+	
+	public BaseTarget CurrentTargetDefender()
+	{
+		return sTargets [curDefending - DTileMap.TileType.Target1];
+	}
+	
+	// Call this to Have the game logic function
 	public void GameLoop()
-    {
+	{
 		if(newPlayerAdded)
 		{
 			CheckPlayers();
@@ -101,11 +111,11 @@ public class GameManager : MonoBehaviour
 			//Debug.Log(sPlayersTurn);
 		}
 		curAttacking = (DTileMap.TileType)sPlayersTurn;
-    }
-
+	}
+	
 	//this is what the player can do on their turn
 	private void PlayerTurn(Player p)
-    {
+	{
 		if(p)
 		{
 			if(!p.mTurn)
@@ -113,7 +123,6 @@ public class GameManager : MonoBehaviour
 				if(PhotonNetwork.offlineMode)
 				{
 					p.UpdatePlayer();
-
 				}
 				else
 				{
@@ -130,17 +139,18 @@ public class GameManager : MonoBehaviour
 				p.mMoved = false;
 				p.mTurn = false;
 				p.mPlayerPhase = Player.PlayerPhase.Start;
+				
 				AttackWorked = false;
 				CounterAttackWorked = false;
-				//p.mHand.PlayedCard = false;
 				sPlayersTurn++;
+				
 				gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
 				//Debug.Log(sPlayersTurn);
 			}
 		}
 		//Debug.Log ("LoganFuckUP" + curDefending + ("WeFUCkUp") + CurrentPlayer().curTarget);
-    }
-
+	}
+	
 	//Do AI stuff in this function
 	private void AITurn()
 	{
@@ -155,7 +165,7 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
-
+	
 	void CheckPlayers()
 	{
 		Player[] temp = new Player[5];
@@ -174,19 +184,21 @@ public class GameManager : MonoBehaviour
 		}
 		newPlayerAdded = false;
 	}
-
+	
 	[RPC]
 	public void SetPlayersInRoom(int iPlayersInRoom)
 	{
 		sPlayersInRoom = iPlayersInRoom;
 	}
-
+	
 	[RPC]
 	public void SetPlayersTurn(int iPlayersTurn)
 	{
 		sPlayersTurn = iPlayersTurn;
 	}
-
+	
+	
+	
 	public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
 		if (stream.isWriting)
@@ -209,7 +221,7 @@ public class GameManager : MonoBehaviour
 			sTargetsAlive = (int)stream.ReceiveNext();
 		}
 	}
-
+	
 	void Awake()
 	{
 		if(GameObject.Find("GameClient"))
@@ -221,7 +233,7 @@ public class GameManager : MonoBehaviour
 			PhotonNetwork.offlineMode = true;
 		}
 	}
-
+	
 	void Update()
 	{
 		if(PhotonNetwork.offlineMode)
