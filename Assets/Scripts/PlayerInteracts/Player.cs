@@ -68,7 +68,8 @@ public class Player : MonoBehaviour
 	GameObject mTileMapObject;						//TileMap Object
 	public Transform[] mAttackSelect = new Transform[4];	//Attack Transform
 
-	//Current Stats					
+	//Current Stats			
+	public bool mAlive = true;
 	public int mAttack;								//Current Player Attack
 	public int mDefence;							//Current Player Defence
 	public int mMovement;							//Current Player Movment
@@ -527,29 +528,30 @@ public class Player : MonoBehaviour
 		DTileMap.TileType AttackingTarget = mManager.curDefending;
 		if(AttackingTarget>=DTileMap.TileType.Target1)
 		{
-			//Player curAttacking = mManager.CurrentTargetDefender();
+			BaseTarget curDefending = mManager.CurrentTargetDefender();
+			if(mManager.AttackWorked)
+			{
+				Debug.Log ("Attack Worked");
+				Debug.Log ("you die");
+				curDefending.gameObject.renderer.enabled = false;
+				
+			}
+			else if(mManager.CounterAttackWorked)
+			{
+				Debug.Log ("Counter Attack Worked");
+				Debug.Log ("I die");
+				gameObject.renderer.enabled = false;
+			}
+			else
+			{
+				Debug.Log ("Both Live");
+			}
 		}
 		else
 		{
-			//BaseTarget curAttacking = mManager.CurrentPlayerDefender ();
+			Player curAttacking = mManager.CurrentPlayerDefender ();
 		}
-		if(mManager.AttackWorked)
-		{
-			Debug.Log ("Attack Worked");
-			Debug.Log ("you die");
-			//if()
-			
-		}
-		else if(mManager.CounterAttackWorked)
-		{
-			Debug.Log ("Counter Attack Worked");
-			Debug.Log ("I die");
-			gameObject.renderer.enabled = false;
-		}
-		else
-		{
-			Debug.Log ("Both Live");
-		}
+
 		//Debug.Log ("PlayerTurn::Attack");
 		if(Input.GetMouseButtonDown(0))
 		{
