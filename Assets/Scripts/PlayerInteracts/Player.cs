@@ -1,4 +1,5 @@
-﻿//Created by Dylan Fraser
+﻿
+//Created by Dylan Fraser
 //November 3, 2014
 //Updated by
 //Jack Ng
@@ -34,6 +35,7 @@ public class Player : MonoBehaviour
 {
 	public enum PlayerPhase
 	{
+		Respawn,
 		Sewer,
 		Start,
 		MayBeMove,
@@ -68,12 +70,13 @@ public class Player : MonoBehaviour
 	GameObject mTileMapObject;						//TileMap Object
 	public Transform[] mAttackSelect = new Transform[4];	//Attack Transform
 
-	//Current Stats					
+	//Current Stats			
+	public bool mAlive = true;
 	public int mAttack;								//Current Player Attack
 	public int mDefence;							//Current Player Defence
 	public int mMovement;							//Current Player Movment
 	public int mRange;								//Current Player Attack Range
-	public int mInfamy = 0;							//Current Player Infamy
+	public int mInfamy;							//Current Player Infamy
 	public int mSkillsCD = 0;
 	public int mRandomMovement = 0;
 	public bool mIsU = true;
@@ -96,6 +99,7 @@ public class Player : MonoBehaviour
 	public List<DTileMap.TileType>mAttackList;
 	public List<Vector3>mAttackPosition;
 	public List<int>mIntList;
+	public List<Node>mAllRespawn;					//Respawn, 256, 
 	//Player Loop
 	public DTileMap.TileType mPlayerIndex;			//Current Player information
 	public PlayerPhase mPlayerPhase = PlayerPhase.Start;
@@ -158,7 +162,7 @@ public class Player : MonoBehaviour
 			break;
 			
 		}
-
+		mInfamy = 1;
 		mPlayerPhase = PlayerPhase.Start;
 		mMoved = false;
 		mPlayed = false;
@@ -212,16 +216,13 @@ public class Player : MonoBehaviour
 		//Quick button checks
 
 		//Update the whole player function
-		//if (Input.GetKey ("s"))
-		//{
-		//	UpdatePlayer ();
-		//}
 		//Wall building code
 		//Wall building code
-		//if (Input.GetKey ("o")) 
-		//{
-		//	mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Wall, false);
-		//}
+		if (Input.GetKey ("o")) 
+		{
+			int temp = mTileMap.MapInfo.XYToIndex(mMouseX,mMouseY);
+			Debug.Log ("Player:Index" + temp);
+		}
 		//if (Input.GetKey ("p")) 
 		//{
 		//	mTileMap.MapInfo.SetTileType(mMouseX,mMouseY, DTileMap.TileType.Floor, true);
@@ -247,6 +248,12 @@ public class Player : MonoBehaviour
 	{
 		switch (mPlayerPhase)
 		{
+			case PlayerPhase.Sewer:
+				UpdateSewer ();
+				break;
+			case PlayerPhase.Respawn:
+				UpdateRespawn();
+				break;
 			case PlayerPhase.Start:
 				UpdateStart ();
 				break;
@@ -276,9 +283,13 @@ public class Player : MonoBehaviour
 
 		return true;
 	}
+	void UpdateRespawn()
+	{
 
+	}
 	void UpdateSewer()
 	{
+		Debug.Log ("Sewer");
 		FindWalkRange (1);
 		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.Walkable)
@@ -291,6 +302,8 @@ public class Player : MonoBehaviour
 					mTileMap.MapInfo.SetTileTypeIndex(i, DTileMap.TileType.Floor,true);
 				}
 			}
+			mOnSewer = false;
+			gameObject.renderer.enabled = true;
 			mPlayerPhase = PlayerPhase.Start;
 		}
 	}
@@ -301,176 +314,181 @@ public class Player : MonoBehaviour
 		{
 			mPlayerPhase = PlayerPhase.Sewer;
 		}
-		if(Input.GetMouseButtonDown(1))
+		else
 		{
-			ResetWalkRange ();
-			mPlayerPhase = PlayerPhase.End;
-		}
-		if(mMouse.cubeActive == true)
-		{
-			ResetFindAttackRange();
-			FindAttackRange();
-			if(mAttackList!=null)
-			{
-				int count = 0;
-				foreach (Vector3 i in mAttackPosition)
-				{
-					mAttackSelect[count].position = i;
-					mAttackSelect[count].renderer.enabled = true;
-					count++;
-				}
-			}
-			else
-			{
-				for(int i = 0; i<4; i++)
-				{
-					mAttackSelect[i].renderer.enabled = false;
-				}
-			}
-			//Debug.Log ("Player::StateStart");
-			if(mMoved==false)
-			{
-				FindWalkRange (mMovement);	//FInd all walkable Tiles
-			}
-			else
+			if(Input.GetMouseButtonDown(1))
 			{
 				ResetWalkRange ();
-				ResetPath();
+				mPlayerPhase = PlayerPhase.End;
 			}
-			
-			if(Input.GetMouseButtonDown(0))
-			{	
-				mStorePositionX = mMouseX;
-				mStorePositionY = mMouseY;
-				DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mStorePositionX, mStorePositionY);
-				switch(temp)
-				{
-				case DTileMap.TileType.Floor:
-					Debug.Log ("Player::Floor(out of range) "+mMouseClickPhase);
-					mMouseClickPhase = 0;
-					break;
-				case DTileMap.TileType.Walkable:
-					Debug.Log ("Player::Walkable");
-					if(mMoved == false)
-					{
-						mPlayerPhase = PlayerPhase.MayBeMove;
-					}
-					break;			
-				case DTileMap.TileType.Path:
-					Debug.Log ("Player::Path: Invalid");
-					if(mMoved == false)
-					{
-						mPlayerPhase = PlayerPhase.MayBeMove;
-					}
-					break;
-				case DTileMap.TileType.Wall:
-					Debug.Log ("Player::Wall: Can't travel");
-					break;
-				case DTileMap.TileType.Sewer:
-					Debug.Log ("Player::Sewer: out of range");
-					break;
-				case DTileMap.TileType.Buildings:
-					Debug.Log ("Player::Building");
-					break;
-				case DTileMap.TileType.Player1:
-					Debug.Log ("Player::Player1");
-					mManager.curDefending = DTileMap.TileType.Player1;
-					foreach(DTileMap.TileType i in mAttackList)
-					{
-						if(i == DTileMap.TileType.Player1)
-						{
-							mPlayerPhase = PlayerPhase.Attack;
-						}
-					}
-					break;
-				case DTileMap.TileType.Player2:
-					Debug.Log ("Player::Player2");
-					mManager.curDefending = DTileMap.TileType.Player2;
-					foreach(DTileMap.TileType i in mAttackList)
-					{
-						if(i == DTileMap.TileType.Player2)
-						{
-							mPlayerPhase = PlayerPhase.Attack;
-						}
-					}
-					break;
-				case DTileMap.TileType.Player3:
-					Debug.Log ("Player::Player3");
-
-					mManager.curDefending = DTileMap.TileType.Player3;
-					foreach(DTileMap.TileType i in mAttackList)
-					{
-						if(i == DTileMap.TileType.Player3)
-						{
-							mPlayerPhase = PlayerPhase.Attack;
-						}
-					}
-					break;
-				case DTileMap.TileType.Player4:
-					Debug.Log ("Player::Player4");
-					mManager.curDefending = DTileMap.TileType.Player4;
-					foreach(DTileMap.TileType i in mAttackList)
-					{
-						if(i == DTileMap.TileType.Player4)
-						{
-							mPlayerPhase = PlayerPhase.Attack;
-						}
-					}
-					break;
-				case DTileMap.TileType.Target1:
-					Debug.Log ("Player::Target1");
-					mManager.curDefending = DTileMap.TileType.Target1;
-					curTarget = DTileMap.TileType.Target1;
-					foreach(DTileMap.TileType i in mAttackList)
-					{
-						if(i == DTileMap.TileType.Target1)
-						{
-							mPlayerPhase = PlayerPhase.Attack;
-						}
-					}
-					break;
-				case DTileMap.TileType.Target2:
-					Debug.Log ("Player::Target2");
-					mManager.curDefending = DTileMap.TileType.Target2;
-					foreach(DTileMap.TileType i in mAttackList)
-					{
-						if(i == DTileMap.TileType.Target2)
-						{
-							mPlayerPhase = PlayerPhase.Attack;
-						}
-					}
-					break;
-				case DTileMap.TileType.Target3:
-					Debug.Log ("Player::Target3");
-					mManager.curDefending = DTileMap.TileType.Target3;
-					foreach(DTileMap.TileType i in mAttackList)
-					{
-						if(i == DTileMap.TileType.Target3)
-						{
-							mPlayerPhase = PlayerPhase.Attack;
-						}
-					}
-					break;
-				case DTileMap.TileType.TrueSewer:		//Transfer to Sewer EndTurn
-					Debug.Log ("Player::TrueSewer");
-					//TravelSewer (mStorePositionX, mStorePositionY);
-					break;
-				}
-
-			}
-		}
-		else if(mMouse.cubeActive == false)
-		{
-			mPlayerPhase = PlayerPhase.Play;
-		}
-		if(Input.GetKeyDown ("s") && mSkillsCD == 0 )
-		{
-			if(mCharacter == Character.Thordrann)
+			if(mMouse.cubeActive == true)
 			{
-				mRandomMovement =  Random.Range(1,8);	
-				Debug.Log ("You roll a " + mRandomMovement);
+				ResetFindAttackRange();
+				FindAttackRange();
+				if(mAttackList!=null)
+				{
+					int count = 0;
+					foreach (Vector3 i in mAttackPosition)
+					{
+						mAttackSelect[count].position = i;
+						mAttackSelect[count].renderer.enabled = true;
+						count++;
+					}
+				}
+				else
+				{
+					for(int i = 0; i<4; i++)
+					{
+						mAttackSelect[i].renderer.enabled = false;
+					}
+				}
+				//Debug.Log ("Player::StateStart");
+				if(mMoved==false)
+				{
+					FindWalkRange (mMovement);	//FInd all walkable Tiles
+				}
+				else
+				{
+					ResetWalkRange ();
+					ResetPath();
+				}
+				
+				if(Input.GetMouseButtonDown(0))
+				{	
+					mStorePositionX = mMouseX;
+					mStorePositionY = mMouseY;
+					DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mStorePositionX, mStorePositionY);
+					switch(temp)
+					{
+					case DTileMap.TileType.Floor:
+						Debug.Log ("Player::Floor(out of range) "+mMouseClickPhase);
+						mMouseClickPhase = 0;
+						break;
+					case DTileMap.TileType.Walkable:
+						Debug.Log ("Player::Walkable");
+						if(mMoved == false)
+						{
+							mPlayerPhase = PlayerPhase.MayBeMove;
+						}
+						break;			
+					case DTileMap.TileType.Path:
+						Debug.Log ("Player::Path: Invalid");
+						if(mMoved == false)
+						{
+							mPlayerPhase = PlayerPhase.MayBeMove;
+						}
+						break;
+					case DTileMap.TileType.Wall:
+						Debug.Log ("Player::Wall: Can't travel");
+						break;
+					case DTileMap.TileType.Sewer:
+						Debug.Log ("Player::Sewer: out of range");
+						break;
+					case DTileMap.TileType.PlayerSpawn:
+						Debug.Log ("Player::PlayerSpawn");
+						break;
+					case DTileMap.TileType.Player1:
+						Debug.Log ("Player::Player1");
+						mManager.curDefending = DTileMap.TileType.Player1;
+						foreach(DTileMap.TileType i in mAttackList)
+						{
+							if(i == DTileMap.TileType.Player1)
+							{
+								mPlayerPhase = PlayerPhase.Attack;
+							}
+						}
+						break;
+					case DTileMap.TileType.Player2:
+						Debug.Log ("Player::Player2");
+						mManager.curDefending = DTileMap.TileType.Player2;
+						foreach(DTileMap.TileType i in mAttackList)
+						{
+							if(i == DTileMap.TileType.Player2)
+							{
+								mPlayerPhase = PlayerPhase.Attack;
+							}
+						}
+						break;
+					case DTileMap.TileType.Player3:
+						Debug.Log ("Player::Player3");
+			
+						mManager.curDefending = DTileMap.TileType.Player3;
+						foreach(DTileMap.TileType i in mAttackList)
+						{
+							if(i == DTileMap.TileType.Player3)
+							{
+								mPlayerPhase = PlayerPhase.Attack;
+							}
+						}
+						break;
+					case DTileMap.TileType.Player4:
+						Debug.Log ("Player::Player4");
+						mManager.curDefending = DTileMap.TileType.Player4;
+						foreach(DTileMap.TileType i in mAttackList)
+						{
+							if(i == DTileMap.TileType.Player4)
+							{
+								mPlayerPhase = PlayerPhase.Attack;
+							}
+						}
+						break;
+					case DTileMap.TileType.Target1:
+						Debug.Log ("Player::Target1");
+						mManager.curDefending = DTileMap.TileType.Target1;
+						curTarget = DTileMap.TileType.Target1;
+						foreach(DTileMap.TileType i in mAttackList)
+						{
+							if(i == DTileMap.TileType.Target1)
+							{
+								mPlayerPhase = PlayerPhase.Attack;
+							}
+						}
+						break;
+					case DTileMap.TileType.Target2:
+						Debug.Log ("Player::Target2");
+						mManager.curDefending = DTileMap.TileType.Target2;
+						foreach(DTileMap.TileType i in mAttackList)
+						{
+							if(i == DTileMap.TileType.Target2)
+							{
+								mPlayerPhase = PlayerPhase.Attack;
+							}
+						}
+						break;
+					case DTileMap.TileType.Target3:
+						Debug.Log ("Player::Target3");
+						mManager.curDefending = DTileMap.TileType.Target3;
+						foreach(DTileMap.TileType i in mAttackList)
+						{
+							if(i == DTileMap.TileType.Target3)
+							{
+								mPlayerPhase = PlayerPhase.Attack;
+							}
+						}
+						break;
+					case DTileMap.TileType.TrueSewer:		//Transfer to Sewer EndTurn
+						Debug.Log ("Player::TrueSewer");
+						mOnSewer = true;
+						TravelToSewer (mStorePositionX, mStorePositionY);
+						ResetPath ();
+						break;
+					}
+			
+				}
 			}
-			mPlayerPhase = PlayerPhase.Special;
+			else if(mMouse.cubeActive == false)
+			{
+				mPlayerPhase = PlayerPhase.Play;
+			}
+			if(Input.GetKeyDown ("s") && mSkillsCD == 0 )
+			{
+				if(mCharacter == Character.Thordrann)
+				{
+					mRandomMovement =  Random.Range(1,8);	
+					Debug.Log ("You roll a " + mRandomMovement);
+				}
+				mPlayerPhase = PlayerPhase.Special;
+			}
 		}
 		//Debug.Log ("Player: "+ mPlayerIndex);
 	}
@@ -485,12 +503,12 @@ public class Player : MonoBehaviour
 	{
 		//Debug.Log ("Player::StatePath");
 		PathFind( mPositionX, mPositionY, mStorePositionX, mStorePositionY);
-			DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
+		DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
 		if(temp==DTileMap.TileType.Walkable|| temp==DTileMap.TileType.Path)
-			{
-				mStorePositionX = mMouseX;
-				mStorePositionY = mMouseY;
-			}
+		{
+			mStorePositionX = mMouseX;
+			mStorePositionY = mMouseY;
+		}
 		else if(mMouseY==mStorePositionY && mMouseX==mStorePositionX&& Input.GetMouseButtonDown(0))
 		{
 			mPlayerPhase = PlayerPhase.Move;
@@ -524,38 +542,55 @@ public class Player : MonoBehaviour
 	}
 	void UpdateAttack()
 	{
-		DTileMap.TileType AttackingTarget = mManager.curDefending;
-		if(AttackingTarget>=DTileMap.TileType.Target1)
-		{
-			//Player curAttacking = mManager.CurrentTargetDefender();
-		}
-		else
-		{
-			//BaseTarget curAttacking = mManager.CurrentPlayerDefender ();
-		}
-		if(mManager.AttackWorked)
-		{
-			Debug.Log ("Attack Worked");
-			Debug.Log ("you die");
-			//if()
-			
-		}
-		else if(mManager.CounterAttackWorked)
-		{
-			Debug.Log ("Counter Attack Worked");
-			Debug.Log ("I die");
-			gameObject.renderer.enabled = false;
-		}
-		else
-		{
-			Debug.Log ("Both Live");
-		}
-		//Debug.Log ("PlayerTurn::Attack");
 		if(Input.GetMouseButtonDown(0))
 		{
+			DTileMap.TileType AttackingTarget = mManager.curDefending;
+			if(AttackingTarget>=DTileMap.TileType.Target1)
+			{
+				BaseTarget curDefending = mManager.CurrentTargetDefender();
+				if(mManager.AttackWorked)
+				{
+					Debug.Log ("Attack Worked");
+					Debug.Log ("you die");
+					mInfamy+=curDefending.mInfamy;
+					curDefending.UpdateDie();
+				}
+				else
+				{
+					Debug.Log ("Both Live");
+				}
+			}
+			else
+			{
+				Player curDefending = mManager.CurrentPlayerDefender ();
+				if(mManager.AttackWorked)
+				{
+					Debug.Log ("Attack Worked");
+					Debug.Log ("you die");
+					mInfamy++;
+					curDefending.mInfamy--;
+					curDefending.gameObject.renderer.enabled = false;
+					
+				}
+				else if(mManager.CounterAttackWorked)
+				{
+					Debug.Log ("Counter Attack Worked");
+					Debug.Log ("I die");
+					mInfamy--;
+					curDefending.mInfamy++;
+					gameObject.renderer.enabled = false;
+				}
+				else
+				{
+					Debug.Log ("Both Live");
+				}
+			}
 			mPlayerPhase = PlayerPhase.End;
 		}
-
+		else if(Input.GetMouseButtonDown(0))
+		{
+			mPlayerPhase = PlayerPhase.Start;
+		}
 	}
 	void UpdatePlay()
 	{
@@ -567,6 +602,8 @@ public class Player : MonoBehaviour
 	}
 	void UpdateEnd()
 	{
+		DTileMap.TileType temp = mTileMap.MapInfo.GetTileType (mPositionX, mPositionY);
+		Debug.Log ("TileType3" + temp);
 		ResetFindAttackRange ();
 		ResetWalkRange ();
 		//Debug.Log ("PlayerTurn Ended");
@@ -575,6 +612,8 @@ public class Player : MonoBehaviour
 			mSkillsCD--;
 		}
 		mTurn = true;
+		temp = mTileMap.MapInfo.GetTileType (mPositionX, mPositionY);
+		Debug.Log ("TileType4" + temp);
 	}
 	public void FindWalkRange(int movement)
 	{
@@ -671,14 +710,24 @@ public class Player : MonoBehaviour
 		gameObject.GetPhotonView ().RPC ("NetworkUpdatePosition", PhotonTargets.Others, transform.position);
 		mPositionX=TileX;
 		mPositionY=TileY;
-		mTileMap.MapInfo.SetTileType(mPositionX,mPositionY,mPlayerIndex, false);
+		if(gameObject.renderer.enabled == true)
+		{
+			mTileMap.MapInfo.SetTileType(mPositionX,mPositionY,mPlayerIndex, false);
+		}
 	}
 	void TravelToSewer(int TileX, int TileY)
 	{
+		DTileMap.TileType temp = mTileMap.MapInfo.GetTileType (TileX, TileY);
+		Debug.Log ("TileType1" + temp);
 		mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, DTileMap.TileType.Floor, true);
-		PathFind (mPositionX, mPositionY, TileX, TileY);
+		gameObject.renderer.enabled = false;
 		mPositionX = TileX;
 		mPositionY = TileY;
+		gameObject.renderer.enabled = false;
+		mTileMap.MapInfo.SetTileType(TileX,TileY, DTileMap.TileType.Sewer, true);
+		mPlayerPhase = PlayerPhase.End;
+		temp = mTileMap.MapInfo.GetTileType (TileX, TileY);
+		Debug.Log ("TileType2" + temp);
 	}
 	[RPC]
 	void NetworkUpdatePosition(Vector3 newTransform)
@@ -698,9 +747,15 @@ public class Player : MonoBehaviour
 		{
 			foreach(Node i in mPath)
 			{
-				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path, true);
+				if(mTileMap.MapInfo.GetTileTypeIndex(i.mIndex)== DTileMap.TileType.Walkable)
+				{
+					mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path, true);
+				}
 			}
-			mTileMap.MapInfo.SetTileTypeIndex (mPath[0].mIndex, mPlayerIndex, true);
+			if(gameObject.renderer.enabled == true)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex (mPath[0].mIndex, mPlayerIndex, true);
+			}
 		}
 	}
 	//Reset all Path back to Walkable
@@ -719,7 +774,6 @@ public class Player : MonoBehaviour
 				mTileMap.MapInfo.SetTileTypeIndex (x, DTileMap.TileType.Walkable, true);
 			}
 		}
-
 		mPath.Clear ();
 	}
 
@@ -736,6 +790,10 @@ public class Player : MonoBehaviour
 			if(tempType == DTileMap.TileType.Walkable)
 			{
 				mTileMap.MapInfo.SetTileTypeIndex (x, DTileMap.TileType.Floor, true);
+			}
+			if(tempType == DTileMap.TileType.TrueSewer)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex (x, DTileMap.TileType.Sewer, true);
 			}
 		}
 		//Debug.Log ("Player: Walk Range Reset");
@@ -771,7 +829,7 @@ public class Player : MonoBehaviour
 			DTileMap.TileType hookUp = mTileMap.MapInfo.GetTileType (upX, upY);
 			DTileMap.TileType hookDown = mTileMap.MapInfo.GetTileType (downX, downY);
 			
-			if(hookRight==DTileMap.TileType.Wall || hookRight==DTileMap.TileType.Target1 ||hookRight==DTileMap.TileType.Target2||hookRight==DTileMap.TileType.Target3 || hookRight==DTileMap.TileType.Buildings)
+			if(hookRight==DTileMap.TileType.Wall || hookRight==DTileMap.TileType.Target1 ||hookRight==DTileMap.TileType.Target2||hookRight==DTileMap.TileType.Target3 )
 			{
 				DTileMap.TileType Check = mTileMap.MapInfo.GetTileType (rightX-1, rightY);
 				if(Check == DTileMap.TileType.Floor)
@@ -779,7 +837,7 @@ public class Player : MonoBehaviour
 					mTileMap.MapInfo.SetTileType (rightX-1, rightY, DTileMap.TileType.Walkable, true);
 				}
 			}
-			if(hookLeft==DTileMap.TileType.Wall || hookLeft==DTileMap.TileType.Target1 ||hookLeft==DTileMap.TileType.Target2||hookLeft==DTileMap.TileType.Target3 || hookLeft==DTileMap.TileType.Buildings)
+			if(hookLeft==DTileMap.TileType.Wall || hookLeft==DTileMap.TileType.Target1 ||hookLeft==DTileMap.TileType.Target2||hookLeft==DTileMap.TileType.Target3 )
 			{
 				DTileMap.TileType Check = mTileMap.MapInfo.GetTileType (leftX+1, leftY);
 				if(Check == DTileMap.TileType.Floor)
@@ -787,7 +845,7 @@ public class Player : MonoBehaviour
 					mTileMap.MapInfo.SetTileType (leftX+1, leftY, DTileMap.TileType.Walkable, true);
 				}
 			}
-			if(hookUp==DTileMap.TileType.Wall || hookUp==DTileMap.TileType.Target1 ||hookUp==DTileMap.TileType.Target2||hookUp==DTileMap.TileType.Target3 || hookUp==DTileMap.TileType.Buildings)
+			if(hookUp==DTileMap.TileType.Wall || hookUp==DTileMap.TileType.Target1 ||hookUp==DTileMap.TileType.Target2||hookUp==DTileMap.TileType.Target3 )
 			{
 				DTileMap.TileType Check = mTileMap.MapInfo.GetTileType (upX, upY-1);
 				if(Check == DTileMap.TileType.Floor)
@@ -795,7 +853,7 @@ public class Player : MonoBehaviour
 					mTileMap.MapInfo.SetTileType (upX, upY-1, DTileMap.TileType.Walkable, true);
 				}
 			}
-			if(hookDown==DTileMap.TileType.Wall || hookDown==DTileMap.TileType.Target1 ||hookDown==DTileMap.TileType.Target2||hookDown==DTileMap.TileType.Target3 || hookDown==DTileMap.TileType.Buildings)
+			if(hookDown==DTileMap.TileType.Wall || hookDown==DTileMap.TileType.Target1 ||hookDown==DTileMap.TileType.Target2||hookDown==DTileMap.TileType.Target3)
 			{
 				DTileMap.TileType Check = mTileMap.MapInfo.GetTileType (downX, downY-1);
 				if(Check == DTileMap.TileType.Floor)
