@@ -99,7 +99,8 @@ public class Player : MonoBehaviour
 	public List<DTileMap.TileType>mAttackList;
 	public List<Vector3>mAttackPosition;
 	public List<int>mIntList;
-	public List<Node>mAllRespawn;					//Respawn, 256, 
+	public List<int>mAllRespawnIndex;				//Respawn, 256, 73, 330, 10, 198, 314, 86, 386, 252, 114
+	public List<int>mAllSewerIndex;					//Sewer: 325, 118, 101, 333, 383, 129, 296, 66
 	//Player Loop
 	public DTileMap.TileType mPlayerIndex;			//Current Player information
 	public PlayerPhase mPlayerPhase = PlayerPhase.Start;
@@ -107,6 +108,7 @@ public class Player : MonoBehaviour
 	public bool mPlayed;
 	public bool mTurn = false;
 	public bool mOnSewer;
+	bool mSewerWalkable = false;
 
 
 	//Wyatt: Network//
@@ -121,7 +123,27 @@ public class Player : MonoBehaviour
 	
 	void Start()
 	{
-		//
+		//Hack
+		mAllRespawnIndex.Add (256);
+		mAllRespawnIndex.Add (73);
+		mAllRespawnIndex.Add (330);
+		mAllRespawnIndex.Add (10);
+		mAllRespawnIndex.Add (198);
+		mAllRespawnIndex.Add (314);
+		mAllRespawnIndex.Add (86);
+		mAllRespawnIndex.Add (386);
+		mAllRespawnIndex.Add (252);
+		mAllRespawnIndex.Add (114);
+
+		mAllSewerIndex.Add (325);
+		mAllSewerIndex.Add (118);
+		mAllSewerIndex.Add (101);
+		mAllSewerIndex.Add (333);
+		mAllSewerIndex.Add (383);
+		mAllSewerIndex.Add (129);
+		mAllSewerIndex.Add (296);
+		mAllSewerIndex.Add (66);
+		//Hack
 		if(mPlayerIndex==DTileMap.TileType.Floor)
 		{
 			mPlayerIndex = DTileMap.TileType.Player1;
@@ -285,14 +307,62 @@ public class Player : MonoBehaviour
 	}
 	void UpdateRespawn()
 	{
+		foreach(int i in mAllRespawnIndex)
+		{
+			DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+			if(temp == DTileMap.TileType.Floor)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.PlayerSpawn, true) ;
+			}
+		}
+		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
+		if(Input.GetMouseButtonDown(0) && curValue == DTileMap.TileType.PlayerSpawn)
+		{
+			mAlive = true;
+			gameObject.collider.renderer.enabled = true;
+			Teleport (mMouseX, mMouseY);
+			foreach(int i in mAllRespawnIndex)
+			{
+				DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+				if(temp == DTileMap.TileType.PlayerSpawn)
+				{
+					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.Floor, true) ;
+				}
+			}
+			mPlayerPhase = PlayerPhase.Start;
+		}
+
 
 	}
 	void UpdateSewer()
 	{
-		Debug.Log ("Sewer");
-		FindWalkRange (1);
+
+		foreach(int i in mAllSewerIndex)
+		{
+			DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+			if(temp == DTileMap.TileType.Sewer)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.TrueSewer, true) ;
+			}
+		}
 		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
-		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.Walkable)
+		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.TrueSewer)
+		{
+			Teleport (mMouseX, mMouseY);
+			foreach(int i in mAllSewerIndex)
+			{
+				DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+				if(temp == DTileMap.TileType.TrueSewer)
+				{
+					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.Sewer, true) ;
+				}
+			}
+			Debug.Log ("Sewer");
+			FindWalkRange (1);
+			curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
+			mSewerWalkable = true;
+		}
+		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.Walkable && mSewerWalkable == true)
 		{
 			Teleport (mMouseX, mMouseY);
 			foreach(int i in mIntList)
@@ -305,12 +375,17 @@ public class Player : MonoBehaviour
 			mOnSewer = false;
 			gameObject.renderer.enabled = true;
 			mPlayerPhase = PlayerPhase.Start;
+			mSewerWalkable = false;
 		}
 	}
 
 	void UpdateStart ()
 	{
-		if(mOnSewer)
+		if(mAlive == false)
+		{
+			mPlayerPhase = PlayerPhase.Respawn;
+		}
+		else if(mOnSewer)
 		{
 			mPlayerPhase = PlayerPhase.Sewer;
 		}
@@ -569,8 +644,11 @@ public class Player : MonoBehaviour
 					Debug.Log ("you die");
 					mInfamy++;
 					curDefending.mInfamy--;
+					curDefending.mAlive = false;
 					curDefending.gameObject.renderer.enabled = false;
-					
+					int positionX = curDefending.mPositionX;
+					int positionY = curDefending.mPositionY;
+					mTileMap.MapInfo.SetTileType (positionX, positionY, DTileMap.TileType.Floor, true);
 				}
 				else if(mManager.CounterAttackWorked)
 				{
@@ -603,7 +681,7 @@ public class Player : MonoBehaviour
 	void UpdateEnd()
 	{
 		DTileMap.TileType temp = mTileMap.MapInfo.GetTileType (mPositionX, mPositionY);
-		Debug.Log ("TileType3" + temp);
+		//Debug.Log ("TileType3" + temp);
 		ResetFindAttackRange ();
 		ResetWalkRange ();
 		//Debug.Log ("PlayerTurn Ended");
@@ -613,7 +691,7 @@ public class Player : MonoBehaviour
 		}
 		mTurn = true;
 		temp = mTileMap.MapInfo.GetTileType (mPositionX, mPositionY);
-		Debug.Log ("TileType4" + temp);
+		//Debug.Log ("TileType4" + temp);
 	}
 	public void FindWalkRange(int movement)
 	{
