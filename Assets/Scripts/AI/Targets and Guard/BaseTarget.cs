@@ -41,7 +41,7 @@ public class BaseTarget : MonoBehaviour
 	public int mDefence;
 	public int mMovement;
 	public int mRunMovement;
-	public int mInfamy;
+	public int mInfamy = 1;
 
 	//Node currently going to
 	public int mTowardChoice;
@@ -247,9 +247,9 @@ public class BaseTarget : MonoBehaviour
 		}
 	}
 
-	void UpdateDie()
+	public void UpdateDie()
 	{
-
+		Destroy (gameObject);
 	}
 
 	void PathDecision(bool WalkTrue)//Decision on Paths

@@ -32,7 +32,7 @@ public class DTileMap
 		Path,		//2
 		Wall,		//3
 		Sewer,		//4
-		Buildings,	//5		
+		PlayerSpawn,//5		
 		Player1,	//6
 		Player2,   	//7
 		Player3,	//8
@@ -94,7 +94,7 @@ public class DTileMap
 					Node node = mGraph.GetNodeInfo(x,y);
 					int type = map_data[(y*size_x)+x];
 					int i= (y*size_x)+x;
-					if(type==(int)TileType.Floor)
+					if(type==(int)TileType.Floor||type==(int)TileType.Sewer)
 					{
 						node.walkable = true;
 					}
