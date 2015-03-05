@@ -293,7 +293,7 @@ public class HUD : MonoBehaviour
 		{
 			if(!PhotonNetwork.offlineMode)
 			{
-				set5.guiText.text = mManager.CurrentPlayer().gameObject.GetPhotonView().photonView.owner.name;
+					set5.guiText.text = mManager.CurrentPlayer().gameObject.GetPhotonView().photonView.owner.name;
 			}
 			else
 			{
