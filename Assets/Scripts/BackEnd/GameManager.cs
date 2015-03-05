@@ -11,17 +11,21 @@ public class GameManager : MonoBehaviour
 	public int sPlayersTurn;
 	public int sTargetsAlive;
 	public int sInstaniated = 0;
-	public Player[] sPlayers;
-	public BaseTarget[] sTargets;
-	
+	public BaseTarget[] mTargetsObjects;
+	public int[] mTargetSpawnPoint;		// 371, 402, 343, 202, 169, 161, 4, 20
+	public TileMap mManagerTileMap;
+
 	public DTileMap.TileType curDefending;
 	public DTileMap.TileType curAttacking;
 	
 	public bool AttackWorked = false;
 	public bool CounterAttackWorked = false;
-	
+
+	public Player[] sPlayers;
+	public BaseTarget[] sTargets;
+
 	private bool newPlayerAdded = false;
-	
+
 	//Call this to restart the lobby
 	public void Init()
 	{
@@ -34,9 +38,33 @@ public class GameManager : MonoBehaviour
 			sPlayersTurn = 0;
 			sTargetsAlive = 0;
 			sInstaniated = 1;
+			if(!PhotonNetwork.offlineMode)
+			{
+				mManagerTileMap = GameObject.Find("CurrentTileMap(Clone)").GetComponent<TileMap>();
+			}
+			else
+			{
+				mManagerTileMap = GameObject.Find("CurrentTileMap").GetComponent<TileMap>();
+			}
+
+			//HACK
+			mTargetSpawnPoint = new int[8];
+			mTargetSpawnPoint[0] = 371;
+			mTargetSpawnPoint[1] = 402;
+			mTargetSpawnPoint[2] = 343;
+			mTargetSpawnPoint[3] = 202;
+			mTargetSpawnPoint[4] = 169;
+			mTargetSpawnPoint[5] = 161;
+			mTargetSpawnPoint[6] = 4;
+			mTargetSpawnPoint[7] = 20;
+			//HACK
 		}
 	}
-	
+
+	void Start()
+	{
+		Init ();
+	}
 	//Adds Players to the game
 	public bool AddPlayer(Player p)
 	{
@@ -71,6 +99,7 @@ public class GameManager : MonoBehaviour
 	public bool AddTarget(BaseTarget t)
 	{
 		sTargets.SetValue(t, sTargetsAlive);
+		t.mTargetIndex = DTileMap.TileType.Target1 + sTargetsAlive;
 		sTargetsAlive++;
 		return true;
 	}
@@ -89,10 +118,14 @@ public class GameManager : MonoBehaviour
 	{
 		return sTargets [curDefending - DTileMap.TileType.Target1];
 	}
-	
 	// Call this to Have the game logic function
 	public void GameLoop()
 	{
+		if(sTargetsAlive < 2)
+		{
+			Debug.Log ("Manager:" + sTargetsAlive);
+			SpawnTarget();
+		}
 		if(newPlayerAdded)
 		{
 			CheckPlayers();
@@ -123,6 +156,7 @@ public class GameManager : MonoBehaviour
 				if(PhotonNetwork.offlineMode)
 				{
 					p.UpdatePlayer();
+					//Debug.Log(sPlayersTurn);
 				}
 				else
 				{
@@ -184,7 +218,46 @@ public class GameManager : MonoBehaviour
 		}
 		newPlayerAdded = false;
 	}
-	
+
+	void SpawnTarget()
+	{
+		if(mManagerTileMap == null)
+		{
+			Debug.Log ("mManagerTileMap is null");
+		}
+		Vector3[] positionToSpawn = new Vector3[8];
+		Vector3 tempV3 = new Vector3 (0.0f, 0.0f, 0.0f);
+		for(int i = 0; i < 8 ; i++)
+		{
+			DTileMap.TileType temp = mManagerTileMap.MapInfo.GetTileTypeIndex (i);
+			if(temp == DTileMap.TileType.Floor)
+			{
+				tempV3 = mManagerTileMap.MapInfo.GetTileLocationIndex(i);
+			}
+		}
+		bool check = false;
+
+		//while(check == false)
+		//{
+		//	int random = Random.Range (0, 7);
+		//	if(positionToSpawn[random] != null)
+		//	{
+		//		check = true;
+		//		tempV3 = positionToSpawn[random];
+		//	}
+		//}
+		//HACK
+		if(!PhotonNetwork.offlineMode)
+		{
+			PhotonNetwork.Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].name, tempV3, Quaternion.identity, 0);
+		}
+		else
+		{
+			Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].gameObject, tempV3, Quaternion.identity);
+		}
+		//HACK
+	}
+
 	[RPC]
 	public void SetPlayersInRoom(int iPlayersInRoom)
 	{

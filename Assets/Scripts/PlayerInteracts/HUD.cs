@@ -705,7 +705,7 @@ public class HUD : MonoBehaviour
 				RaycastHit hit;
 				if (Physics.Raycast(ray, out hit))			
 				{ 
-					Debug.Log("clicked it");
+					//Debug.Log("clicked it");
 					
 					if(hit.collider.CompareTag("Card"))
 					{
