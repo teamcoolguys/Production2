@@ -100,7 +100,7 @@ public class Player : MonoBehaviour
 	public List<Vector3>mAttackPosition;
 	public List<int>mIntList;
 	public List<int>mAllRespawnIndex;				//Respawn, 256, 73, 330, 10, 198, 314, 86, 386, 252, 114
-	public List<int>mAllSewerIndex;					//Sewer: 
+	public List<int>mAllSewerIndex;					//Sewer: 325, 118, 101, 333, 383, 129, 296, 66
 	//Player Loop
 	public DTileMap.TileType mPlayerIndex;			//Current Player information
 	public PlayerPhase mPlayerPhase = PlayerPhase.Start;
@@ -108,6 +108,7 @@ public class Player : MonoBehaviour
 	public bool mPlayed;
 	public bool mTurn = false;
 	public bool mOnSewer;
+	bool mSewerWalkable = false;
 
 
 	//Wyatt: Network//
@@ -133,6 +134,15 @@ public class Player : MonoBehaviour
 		mAllRespawnIndex.Add (386);
 		mAllRespawnIndex.Add (252);
 		mAllRespawnIndex.Add (114);
+
+		mAllSewerIndex.Add (325);
+		mAllSewerIndex.Add (118);
+		mAllSewerIndex.Add (101);
+		mAllSewerIndex.Add (333);
+		mAllSewerIndex.Add (383);
+		mAllSewerIndex.Add (129);
+		mAllSewerIndex.Add (296);
+		mAllSewerIndex.Add (66);
 		//Hack
 		if(mPlayerIndex==DTileMap.TileType.Floor)
 		{
@@ -326,17 +336,33 @@ public class Player : MonoBehaviour
 	}
 	void UpdateSewer()
 	{
+
+		foreach(int i in mAllSewerIndex)
+		{
+			DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+			if(temp == DTileMap.TileType.Sewer)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.TrueSewer, true) ;
+			}
+		}
 		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.TrueSewer)
 		{
-
+			Teleport (mMouseX, mMouseY);
+			foreach(int i in mAllSewerIndex)
+			{
+				DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+				if(temp == DTileMap.TileType.TrueSewer)
+				{
+					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.Sewer, true) ;
+				}
+			}
+			Debug.Log ("Sewer");
+			FindWalkRange (1);
+			curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
+			mSewerWalkable = true;
 		}
-		
-
-		Debug.Log ("Sewer");
-		FindWalkRange (1);
-		curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
-		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.Walkable)
+		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.Walkable && mSewerWalkable == true)
 		{
 			Teleport (mMouseX, mMouseY);
 			foreach(int i in mIntList)
@@ -349,6 +375,7 @@ public class Player : MonoBehaviour
 			mOnSewer = false;
 			gameObject.renderer.enabled = true;
 			mPlayerPhase = PlayerPhase.Start;
+			mSewerWalkable = false;
 		}
 	}
 
