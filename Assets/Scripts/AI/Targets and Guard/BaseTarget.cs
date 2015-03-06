@@ -25,6 +25,7 @@ public class BaseTarget : MonoBehaviour
 	public Transform curTargetNode;
 	TileMap mTileMap;
 	TileMapMouse mMouse;
+
 	GameObject mTileMapObject;
 	GameObject mPlayer;
 								//privates
@@ -144,11 +145,6 @@ public class BaseTarget : MonoBehaviour
 
 		Vector3 temp = mTileMap.MapInfo.GetTileLocation (mTowardNodeX, mTowardNodeY);
 		curTargetNode.position = temp;
-
-		if (Input.GetKeyDown ("b"))
-		{
-			UpdateTarget();
-		}
 	}
 	public bool UpdateTarget()
 	{
@@ -182,35 +178,33 @@ public class BaseTarget : MonoBehaviour
 	}
 	void UpdateNormal()
 	{
+		if(mTileMap.MapInfo.GetTileType (mTowardNodeX, mTowardNodeY) != DTileMap.TileType.Floor)
+		{
+			mWalkPathTrue = false;
+		}
 		if(mWalkPathTrue==false)
 		{
 			ResetPath(ref mTowardPath);
-			//Decide on a Path;
 			PathDecision (true);
-			//Find Target Node path;
-			//Debug.Log("CurrentChoice : " + mTowardChoice);
 			mWalkPathTrue = true;
 		}
 		//Find Range, and find current path
 		mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
 		int index = PathFindRange (ref mTowardPath, mMovement);
-		int tempX = 0;
-		int tempY = 0;
-		mTileMap.MapInfo.IndexToXY (index, out tempX, out tempY);
-		//Reset currentPath
-		ResetPath (ref mCurrentPath);
-		Travel (tempX, tempY);
+		if(index == -1)
+		{
+			Travel (mPositionX, mPositionY);
+		}
+		else
+		{
+			int x = 0;
+			int y = 0;
+			mTileMap.MapInfo.IndexToXY (index, out x, out y);
+			Travel (x, y);
+		}
 		if(mPositionX == mTowardNodeX && mPositionY == mTowardNodeY)
 		{
-			ResetPath (ref mTowardPath);
-			mWalkPathTrue = false;
-		}	
-		if(Input.GetKey ("r"))
-		{
-			ResetPath (ref mCurrentPath);
-			ResetPath (ref mTowardPath);
 			mRunPathTrue = false;
-			mState=State.Run;
 		}
 	}
 	void UpdateRun()
@@ -341,22 +335,22 @@ public class BaseTarget : MonoBehaviour
 	}	 
 	int PathFindRange(ref List<Node> totalPath, int range)
 	{
-		List<Node> Path = new List<Node>();
-		if (totalPath.Count <= range) 
+		foreach(Node i in totalPath )
 		{
-			return totalPath[totalPath.Count-1].mIndex;
-		}
-		else
-		{
-			foreach (Node i in totalPath)
+			if(i.g == range)
 			{
-				if(i.g == range)
+				DTileMap.TileType temp = mTileMap.MapInfo.GetTileTypeIndex (i.mIndex);
+				if(temp == DTileMap.TileType.Floor)
 				{
 					return i.mIndex;
 				}
+				else
+				{
+					range--;
+				}
 			}
 		}
-		return 0;
+		return -1;
 	}	
 	void ResetPath(ref List<Node> Path)
 	{

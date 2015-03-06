@@ -243,7 +243,12 @@ public class Player : MonoBehaviour
 		if (Input.GetKey ("o")) 
 		{
 			int temp = mTileMap.MapInfo.XYToIndex(mMouseX,mMouseY);
-			Debug.Log ("Player:Index" + temp);
+			int x = 0; 
+			int y = 0; 
+			mTileMap.MapInfo.IndexToXY(temp, out x, out y);
+			DTileMap.TileType tempType = mTileMap.MapInfo.GetTileType(x,y);
+			Debug.Log ("Player:Index" + temp +" x: " + x + " y: " + y + " TileType: " + tempType);
+
 		}
 		//if (Input.GetKey ("p")) 
 		//{
