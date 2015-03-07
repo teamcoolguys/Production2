@@ -14,6 +14,7 @@ public class BaseTarget : MonoBehaviour
 {
 	public enum State
 	{
+		Spawn,
 		Normal,
 		Run,
 		Die,
@@ -47,42 +48,32 @@ public class BaseTarget : MonoBehaviour
 	//Node currently going to
 	public int mTowardChoice;
 	//4 nodes to move around
-	public int mNodeAX;
-	public int mNodeAY;
+	public int mNodeA;
 	public int mWeightA;
 
-	public int mNodeBX;
-	public int mNodeBY;
+	public int mNodeB;
 	public int mWeightB;
 
-	public int mNodeCX;
-	public int mNodeCY;
+	public int mNodeC;
 	public int mWeightC;
 
-	public int mNodeDX;
-	public int mNodeDY;
+	public int mNodeD;
 	public int mWeightD;
 
 	private int mTowardNodeX;
 	private int mTowardNodeY;
 
-
-	//4 nodes to Run around
-	public int mNodeRAX;
-	public int mNodeRAY;
-	public int mWeightRA;
+	public int mNodeE;
+	public int mWeightE;
 	
-	public int mNodeRBX;
-	public int mNodeRBY;
-	public int mWeightRB;
+	public int mNodeF;
+	public int mWeightF;
 	
-	public int mNodeRCX;
-	public int mNodeRCY;
-	public int mWeightRC;
+	public int mNodeG;
+	public int mWeightG;
 	
-	public int mNodeRDX;
-	public int mNodeRDY;
-	public int mWeightRD;
+	public int mNodeH;
+	public int mWeightH;
 
 	private bool mWalkPathTrue;
 	private bool mRunPathTrue;
@@ -150,6 +141,9 @@ public class BaseTarget : MonoBehaviour
 	{
 		switch (mState)
 		{
+		case State.Spawn:
+			UpdateSpawn ();
+			break;
 		case State.Normal:
 			UpdateNormal ();
 			mTargetTurn = false;
@@ -176,6 +170,10 @@ public class BaseTarget : MonoBehaviour
 		}
 		return true;
 	}
+	void UpdateSpawn()
+	{
+
+	}
 	void UpdateNormal()
 	{
 		if(mTileMap.MapInfo.GetTileType (mTowardNodeX, mTowardNodeY) != DTileMap.TileType.Floor)
@@ -185,7 +183,7 @@ public class BaseTarget : MonoBehaviour
 		if(mWalkPathTrue==false)
 		{
 			ResetPath(ref mTowardPath);
-			PathDecision (true);
+			PathDecision ();
 			mWalkPathTrue = true;
 		}
 		//Find Range, and find current path
@@ -213,7 +211,7 @@ public class BaseTarget : MonoBehaviour
 		{
 			ResetPath(ref mTowardPath);
 			//Decide on a Path;
-			PathDecision (false);
+			PathDecision ();
 			//Find Target Node path;
 
 			Debug.Log("CurrentChoice : " + mTowardChoice);
@@ -246,70 +244,58 @@ public class BaseTarget : MonoBehaviour
 		PhotonNetwork.Destroy (gameObject);
 	}
 
-	void PathDecision(bool WalkTrue)//Decision on Paths
+	void PathDecision()//Decision on Paths
 	{
-		if(WalkTrue == true)
+
+		//Weight calulation for decision on which path
+		int totalWeight = mWeightA + mWeightB + mWeightC + mWeightD + mWeightE + mWeightF + mWeightG + mWeightH;
+		int randomInt = Random.Range (0, totalWeight);
+		int tempAB = mWeightA + mWeightB;
+		int tempABC = tempAB + mWeightC;
+		int tempABCD = tempABC + mWeightD;
+		int tempABCDE = tempABCD + mWeightE;
+		int tempABCDEF = tempABCDE + mWeightF;
+		int tempABCDEFG = tempABCDEF + mWeightG;
+		int tempABCDEFGH = tempABCDEFG + mWeightH;
+		if(randomInt<mWeightA)
 		{
-			//Weight calulation for decision on which path
-			int totalWeight = mWeightA + mWeightB + mWeightC + mWeightD;
-			int randomInt = Random.Range (0, totalWeight);
-			int tempAB = mWeightA + mWeightB;
-			int tempABC = mWeightA + mWeightB + mWeightC;
-			if(randomInt<mWeightA)
-			{
-				mTowardNodeX = mNodeAX;
-				mTowardNodeY = mNodeAY;
-				mTowardChoice = 0;
-			}
-			else if(randomInt >= mWeightA && randomInt < tempAB)
-			{
-				mTowardNodeX = mNodeBX;
-				mTowardNodeY = mNodeBY;
-				mTowardChoice = 1;
-			}
-			else if(randomInt >= tempAB && randomInt < tempABC)
-			{
-				mTowardNodeX = mNodeCX;
-				mTowardNodeY = mNodeCY;
-				mTowardChoice = 2;
-			}
-			else
-			{
-				mTowardNodeX = mNodeDX;
-				mTowardNodeY = mNodeDY;
-				mTowardChoice = 3;
-			}
+			mTileMap.MapInfo.IndexToXY( mNodeA, out mTowardNodeX, out mTowardNodeY);
+			mTowardChoice = 0;
 		}
-		else
+		else if(randomInt >= mWeightA && randomInt < tempAB)
 		{
-			int totalWeight = mWeightRA + mWeightRB + mWeightRC + mWeightRD;
-			int randomInt = Random.Range (0, totalWeight);
-			int tempAB = mWeightRA + mWeightRB;
-			int tempABC = mWeightRA + mWeightRB + mWeightRC;
-			if(randomInt<mWeightRA)
-			{
-				mTowardNodeX = mNodeRAX;
-				mTowardNodeY = mNodeRAY;
-				mTowardChoice = 4;
-			}
-			else if(randomInt >= mWeightRA && randomInt < tempAB)
-			{
-				mTowardNodeX = mNodeRBX;
-				mTowardNodeY = mNodeRBY;
-				mTowardChoice = 5;
-			}
-			else if(randomInt >= tempAB && randomInt < tempABC)
-			{
-				mTowardNodeX = mNodeRCX;
-				mTowardNodeY = mNodeRCY;
-				mTowardChoice = 6;
-			}
-			else
-			{
-				mTowardNodeX = mNodeRDX;
-				mTowardNodeY = mNodeRDY;
-				mTowardChoice = 7;
-			}
+			mTileMap.MapInfo.IndexToXY( mNodeB, out mTowardNodeX, out mTowardNodeY);
+			mTowardChoice = 1;
+		}
+		else if(randomInt >= tempAB && randomInt < tempABC)
+		{
+			mTileMap.MapInfo.IndexToXY( mNodeC, out mTowardNodeX, out mTowardNodeY);
+			mTowardChoice = 2;
+		}
+		else if(randomInt >= tempABC && randomInt < tempABCD)
+		{
+			mTileMap.MapInfo.IndexToXY( mNodeD, out mTowardNodeX, out mTowardNodeY);
+			mTowardChoice = 3;
+		}
+		else if(randomInt >= tempABCD && randomInt < tempABCDE)
+		{
+			mTileMap.MapInfo.IndexToXY( mNodeE, out mTowardNodeX, out mTowardNodeY);
+			mTowardChoice = 4;
+		}
+		else if(randomInt >= tempABCDE && randomInt < tempABCDEF)
+		{
+			mTileMap.MapInfo.IndexToXY( mNodeF, out mTowardNodeX, out mTowardNodeY);
+			mTowardChoice = 5;
+		}
+		else if(randomInt >= tempABCDEF && randomInt < tempABCDEFG)
+		{
+			mTileMap.MapInfo.IndexToXY( mNodeG, out mTowardNodeX, out mTowardNodeY);
+			mTowardChoice = 6;
+		}
+		else if(randomInt >= tempABCDEFG && randomInt < tempABCDEFGH)
+		{
+			mTileMap.MapInfo.IndexToXY( mNodeH, out mTowardNodeX, out mTowardNodeY);
+			mTowardChoice = 7;
 		}
 	}
 	//Path Find Parts
@@ -335,6 +321,14 @@ public class BaseTarget : MonoBehaviour
 	}	 
 	int PathFindRange(ref List<Node> totalPath, int range)
 	{
+		if (range >= totalPath.Count) 
+		{
+			DTileMap.TileType check = mTileMap.MapInfo.GetTileTypeIndex (totalPath[0].mIndex);
+			if(check == DTileMap.TileType.Floor)
+			{
+				return  totalPath[0].mIndex;
+			}
+		}
 		foreach(Node i in totalPath )
 		{
 			if(i.g == range)

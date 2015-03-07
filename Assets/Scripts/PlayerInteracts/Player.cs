@@ -185,7 +185,7 @@ public class Player : MonoBehaviour
 			
 		}
 		mInfamy = 1;
-		mPlayerPhase = PlayerPhase.Start;
+		mPlayerPhase = PlayerPhase.Respawn;
 		mMoved = false;
 		mPlayed = false;
 		mTurn = false;
