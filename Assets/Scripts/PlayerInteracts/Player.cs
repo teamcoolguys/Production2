@@ -1,5 +1,4 @@
-﻿
-//Created by Dylan Fraser
+﻿//Created by Dylan Fraser
 //November 3, 2014
 //Updated by
 //Jack Ng
@@ -30,6 +29,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(ThordrannDwarf))]
 [RequireComponent(typeof(CalamityNinja))]
 [RequireComponent(typeof(AnchorbeardPirate))]
+
 
 public class Player : MonoBehaviour
 {
@@ -70,13 +70,13 @@ public class Player : MonoBehaviour
 	GameObject mTileMapObject;						//TileMap Object
 	public Transform[] mAttackSelect = new Transform[4];	//Attack Transform
 
-	//Current Stats			
+	//Current Stats					
 	public bool mAlive = true;
 	public int mAttack;								//Current Player Attack
 	public int mDefence;							//Current Player Defence
 	public int mMovement;							//Current Player Movment
 	public int mRange;								//Current Player Attack Range
-	public int mInfamy;							//Current Player Infamy
+	public int mInfamy = 0;							//Current Player Infamy
 	public int mSkillsCD = 0;
 	public int mRandomMovement = 0;
 	public bool mIsU = true;
@@ -101,6 +101,7 @@ public class Player : MonoBehaviour
 	public List<int>mIntList;
 	public List<int>mAllRespawnIndex;				//Respawn, 256, 73, 330, 10, 198, 314, 86, 386, 252, 114
 	public List<int>mAllSewerIndex;					//Sewer: 325, 118, 101, 333, 383, 129, 296, 66
+
 	//Player Loop
 	public DTileMap.TileType mPlayerIndex;			//Current Player information
 	public PlayerPhase mPlayerPhase = PlayerPhase.Start;
@@ -115,12 +116,20 @@ public class Player : MonoBehaviour
 
 	public Hand mHand;
 	public bool mAttacked;
-	private Vector3 syncEndPosition;
+	private Vector3 latestCorrectPos;
 	private GameManager mManager;
-	//
+	private Vector3 onUpdatePos;
 	public Deck mDeck;
 	public GameObject Self;							//GameObject itself
+	private float fraction;
+
+	//Sound Stuff
+	public AudioClip SoundSelection;
+	public AudioClip SoundConfirmation2;
+	public AudioClip SoundAttack;
+	public AudioClip SoundBlock;
 	
+
 	void Start()
 	{
 		//Hack
@@ -134,7 +143,7 @@ public class Player : MonoBehaviour
 		mAllRespawnIndex.Add (386);
 		mAllRespawnIndex.Add (252);
 		mAllRespawnIndex.Add (114);
-
+		
 		mAllSewerIndex.Add (325);
 		mAllSewerIndex.Add (118);
 		mAllSewerIndex.Add (101);
@@ -143,7 +152,10 @@ public class Player : MonoBehaviour
 		mAllSewerIndex.Add (129);
 		mAllSewerIndex.Add (296);
 		mAllSewerIndex.Add (66);
-		//Hack
+
+		latestCorrectPos = transform.position;
+		onUpdatePos = transform.position;
+		//
 		if(mPlayerIndex==DTileMap.TileType.Floor)
 		{
 			mPlayerIndex = DTileMap.TileType.Player1;
@@ -157,6 +169,7 @@ public class Player : MonoBehaviour
 			mDefence = x1.mInputDefence;
 			mMovement = x1.mInputMovement;
 			mRange =x1.mInputRange;
+			//SoundAttack = x1.SoundAttack;
 			break;
 			
 		case Character.Calamity:
@@ -176,7 +189,7 @@ public class Player : MonoBehaviour
 			break;
 			
 		case Character.Weldington:
-			WeldingtonAutomaton x4 = new WeldingtonAutomaton(); 
+			WeldingtonAutomaton x4 = new WeldingtonAutomaton();
 			mAttack = x4.mInputAttack;
 			mDefence = x4.mInputDefence;
 			mMovement = x4.mInputMovement + 3;
@@ -184,8 +197,9 @@ public class Player : MonoBehaviour
 			break;
 			
 		}
+
 		mInfamy = 1;
-		mPlayerPhase = PlayerPhase.Start;
+		mPlayerPhase = PlayerPhase.Respawn;
 		mMoved = false;
 		mPlayed = false;
 		mTurn = false;
@@ -224,7 +238,15 @@ public class Player : MonoBehaviour
 				mManager = GameObject.Find ("GameManager").GetComponent<GameManager>();
 				mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 			}
+
+			if (!gameObject.GetComponent<PhotonView>().isMine)
+			{
+				this.enabled = false;   // due to this, Update() is not called on the owner client.
+			}
 		}
+
+		fraction += Time.deltaTime * 9;
+		transform.localPosition = Vector3.Lerp(onUpdatePos, latestCorrectPos, fraction);    // set our pos between A and B
 
 		//Grabing the Current Mouse and Tile Information
 		mMouse = mTileMapObject.GetComponent<TileMapMouse>();
@@ -238,6 +260,10 @@ public class Player : MonoBehaviour
 		//Quick button checks
 
 		//Update the whole player function
+		//if (Input.GetKey ("s"))
+		//{
+		//	UpdatePlayer ();
+		//}
 		//Wall building code
 		//Wall building code
 		if (Input.GetKey ("o")) 
@@ -248,7 +274,7 @@ public class Player : MonoBehaviour
 			mTileMap.MapInfo.IndexToXY(temp, out x, out y);
 			DTileMap.TileType tempType = mTileMap.MapInfo.GetTileType(x,y);
 			Debug.Log ("Player:Index" + temp +" x: " + x + " y: " + y + " TileType: " + tempType);
-
+			
 		}
 		//if (Input.GetKey ("p")) 
 		//{
@@ -264,10 +290,6 @@ public class Player : MonoBehaviour
 		//		}
 		//	}
 		//}
-	}
-	IEnumerator WaitAndPrint(float waitTime)
-	{
-		yield return new WaitForSeconds(waitTime);
 	}
 	
 	
@@ -310,6 +332,7 @@ public class Player : MonoBehaviour
 
 		return true;
 	}
+
 	void UpdateRespawn()
 	{
 		foreach(int i in mAllRespawnIndex)
@@ -336,12 +359,13 @@ public class Player : MonoBehaviour
 			}
 			mPlayerPhase = PlayerPhase.Start;
 		}
-
-
+		
+		
 	}
+
 	void UpdateSewer()
 	{
-
+		
 		foreach(int i in mAllSewerIndex)
 		{
 			DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
@@ -435,6 +459,8 @@ public class Player : MonoBehaviour
 				
 				if(Input.GetMouseButtonDown(0))
 				{	
+					
+					AudioSource.PlayClipAtPoint (SoundSelection, transform.position);
 					mStorePositionX = mMouseX;
 					mStorePositionY = mMouseY;
 					DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mStorePositionX, mStorePositionY);
@@ -465,7 +491,7 @@ public class Player : MonoBehaviour
 						Debug.Log ("Player::Sewer: out of range");
 						break;
 					case DTileMap.TileType.PlayerSpawn:
-						Debug.Log ("Player::PlayerSpawn");
+						Debug.Log ("Player::Building");
 						break;
 					case DTileMap.TileType.Player1:
 						Debug.Log ("Player::Player1");
@@ -560,30 +586,35 @@ public class Player : MonoBehaviour
 			{
 				mPlayerPhase = PlayerPhase.Play;
 			}
-			if(Input.GetKeyDown ("s") && mSkillsCD == 0 )
+		}
+		if(Input.GetKeyDown ("s") && mSkillsCD == 0 )
+		{
+			if(mCharacter == Character.Thordrann)
 			{
-				if(mCharacter == Character.Thordrann)
-				{
-					mRandomMovement =  Random.Range(1,8);	
-					Debug.Log ("You roll a " + mRandomMovement);
-				}
-				mPlayerPhase = PlayerPhase.Special;
+				mRandomMovement =  Random.Range(1,8);	
+				Debug.Log ("You roll a " + mRandomMovement);
 			}
+			mPlayerPhase = PlayerPhase.Special;
 		}
 		//Debug.Log ("Player: "+ mPlayerIndex);
 	}
+
 	void UpdateMove()
 	{
+		AudioSource.PlayClipAtPoint (SoundConfirmation2, transform.position);
 		//Debug.Log ("Player::StateMove");
+		//SoundConfirmation2
 		Travel (mStorePositionX, mStorePositionY);
+
 		mMoved = true;
 		mPlayerPhase = PlayerPhase.Start;
 	}
+
 	void UpdateMayBeMove()
 	{
 		//Debug.Log ("Player::StatePath");
 		PathFind( mPositionX, mPositionY, mStorePositionX, mStorePositionY);
-		DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
+			DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mMouseX, mMouseY);
 		if(temp==DTileMap.TileType.Walkable|| temp==DTileMap.TileType.Path)
 		{
 			mStorePositionX = mMouseX;
@@ -599,6 +630,7 @@ public class Player : MonoBehaviour
 			mPlayerPhase = PlayerPhase.Start;
 		}
 	}
+
 	void UpdateSpecial()
 	{
 		switch(mCharacter)
@@ -620,6 +652,7 @@ public class Player : MonoBehaviour
 			break;
 		}
 	}
+
 	void UpdateAttack()
 	{
 		if(Input.GetMouseButtonDown(0))
@@ -675,6 +708,7 @@ public class Player : MonoBehaviour
 			mPlayerPhase = PlayerPhase.Start;
 		}
 	}
+
 	void UpdatePlay()
 	{
 		//Debug.Log ("PlayerTurn::PlayCard");
@@ -683,10 +717,9 @@ public class Player : MonoBehaviour
 			mPlayerPhase = PlayerPhase.Start;
 		}
 	}
+
 	void UpdateEnd()
 	{
-		DTileMap.TileType temp = mTileMap.MapInfo.GetTileType (mPositionX, mPositionY);
-		//Debug.Log ("TileType3" + temp);
 		ResetFindAttackRange ();
 		ResetWalkRange ();
 		//Debug.Log ("PlayerTurn Ended");
@@ -695,9 +728,8 @@ public class Player : MonoBehaviour
 			mSkillsCD--;
 		}
 		mTurn = true;
-		temp = mTileMap.MapInfo.GetTileType (mPositionX, mPositionY);
-		//Debug.Log ("TileType4" + temp);
 	}
+
 	public void FindWalkRange(int movement)
 	{
 		GraphSearch mSearch = new GraphSearch(mTileMap.MapInfo.mGraph);
@@ -717,6 +749,7 @@ public class Player : MonoBehaviour
 			}
 		}
 	}
+
 	public void ResetFindAttackRange()
 	{
 		if(mAttackRangeList==null)
@@ -731,6 +764,7 @@ public class Player : MonoBehaviour
 			mAttackSelect[i].renderer.enabled = false;
 		}
 	}
+
 	public void FindAttackRange()
 	{
 		GraphSearch mSearch= new GraphSearch(mTileMap.MapInfo.mGraph);
@@ -782,22 +816,25 @@ public class Player : MonoBehaviour
 	void Travel(int TileX, int TileY)
 	{
 		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, DTileMap.TileType.Floor, true);
+		gameObject.GetPhotonView ().RPC ("NetworkChangeTextureFloor", PhotonTargets.Others, mPositionX, mPositionY);
 		PathFind (mPositionX, mPositionY, TileX, TileY);
 		Teleport(TileX, TileY);
 	}
 
 	void Teleport(int TileX, int TileY)
 	{
-		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(TileX, TileY);
-		gameObject.transform.position = v3Temp + new Vector3(0.0f, 1.0f, 0.0f);
-		gameObject.GetPhotonView ().RPC ("NetworkUpdatePosition", PhotonTargets.Others, transform.position);
-		mPositionX=TileX;
-		mPositionY=TileY;
-		if(gameObject.renderer.enabled == true)
+		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation (TileX, TileY);
+		gameObject.transform.position = v3Temp + new Vector3 (0.0f, 1.0f, 0.0f);
+		mPositionX = TileX;
+		mPositionY = TileY;
+		if (gameObject.renderer.enabled == true) 
 		{
-			mTileMap.MapInfo.SetTileType(mPositionX,mPositionY,mPlayerIndex, false);
+			mTileMap.MapInfo.SetTileType (mPositionX, mPositionY, mPlayerIndex, false);
+			gameObject.GetPhotonView ().RPC ("NetworkChangePosition", PhotonTargets.Others, transform.position);
+			gameObject.GetPhotonView ().RPC ("NetworkUpdateTextureSelf", PhotonTargets.Others, mPositionX, mPositionY, mPlayerIndex);
 		}
 	}
+
 	void TravelToSewer(int TileX, int TileY)
 	{
 		DTileMap.TileType temp = mTileMap.MapInfo.GetTileType (TileX, TileY);
@@ -812,11 +849,31 @@ public class Player : MonoBehaviour
 		temp = mTileMap.MapInfo.GetTileType (TileX, TileY);
 		Debug.Log ("TileType2" + temp);
 	}
+
 	[RPC]
-	void NetworkUpdatePosition(Vector3 newTransform)
+	void NetworkChangePosition(Vector3 newPosition)
 	{
-		transform.position = newTransform;
+		transform.position = newPosition;
 	}
+
+	[RPC]
+	void NetworkChangeTextureFloor(int x, int y)
+	{
+		mTileMap.MapInfo.SetTileType(x, y, DTileMap.TileType.Floor, true);
+	}
+
+	[RPC]
+	void NetworkUpdateTextureSelf(int x, int y, DTileMap.TileType Type)
+	{
+		mTileMap.MapInfo.SetTileType(x, y, Type, false);
+	}
+
+	[RPC]
+	void NetworkUpdateTextureSelf(int x, int y, int Type)
+	{
+		mTileMap.MapInfo.SetTileType(x, y, (DTileMap.TileType)Type, false);
+	}
+
 	void PathFind(int startX, int startY, int endX, int endY)
 	{
 		ResetPath ();
@@ -830,17 +887,12 @@ public class Player : MonoBehaviour
 		{
 			foreach(Node i in mPath)
 			{
-				if(mTileMap.MapInfo.GetTileTypeIndex(i.mIndex)== DTileMap.TileType.Walkable)
-				{
-					mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path, true);
-				}
+				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path, true);
 			}
-			if(gameObject.renderer.enabled == true)
-			{
-				mTileMap.MapInfo.SetTileTypeIndex (mPath[0].mIndex, mPlayerIndex, true);
-			}
+			mTileMap.MapInfo.SetTileTypeIndex (mPath[0].mIndex, mPlayerIndex, true);
 		}
 	}
+
 	//Reset all Path back to Walkable
 	void ResetPath()
 	{
@@ -857,10 +909,11 @@ public class Player : MonoBehaviour
 				mTileMap.MapInfo.SetTileTypeIndex (x, DTileMap.TileType.Walkable, true);
 			}
 		}
+
 		mPath.Clear ();
 	}
 
-	void ResetWalkRange()
+	public void ResetWalkRange()
 	{
 		if (mWalkRangeList == null) 
 		{
@@ -874,10 +927,6 @@ public class Player : MonoBehaviour
 			{
 				mTileMap.MapInfo.SetTileTypeIndex (x, DTileMap.TileType.Floor, true);
 			}
-			if(tempType == DTileMap.TileType.TrueSewer)
-			{
-				mTileMap.MapInfo.SetTileTypeIndex (x, DTileMap.TileType.Sewer, true);
-			}
 		}
 		//Debug.Log ("Player: Walk Range Reset");
 	}
@@ -886,27 +935,26 @@ public class Player : MonoBehaviour
 	{
 		ResetWalkRange ();
 
-
 		int rightX = 0;
-     	int rightY = 0;
-     	int leftX =  0;
-     	int leftY =  0;
-     	int upX = 0;
-     	int upY = 0;
-     	int downX =  0;
-     	int downY =  0;
+		int rightY = 0;
+		int leftX =  0;
+		int leftY =  0;
+		int upX = 0;
+		int upY = 0;
+		int downX =  0;
+		int downY =  0;
 		//Still need to discard a card
 		for(int hookamount = 3; hookamount>=2; hookamount--)
 		{
 			rightX = mPositionX + hookamount;
-         	rightY = mPositionY;
-         	leftX = mPositionX - hookamount;
+			rightY = mPositionY;
+			leftX = mPositionX - hookamount;
 			leftY = mPositionY;
 			upX = mPositionX;
 			upY = mPositionY + hookamount;
 			downX = mPositionX;
 			downY = mPositionY - hookamount;
-
+			
 			DTileMap.TileType hookRight = mTileMap.MapInfo.GetTileType (rightX, rightY);
 			DTileMap.TileType hookLeft = mTileMap.MapInfo.GetTileType (leftX, leftY);
 			DTileMap.TileType hookUp = mTileMap.MapInfo.GetTileType (upX, upY);
@@ -969,7 +1017,7 @@ public class Player : MonoBehaviour
 		}
 		else if(Input.GetMouseButtonDown(1))
 		{
-
+			
 			mPlayerPhase = PlayerPhase.Start;
 		}
 	}
@@ -1187,17 +1235,30 @@ public class Player : MonoBehaviour
 		mSkillsCD = 3;
 		mPlayerPhase = PlayerPhase.Start;
 	}
+
 	//added this to try to fix some issues
 	void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
-		if (stream.isWriting)
-		{
-			stream.SendNext(transform.position);
-		}
-		else
-		{
-			syncEndPosition = (Vector3)stream.ReceiveNext();
-			transform.position = syncEndPosition;
-		}
+		 if (stream.isWriting)
+        {
+            Vector3 pos = transform.localPosition;
+            Quaternion rot = transform.localRotation;
+            stream.Serialize(ref pos);
+            stream.Serialize(ref rot);
+        }
+        else
+        {
+            // Receive latest state information
+            Vector3 pos = Vector3.zero;
+            Quaternion rot = Quaternion.identity;
+
+            stream.Serialize(ref pos);
+            stream.Serialize(ref rot);
+
+            latestCorrectPos = pos;                 // save this to move towards it in FixedUpdate()
+            onUpdatePos = transform.localPosition;  // we interpolate from here to latestCorrectPos
+
+            transform.localRotation = rot;          // this sample doesn't smooth rotation
+        }
 	}
 }

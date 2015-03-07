@@ -12,9 +12,9 @@ public class GameManager : MonoBehaviour
 	public int sTargetsAlive;
 	public int sInstaniated = 0;
 	public BaseTarget[] mTargetsObjects;
-	public int[] mTargetSpawnPoint;		// 371, 402, 343, 202, 169, 161, 4, 20
+	public int[] mTargetSpawnPoint;
 	public TileMap mManagerTileMap;
-
+	
 	public DTileMap.TileType curDefending;
 	public DTileMap.TileType curAttacking;
 	
@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour
 	public BaseTarget[] sTargets;
 
 	private bool newPlayerAdded = false;
-
+	
 	//Call this to restart the lobby
 	public void Init()
 	{
@@ -38,14 +38,6 @@ public class GameManager : MonoBehaviour
 			sPlayersTurn = 0;
 			sTargetsAlive = 0;
 			sInstaniated = 1;
-			if(!PhotonNetwork.offlineMode)
-			{
-				mManagerTileMap = GameObject.Find("CurrentTileMap(Clone)").GetComponent<TileMap>();
-			}
-			else
-			{
-				mManagerTileMap = GameObject.Find("CurrentTileMap").GetComponent<TileMap>();
-			}
 
 			//HACK
 			mTargetSpawnPoint = new int[8];
@@ -65,6 +57,7 @@ public class GameManager : MonoBehaviour
 	{
 		Init ();
 	}
+	
 	//Adds Players to the game
 	public bool AddPlayer(Player p)
 	{
@@ -108,17 +101,17 @@ public class GameManager : MonoBehaviour
 	{
 		return (Player)sPlayers [sPlayersTurn];
 	}
-	
+
 	public Player CurrentPlayerDefender()
 	{
 		return sPlayers [curDefending - DTileMap.TileType.Player1];
 	}
-	
+
 	public BaseTarget CurrentTargetDefender()
 	{
 		return sTargets [curDefending - DTileMap.TileType.Target1];
 	}
-	// Call this to Have the game logic function
+
 	public void GameLoop()
 	{
 		if(sTargetsAlive < 2)
@@ -156,7 +149,6 @@ public class GameManager : MonoBehaviour
 				if(PhotonNetwork.offlineMode)
 				{
 					p.UpdatePlayer();
-					//Debug.Log(sPlayersTurn);
 				}
 				else
 				{
@@ -169,15 +161,15 @@ public class GameManager : MonoBehaviour
 			}
 			else
 			{
+				Debug.Log("HELLO");
 				p.mAttacked = false;
 				p.mMoved = false;
 				p.mTurn = false;
 				p.mPlayerPhase = Player.PlayerPhase.Start;
-				
+				p.ResetWalkRange();
 				AttackWorked = false;
 				CounterAttackWorked = false;
 				sPlayersTurn++;
-				
 				gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
 				//Debug.Log(sPlayersTurn);
 			}
@@ -235,8 +227,8 @@ public class GameManager : MonoBehaviour
 				tempV3 = mManagerTileMap.MapInfo.GetTileLocationIndex(i);
 			}
 		}
-		bool check = false;
-
+		//bool check = false;
+		
 		//while(check == false)
 		//{
 		//	int random = Random.Range (0, 7);
@@ -269,8 +261,6 @@ public class GameManager : MonoBehaviour
 	{
 		sPlayersTurn = iPlayersTurn;
 	}
-	
-	
 	
 	public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
@@ -315,9 +305,17 @@ public class GameManager : MonoBehaviour
 		}
 		if(!PhotonNetwork.isMasterClient)
 		{
-			if(CurrentPlayer().networkView.isMine)
+			if(CurrentPlayer () == null)
 			{
-				gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
+				Debug.Log ("Fucking Broken");
+			}
+			else
+			{
+				Debug.Log ("CurrentPlayerNetworkView" + CurrentPlayer().networkView.isMine);
+				if(CurrentPlayer().networkView.isMine)
+				{
+					gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
+				}
 			}
 		}
 	}

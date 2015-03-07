@@ -42,8 +42,13 @@ public class HUD : MonoBehaviour
 	
 	//wyatt
 	private GameManager mManager;
-	//
-	
+	//Sound Stuff
+	public AudioSource Source = new AudioSource();
+
+	public AudioClip SoundPlayCard;
+	public AudioClip SoundSelectCard;
+	public AudioClip SoundDrawCard;
+
 	public float percent;
 
 	void Start ()
@@ -170,6 +175,9 @@ public class HUD : MonoBehaviour
 	
 	GameObject DealCard()
 	{
+		Source.clip = SoundDrawCard;
+		Source.Play();
+
 		System.Random rand = new System.Random();
 		int card = rand.Next (30);
 		while(true)
@@ -293,7 +301,7 @@ public class HUD : MonoBehaviour
 		{
 			if(!PhotonNetwork.offlineMode)
 			{
-					set5.guiText.text = mManager.CurrentPlayer().gameObject.GetPhotonView().photonView.owner.name;
+				set5.guiText.text = mManager.CurrentPlayer().gameObject.GetPhotonView().photonView.owner.name;
 			}
 			else
 			{
@@ -317,6 +325,10 @@ public class HUD : MonoBehaviour
 			if (GUI.Button(new Rect(50,(Screen.height/2) - 200,100, 40), "Play Card") )
 			{
 				choosing = false;
+
+				Source.clip = SoundPlayCard;
+				Source.Play();
+
 				switch(mManager.curDefending)
 				{
 					case(DTileMap.TileType.Player1):
@@ -325,7 +337,7 @@ public class HUD : MonoBehaviour
 					{
 						if (p1c[i] == null)
 						{
-							p1c[i] = PlayCardOnPlayer(p1c[i]);
+							PlayCardOnPlayer(p1c[i]);
 						
 							break;
 						}
@@ -337,7 +349,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p2c[i] == null)
 							{
-								p2c[i] = PlayCardOnPlayer(p2c[i]);
+								PlayCardOnPlayer(p2c[i]);
 								
 								break;
 							}
@@ -349,7 +361,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p3c[i] == null)
 							{
-								p3c[i] = PlayCardOnPlayer(p3c[i]);
+								PlayCardOnPlayer(p3c[i]);
 								
 								break;
 							}
@@ -361,7 +373,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p4c[i] == null)
 							{
-								p4c[i] = PlayCardOnPlayer(p4c[i]);
+								PlayCardOnPlayer(p4c[i]);
 								
 								break;
 							}
@@ -373,7 +385,7 @@ public class HUD : MonoBehaviour
 						{
 							if (t1c[i] == null)
 							{
-								t1c[i] = PlayCardOnPlayer(t1c[i]);
+								PlayCardOnPlayer(t1c[i]);
 								
 								break;
 							}
@@ -385,7 +397,7 @@ public class HUD : MonoBehaviour
 						{
 							if (t2c[i] == null)
 							{
-								t2c[i] = PlayCardOnPlayer(t2c[i]);
+								PlayCardOnPlayer(t2c[i]);
 								
 								break;
 							}
@@ -397,7 +409,7 @@ public class HUD : MonoBehaviour
 						{
 							if (t3c[i] == null)
 							{
-								t3c[i] = PlayCardOnPlayer(t3c[i]);
+								PlayCardOnPlayer(t3c[i]);
 								
 								break;
 							}
@@ -414,6 +426,9 @@ public class HUD : MonoBehaviour
 				Debug.Log ("Logan Code Sucks" + mManager.curAttacking);
 				choosing = false;
 
+				Source.clip = SoundPlayCard;
+				Source.Play();
+
 				switch(mManager.curAttacking)
 				{
 					case(DTileMap.TileType.Player1):
@@ -422,7 +437,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p1c[i] == null)
 							{
-								p1c[i] = PlayCardOnPlayer(p1c[i]);
+								PlayCardOnPlayer(p1c[i]);
 								
 								break;
 							}
@@ -434,7 +449,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p2c[i] == null)
 							{
-								p2c[i] = PlayCardOnPlayer(p2c[i]);
+								PlayCardOnPlayer(p2c[i]);
 								
 								break;
 							}
@@ -446,7 +461,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p3c[i] == null)
 							{
-								p3c[i] = PlayCardOnPlayer(p3c[i]);
+								PlayCardOnPlayer(p3c[i]);
 								
 								break;
 							}
@@ -458,7 +473,7 @@ public class HUD : MonoBehaviour
 						{
 							if (p4c[i] == null)
 							{
-								p4c[i] = PlayCardOnPlayer(p4c[i]);
+								PlayCardOnPlayer(p4c[i]);
 								
 								break;
 							}
@@ -513,7 +528,7 @@ public class HUD : MonoBehaviour
 				if (mManager.CurrentPlayer().mPlayerPhase == Player.PlayerPhase.Attack)
 				{
 					Attack();
-					
+					mManager.CurrentPlayer().mPlayerPhase = Player.PlayerPhase.End;
 					// infamy boost infamy = infamy+1;
 				}
 			}
@@ -552,41 +567,38 @@ public class HUD : MonoBehaviour
 		{
 			//target logic
 			//Debug.Log("TargetThatIsDefending::" + TypeofDefender);
-			mManager.curDefending -= DTileMap.TileType.Target1;
 			if(!PhotonNetwork.offlineMode)
 			{
-				set9.guiText.text = mManager.sTargets[(int)mManager.curDefending].gameObject.GetPhotonView().photonView.owner.name;
+				set9.guiText.text = mManager.CurrentTargetDefender().name;
 			}
 			else
 			{
-				set9.guiText.text = mManager.sTargets[(int)mManager.curDefending].name;
+				set9.guiText.text = mManager.CurrentTargetDefender().name;
 			}
 			
 			set10.guiText.text = "N/A";
-			set11.guiText.text = mManager.sTargets[(int)mManager.curDefending].mDefence.ToString();
-			set12.guiText.text = mManager.sTargets[(int)mManager.curDefending].mMovement.ToString();
-			mManager.curDefending += (int)DTileMap.TileType.Target1;
+			set11.guiText.text = mManager.CurrentTargetDefender().mDefence.ToString();
+			set12.guiText.text = mManager.CurrentTargetDefender().mMovement.ToString();
 		}
 		else
 		{
 			//player logic
 			//Debug.Log("PlayerThatIsDefending::" + mManager.curDefending);
-			mManager.curDefending -= DTileMap.TileType.Player1;
 			if(!PhotonNetwork.offlineMode)
 			{
-				set9.guiText.text = mManager.sPlayers[(int)mManager.curDefending].gameObject.GetPhotonView().photonView.owner.name;
+				set9.guiText.text = mManager.CurrentPlayerDefender().gameObject.GetPhotonView().photonView.owner.name;
 			}
 			else
 			{
-				set9.guiText.text = mManager.sPlayers[(int)mManager.curDefending].name;
+				set9.guiText.text = mManager.CurrentPlayerDefender().name;
 			}
 			
-			set10.guiText.text = mManager.sPlayers[(int)mManager.curDefending].mAttack.ToString();
-			set11.guiText.text = mManager.sPlayers[(int)mManager.curDefending].mDefence.ToString();
-			set12.guiText.text = mManager.sPlayers[(int)mManager.curDefending].mMovement.ToString();
-			mManager.curDefending += (int)DTileMap.TileType.Player1;
+			set10.guiText.text = mManager.CurrentPlayerDefender().mAttack.ToString();
+			set11.guiText.text = mManager.CurrentPlayerDefender().mDefence.ToString();
+			set12.guiText.text = mManager.CurrentPlayerDefender().mMovement.ToString();
 		}
 	} 
+
 	GameObject PlayCardOnPlayer(GameObject gObject)
 	{
 		curcard.collider.gameObject.tag = "Untagged";
@@ -691,12 +703,14 @@ public class HUD : MonoBehaviour
 
 			//DEBUG Purposes
 			//===================================================
-			if (cdel >= 15) 
-			{
-				showR = true;
-			}
-			else
-				showR = false;
+            if( cdel >= 15 )
+            {
+                showR = true;
+            }
+            else
+            {
+                showR = false;
+            }
 			//===================================================
 
 			if(Input.GetMouseButtonDown(0))
@@ -705,10 +719,13 @@ public class HUD : MonoBehaviour
 				RaycastHit hit;
 				if (Physics.Raycast(ray, out hit))			
 				{ 
-					//Debug.Log("clicked it");
+					Debug.Log("clicked it");
 					
 					if(hit.collider.CompareTag("Card"))
 					{
+						Source.clip = SoundSelectCard;
+						Source.Play();
+
 						curcard = hit;
 						choosing = true;
 					}
@@ -787,39 +804,6 @@ public class HUD : MonoBehaviour
 			{
 				ShowDefendingCard(p1c[i], i);
 			}
-			
-			//if (p1c[0] != null)
-			//{
-			//	Vector3 p = Camera.main.ScreenToWorldPoint( new Vector3(0 + 75, Screen.height/2 + 300, 6.0f) );
-			//	p1c[0].transform.position = p;
-			//	
-			//	p1c[0].transform.localScale = new Vector3(0.1f,0.1f,0.1f);
-			//	p1c[0].transform.rotation = Camera.main.transform.rotation;
-			//}
-			//if (p1c[1] != null)
-			//{
-			//	Vector3 p = Camera.main.ScreenToWorldPoint( new Vector3(0 + 150, Screen.height/2 + 300, 6.0f) );
-			//	p1c[1].transform.position = p;
-			//	
-			//	p1c[1].transform.localScale = new Vector3(0.1f,0.1f,0.1f);
-			//	p1c[1].transform.rotation = Camera.main.transform.rotation;
-			//}
-			//if (p1c[2] != null)
-			//{
-			//	Vector3 p = Camera.main.ScreenToWorldPoint( new Vector3(0 + 75, Screen.height/2 + 175, 6.0f) );
-			//	p1c[2].transform.position = p;
-			//	
-			//	p1c[2].transform.localScale = new Vector3(0.1f,0.1f,0.1f);
-			//	p1c[2].transform.rotation = Camera.main.transform.rotation;
-			//}
-			//if (p1c[3] != null)
-			//{
-			//	Vector3 p = Camera.main.ScreenToWorldPoint( new Vector3(0 + 150, Screen.height/2 + 175, 6.0f) );
-			//	p1c[3].transform.position = p;
-			//	
-			//	p1c[3].transform.localScale = new Vector3(0.1f,0.1f,0.1f);
-			//	p1c[3].transform.rotation = Camera.main.transform.rotation;
-			//}
 		}
 		else if (mManager.curDefending == DTileMap.TileType.Player2)
 		{
@@ -960,17 +944,24 @@ public class HUD : MonoBehaviour
 			return new Vector3();
 		}
 	}
-
+	IEnumerator DelaySound(float x) 
+	{
+		//print(Time.time);
+		yield return new WaitForSeconds(x);
+		//print(Time.time);
+	}
 	void Attack()
 	{
-		int tempatk, tempdef, taratk, tardef;
+		int tempatk, 
+			tempdef, 
+			taratk,
+			tardef;
 
 		tempatk = mManager.CurrentPlayer().mAttack;
 		tempdef = mManager.CurrentPlayer().mDefence;
 
 		tardef = 0;
 		taratk = 0;
-
 		if(mManager.curDefending >= DTileMap.TileType.Target1 && mManager.curDefending <= DTileMap.TileType.Target3)
 		{
 			//Targets DO NOT ATTACK
@@ -979,13 +970,17 @@ public class HUD : MonoBehaviour
 		}
 		else if (mManager.curDefending >= DTileMap.TileType.Player1 && mManager.curDefending < DTileMap.TileType.Target1)
 		{
+
+			//Debug.Log(mManager.curDefending + "::CurrentDefendingPlayer");
 			taratk = mManager.CurrentPlayerDefender().mAttack;
 			tardef = mManager.CurrentPlayerDefender().mDefence;
 		}
+
 		//When cards are defined do card stuff
+		//ActivteCards(int, int, int, int, List, List);
 		if (mManager.curAttacking == DTileMap.TileType.Player1)
 		{
-			for (int h = 0; h < 5; h++)
+			for (int h = 0; h < p1c.Count; h++)
 			{
 				Destroy(p1c[h]);
 			}
@@ -993,7 +988,7 @@ public class HUD : MonoBehaviour
 		else if (mManager.curAttacking == DTileMap.TileType.Player2)
 		{
 			
-			for (int h = 0; h < 5; h++)
+			for (int h = 0; h < p2c.Count; h++)
 			{
 				Destroy(p2c[h]);
 			}
@@ -1001,7 +996,7 @@ public class HUD : MonoBehaviour
 		else if (mManager.curAttacking == DTileMap.TileType.Player3)
 		{
 			
-			for (int h = 0; h < 5; h++)
+			for (int h = 0; h < p3c.Count; h++)
 			{
 				Destroy(p3c[h]);
 			}
@@ -1073,20 +1068,38 @@ public class HUD : MonoBehaviour
 		
 		if (tempatk > tardef)
 		{
+			Source.PlayOneShot(mManager.CurrentPlayer().SoundAttack);
+
 			if(mManager.curDefending >= DTileMap.TileType.Target1)
 			{
-				//mManager.CurrentTargetDefender().gameObject.renderer.enabled = false;
+
+				Source.clip = mManager.CurrentTargetDefender ().SoundBlock;
+				Source.PlayDelayed (mManager.CurrentPlayer().SoundAttack.length);
+    			//mManager.CurrentTargetDefender().gameObject.renderer.enabled = false;
 				mManager.AttackWorked = true;
 				//Kill target.
 			}
 			else
 			{
+				Source.clip = mManager.CurrentPlayerDefender ().SoundBlock;
+				Source.PlayDelayed (mManager.CurrentPlayer().SoundAttack.length);
+
 				//mManager.CurrentPlayerDefender().gameObject.renderer.enabled = false;
 				mManager.AttackWorked = true;
+				//Kill Player
 			}
 		}
 		else if (taratk > tempdef)
 		{
+			if(mManager.curDefending >= DTileMap.TileType.Target1)
+			{
+				AudioSource.PlayClipAtPoint (mManager.CurrentTargetDefender().SoundAttack, transform.position);
+			}
+			else
+			{
+				AudioSource.PlayClipAtPoint (mManager.CurrentPlayerDefender().SoundAttack, transform.position);
+			}
+			AudioSource.PlayClipAtPoint (mManager.CurrentPlayer().SoundBlock, transform.position);
 			//mManager.CurrentPlayer ().gameObject.renderer.enabled = false;
 			mManager.CounterAttackWorked = true;
 			//Kill player.

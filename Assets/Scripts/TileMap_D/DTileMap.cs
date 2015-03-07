@@ -27,21 +27,21 @@ public class DTileMap
 	
 	public enum TileType
 	{
-		Floor,		//0
-		Walkable,	//1
-		Path,		//2
-		Wall,		//3
-		Sewer,		//4
-		PlayerSpawn,//5		
-		Player1,	//6
-		Player2,   	//7
-		Player3,	//8
-		Player4,	//9
-    	Target1,	//10
-		Target2,	//11
-		Target3,	//12
-		TrueSewer,	//13
-		TargetSpot,	//14
+		Floor,			//0
+		Walkable,		//1
+		Path,			//2
+		Wall,			//3
+		Sewer,			//4
+		PlayerSpawn,	//5		
+		Player1,		//6
+		Player2,	   	//7
+		Player3,		//8
+		Player4,		//9
+    	Target1,		//10
+		Target2,		//11
+		Target3,		//12
+		TrueSewer,		//13
+		TargetSpot,		//14
 	};
 
 	public void CreateMap(int sizex, int sizey)
@@ -94,7 +94,7 @@ public class DTileMap
 					Node node = mGraph.GetNodeInfo(x,y);
 					int type = map_data[(y*size_x)+x];
 					int i= (y*size_x)+x;
-					if(type==(int)TileType.Floor||type==(int)TileType.Sewer)
+					if(type==(int)TileType.Floor || type == (int)TileType.Sewer)
 					{
 						node.walkable = true;
 					}

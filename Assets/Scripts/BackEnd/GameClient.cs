@@ -46,6 +46,7 @@ public class GameClient : MonoBehaviour
 			Debug.Log("GameClient::CreatingGameManager");
 			mGameManager = PhotonNetwork.Instantiate(mGameManager.name, transform.position, Quaternion.identity, 0);
 			mManager = mGameManager.GetComponent<GameManager>();
+			mManager.mManagerTileMap = mTileMap.GetComponent<TileMap>();
 		}
 	}
 	void Start () 
@@ -55,14 +56,12 @@ public class GameClient : MonoBehaviour
 		{
 			PhotonNetwork.Instantiate(mPlayer1Prefab.name, transform.position, Quaternion.identity, 0);
 		}
-		mManager.Init ();
 	}
 	// Update is called once per frame
 	void Update () 
 	{
 		if(!mTileMap) 
 		{
-			mGameManager = GameObject.Find("GameManager(Clone)");
 			Debug.Log("GameClient::CreatingTileMap");
 			mTileMap = PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
 		}
@@ -91,6 +90,7 @@ public class GameClient : MonoBehaviour
 			{
 				PhotonNetwork.Instantiate(mPlayer4Prefab.name, transform.position, Quaternion.identity, 0);
 			}
+			mManager.mManagerTileMap = mTileMap.GetComponent<TileMap>();
 		}
 		else //if(mManager)
 		{

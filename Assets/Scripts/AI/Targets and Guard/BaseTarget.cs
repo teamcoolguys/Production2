@@ -25,10 +25,10 @@ public class BaseTarget : MonoBehaviour
 	public Transform curTargetNode;
 	TileMap mTileMap;
 	TileMapMouse mMouse;
-
+	
 	GameObject mTileMapObject;
 	GameObject mPlayer;
-								//privates
+	//privates
 	private int mPositionX;		//Current Position
 	private int mPositionY;		//Current Position
 	private int mMouseX;		//Mouse Location
@@ -37,36 +37,36 @@ public class BaseTarget : MonoBehaviour
 	//Network Stuff
 	GameManager mManager;
 	public bool mTargetTurn;
-
+	
 	//Current Stats
 	public int mDefence;
 	public int mMovement;
 	public int mRunMovement;
 	public int mInfamy = 1;
-
+	
 	//Node currently going to
 	public int mTowardChoice;
 	//4 nodes to move around
 	public int mNodeAX;
 	public int mNodeAY;
 	public int mWeightA;
-
+	
 	public int mNodeBX;
 	public int mNodeBY;
 	public int mWeightB;
-
+	
 	public int mNodeCX;
 	public int mNodeCY;
 	public int mWeightC;
-
+	
 	public int mNodeDX;
 	public int mNodeDY;
 	public int mWeightD;
-
+	
 	private int mTowardNodeX;
 	private int mTowardNodeY;
-
-
+	
+	
 	//4 nodes to Run around
 	public int mNodeRAX;
 	public int mNodeRAY;
@@ -83,14 +83,18 @@ public class BaseTarget : MonoBehaviour
 	public int mNodeRDX;
 	public int mNodeRDY;
 	public int mWeightRD;
-
+	
 	private bool mWalkPathTrue;
 	private bool mRunPathTrue;
 	//List to Track Graph
 	public List<Node>mTowardPath;
 	public List<Node>mCurrentPath;
-
+	
 	private bool firstTime;
+
+	//Sounds Stuff
+	public AudioClip SoundBlock;
+	public AudioClip SoundAttack;
 
 	void Start () 
 	{
@@ -139,10 +143,10 @@ public class BaseTarget : MonoBehaviour
 		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
-
+		
 		mMouseX = mMouse.mMouseHitX;
 		mMouseY = mMouse.mMouseHitY;
-
+		
 		Vector3 temp = mTileMap.MapInfo.GetTileLocation (mTowardNodeX, mTowardNodeY);
 		curTargetNode.position = temp;
 	}
@@ -215,7 +219,7 @@ public class BaseTarget : MonoBehaviour
 			//Decide on a Path;
 			PathDecision (false);
 			//Find Target Node path;
-
+			
 			Debug.Log("CurrentChoice : " + mTowardChoice);
 			mRunPathTrue = true;
 		}
@@ -240,12 +244,12 @@ public class BaseTarget : MonoBehaviour
 			mState=State.Run;
 		}
 	}
-
+	
 	public void UpdateDie()
 	{
 		PhotonNetwork.Destroy (gameObject);
 	}
-
+	
 	void PathDecision(bool WalkTrue)//Decision on Paths
 	{
 		if(WalkTrue == true)

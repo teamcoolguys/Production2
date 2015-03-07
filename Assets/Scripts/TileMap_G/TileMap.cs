@@ -163,7 +163,7 @@ public class TileMap : MonoBehaviour {
 		if (stream.isWriting)
 		{
 			//Debug.Log ("Writing");
-			//We own this player: send the others our data		
+			//We own this player: send the others our data
 		}
 		else
 		{

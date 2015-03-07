@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class AnchorbeardPirate
@@ -10,6 +10,10 @@ public class AnchorbeardPirate
 	public int mInputMovement = 4;
 	public int mInputRange = 1;
 	public Faction mFaction = Faction.SkyPirates;
+	
+	public AudioClip mAttackSound;
+	public AudioClip mBlockSound;
+	public AudioClip DialogAttack; 
 	
 	public enum Faction
 	{
