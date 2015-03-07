@@ -55,6 +55,7 @@ public class GameClient : MonoBehaviour
 		{
 			PhotonNetwork.Instantiate(mPlayer1Prefab.name, transform.position, Quaternion.identity, 0);
 		}
+		mManager.Init ();
 	}
 	// Update is called once per frame
 	void Update () 
