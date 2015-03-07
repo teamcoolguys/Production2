@@ -242,6 +242,7 @@ public class BaseTarget : MonoBehaviour
 	public void UpdateDie()
 	{
 		PhotonNetwork.Destroy (gameObject);
+		Destroy (gameObject);
 	}
 
 	void PathDecision()//Decision on Paths
