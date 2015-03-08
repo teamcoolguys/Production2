@@ -1,11 +1,22 @@
 ﻿ using UnityEngine;
 using System.Collections;
 
-public class GameClient : MonoBehaviour {
+public class GameClient : MonoBehaviour 
+{
+	public GameObject mPlayer1Prefab;
+	public GameObject mPlayer2Prefab;
+	public GameObject mPlayer3Prefab;
+	public GameObject mPlayer4Prefab;
+	public GameObject mGameManager;
+	public GameObject mTileMap;
 
-	public GameObject playerPrefab;
+	private GameManager mManager;
+	private int playersInRoom = 0;
+	private GameObject[] players;
+	private GameObject[] mTileMaps;
+
 	// Use this for initialization
-	void Awake () 
+	void Awake()
 	{
 		// in case we started this demo with the wrong scene being active, simply load the menu scene
 		if (!PhotonNetwork.connected)
@@ -13,32 +24,91 @@ public class GameClient : MonoBehaviour {
 			Application.LoadLevel(GameMenu.SceneNameMenu);
 			return;
 		}
-		if(!GameManager.Instaniated)
+		if (!PhotonNetwork.offlineMode)
 		{
-			GameManager.Init();
+			Debug.Log("GameClient::DestroyingPlayers");
+			players = GameObject.FindGameObjectsWithTag("Player");		
+			foreach (Object player in players) 
+			{
+				Destroy(player);
+			}
+			Debug.Log("GameClient::DestroyingMap");
+			mTileMaps = GameObject.FindGameObjectsWithTag("Map");
+			foreach (Object player in mTileMaps) 
+			{
+				Destroy(player);
+			}
 		}
-		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
-		PhotonNetwork.Instantiate(playerPrefab.name, transform.position, Quaternion.identity, 0);
+		if(PhotonNetwork.isMasterClient)
+		{
+			Debug.Log("GameClient::CreatingTileMap");
+			mTileMap = PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
+			Debug.Log("GameClient::CreatingGameManager");
+			mGameManager = PhotonNetwork.Instantiate(mGameManager.name, transform.position, Quaternion.identity, 0);
+			mManager = mGameManager.GetComponent<GameManager>();
+		}
 	}
-	
+	void Start () 
+	{
+		// we're in a room. spawn a character for the local player. it gets synced by using PhotonNetwork.Instantiate
+		if(PhotonNetwork.isMasterClient)
+		{
+			PhotonNetwork.Instantiate(mPlayer1Prefab.name, transform.position, Quaternion.identity, 0);
+		}
+		mManager.Init ();
+	}
 	// Update is called once per frame
 	void Update () 
 	{
-		if(GameManager.PlayersInLobby > 0)
+		if(!mTileMap) 
 		{
-			GameManager.GameLoop ();
+			mGameManager = GameObject.Find("GameManager(Clone)");
+			Debug.Log("GameClient::CreatingTileMap");
+			mTileMap = PhotonNetwork.Instantiate(mTileMap.name, transform.position, Quaternion.identity, 0);
+		}
+		if(!mManager)
+		{
+			players = GameObject.FindGameObjectsWithTag("Player");		
+			foreach (Object player in players) 
+			{
+				playersInRoom++;
+			}
+			mGameManager = GameObject.Find("GameManager(Clone)");
+			mManager = mGameManager.GetComponent<GameManager>();
+			if(playersInRoom == 0)
+			{
+				PhotonNetwork.Instantiate(mPlayer1Prefab.name, transform.position, Quaternion.identity, 0);
+			}
+			else if(playersInRoom == 1)
+			{
+				PhotonNetwork.Instantiate(mPlayer2Prefab.name, transform.position, Quaternion.identity, 0);
+			}
+			else if(playersInRoom == 2)
+			{
+				PhotonNetwork.Instantiate(mPlayer3Prefab.name, transform.position, Quaternion.identity, 0);
+			}
+			else if(playersInRoom == 3)
+			{
+				PhotonNetwork.Instantiate(mPlayer4Prefab.name, transform.position, Quaternion.identity, 0);
+			}
+		}
+		else //if(mManager)
+		{
+			if(mManager.sPlayersInRoom > 0)
+			{
+				mManager.GameLoop ();
+			}
 		}
 	}
 
 	void OnGUI()
 	{
-		if(GameManager.PlayersTurn <= GameManager.PlayersInLobby)
-		{
-			GUI.Button(new Rect(10,400,100 ,50),"Players Turn " + (GameManager.PlayersTurn+1).ToString());
-		}
-		else
-		{
-			GUI.Button(new Rect(10,400,100 ,50),"AI Turn");
+		if(mManager)
+		{			
+			if(GUI.Button(new Rect (10, 500, 100, 50), "End Turn"))
+			{
+				mManager.sPlayersTurn++;
+			}
 		}
 	}
 }

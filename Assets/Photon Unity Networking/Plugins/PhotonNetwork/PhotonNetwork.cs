@@ -2417,7 +2417,7 @@ public static class PhotonNetwork
 
         if (room == null)
         {
-            Debug.LogWarning("Cannot send RPCs in Lobby! RPC dropped.");
+            //Debug.LogWarning("Cannot send RPCs in Lobby! RPC dropped.");
             return;
         }
 

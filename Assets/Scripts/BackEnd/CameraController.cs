@@ -10,18 +10,20 @@ public class CameraController : MonoBehaviour {
 	private Quaternion newRot;
 	private float RotationAmmount;
 	//publics
-	public float zoomSpeed = 20f;
-	public float minZoomFOV = 10f;
-	public float maxZoomFOV = 100f;
-	public float Rotation = 30; // degrees per second'
+	public float zoomSpeed = 2.5f;
+	public float minZoomFOV = 10.0f;
+	public float maxZoomFOV = 100.0f;
+	public float Rotation = 30.0f; // degrees per second'
+
 	[Range(0.0f,0.1f)]
 	public float RotationSpeed;
+
 	public float panSpeed = 4.0f;
 	public float Speed = 5.0f;
 
 	public void ZoomIn()
 	{
-		cameraFreeWalk.fieldOfView -= zoomSpeed/8;
+		cameraFreeWalk.fieldOfView -= zoomSpeed;//8.0f;
 		if (cameraFreeWalk.fieldOfView < minZoomFOV)
 		{
 			cameraFreeWalk.fieldOfView = minZoomFOV;
@@ -29,7 +31,7 @@ public class CameraController : MonoBehaviour {
 	}
 	public void ZoomOut()
 	{
-		cameraFreeWalk.fieldOfView += zoomSpeed/8;
+		cameraFreeWalk.fieldOfView += zoomSpeed;;//8.0f;
 		if (cameraFreeWalk.fieldOfView > maxZoomFOV)
 		{
 			cameraFreeWalk.fieldOfView = maxZoomFOV;
@@ -56,19 +58,19 @@ public class CameraController : MonoBehaviour {
 		{
 			ZoomOut();
 		}
-		if (Input.GetKeyDown("left"))
+		if (Input.GetKeyDown("left") && !Rotate)
 		{
 			RotationAmmount += Rotation;
 			newRot = Quaternion.AngleAxis(RotationAmmount, Vector3.up);
 			Rotate = true;
-			Debug.Log("left");
+			//Debug.Log("left");
 		}
-		if (Input.GetKeyDown("right"))
+		if (Input.GetKeyDown("right") && !Rotate)
 		{
 			RotationAmmount -= Rotation;
 			newRot = Quaternion.AngleAxis(RotationAmmount, Vector3.up);
 			Rotate = true;
-			Debug.Log("right");
+			//Debug.Log("right");
 			//transform.rotation = Quaternion.Slerp(transform.rotation,new Quaternion(transform.rotation.x, transform.rotation.y + goodDegs, transform.rotation.z, transform.rotation.w), Time.deltatime * Smooth);
 		}
 		if(Rotate)
