@@ -43,6 +43,7 @@ public class Player : MonoBehaviour
 		Play,
 		Special,
 		Attack,
+		AttackMaybe,
 		End
 	};
 
@@ -293,6 +294,9 @@ public class Player : MonoBehaviour
 			case PlayerPhase.Attack:
 				UpdateAttack();
 				break;
+			case PlayerPhase.AttackMaybe:
+				UpdateAttackMaybe();
+				break;
 			case PlayerPhase.Play:
 				UpdatePlay ();
 				break;
@@ -476,7 +480,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Player1)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -487,7 +491,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Player2)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -499,7 +503,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Player3)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -510,7 +514,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Player4)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -522,7 +526,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Target1)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -533,7 +537,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Target2)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -544,7 +548,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Target3)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -622,10 +626,24 @@ public class Player : MonoBehaviour
 			break;
 		}
 	}
+	void UpdateAttackMaybe()
+	{
+		Debug.Log ("MayBeAttack");
+		if(Input.GetMouseButtonDown(0))
+		{
+			mAttacked = true;
+			mPlayerPhase = PlayerPhase.Attack;
+		}
+		else if (Input.GetMouseButtonDown (1))
+		{
+			mPlayerPhase = PlayerPhase.Attack;
+		}
+	}
 	void UpdateAttack()
 	{
-		if(Input.GetMouseButtonDown(0) || mManager.HudUpdated)
+		if(mManager.HudUpdated)
 		{
+			Debug.Log ("Attack" + mManager.HudUpdated);
 			DTileMap.TileType AttackingTarget = mManager.curDefending;
 			if(AttackingTarget>=DTileMap.TileType.Target1)
 			{
@@ -680,10 +698,6 @@ public class Player : MonoBehaviour
 			{
 				mPlayerPhase = PlayerPhase.End;
 			}
-		}
-		else if(Input.GetMouseButtonDown(1))
-		{
-			mPlayerPhase = PlayerPhase.Start;
 		}
 	}
 	void UpdatePlay()
