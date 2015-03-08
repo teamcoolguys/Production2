@@ -3,6 +3,7 @@
 //Copywrite Wyatt 2014
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,10 +23,10 @@ public class GameManager : MonoBehaviour
 	public bool CounterAttackWorked = false;
 	public bool HudUpdated = false;
 	public Player[] sPlayers;
-	public BaseTarget[] sTargets;
+	public List<BaseTarget> sTargets;
 
 	private bool newPlayerAdded = false;
-
+	 
 	//Call this to restart the lobby
 	public void Init()
 	{
@@ -33,7 +34,6 @@ public class GameManager : MonoBehaviour
 		{
 			Debug.Log("Instantiated");
 			sPlayers.Initialize();
-			sTargets.Initialize();
 			sPlayersInRoom = 0;
 			sPlayersTurn = 0;
 			sTargetsAlive = 0;
@@ -141,8 +141,6 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
-
-
 	public BaseTarget CurrentTargetDefender()
 	{
 		return sTargets [curDefending - DTileMap.TileType.Target1];
@@ -154,29 +152,32 @@ public class GameManager : MonoBehaviour
 		{
 			Debug.Log (CurrentPlayer ().mPlayerIndex + " Win");
 		}
-		if(sTargetsAlive < 3)
+		else
 		{
-			Debug.Log ("Manager:" + sTargetsAlive);
-			SpawnTarget();
+			if(sTargetsAlive < 3)
+			{
+				Debug.Log ("Manager:" + sTargetsAlive);
+				SpawnTarget();
+			}
+			if(newPlayerAdded)
+			{
+				CheckPlayers();
+			}
+			if(sPlayersTurn < sPlayersInRoom)
+			{
+				PlayerTurn((Player)sPlayers[sPlayersTurn]);
+				//Debug.Log(sPlayersTurn);
+			}
+			else if (sPlayersTurn >= sPlayersInRoom)
+			{
+				AITurn();
+				sPlayersTurn++;
+				//Debug.Log(sPlayersTurn);
+				sPlayersTurn = sPlayersTurn % (sPlayersTurn);
+				//Debug.Log(sPlayersTurn);
+			}
+			curAttacking = (DTileMap.TileType)sPlayersTurn;
 		}
-		if(newPlayerAdded)
-		{
-			CheckPlayers();
-		}
-		if(sPlayersTurn < sPlayersInRoom)
-		{
-			PlayerTurn((Player)sPlayers[sPlayersTurn]);
-			//Debug.Log(sPlayersTurn);
-		}
-		else if (sPlayersTurn >= sPlayersInRoom)
-		{
-			AITurn();
-			sPlayersTurn++;
-			//Debug.Log(sPlayersTurn);
-			sPlayersTurn = sPlayersTurn % (sPlayersTurn);
-			//Debug.Log(sPlayersTurn);
-		}
-		curAttacking = (DTileMap.TileType)sPlayersTurn;
 	}
 	
 	//this is what the player can do on their turn
