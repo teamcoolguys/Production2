@@ -93,6 +93,7 @@ public class BaseTarget : MonoBehaviour
 		mWalkPathTrue = false;
 		mRunPathTrue = false;
 		mTargetTurn = false;
+		mState = State.Spawn;
 	}
 	void Update () 
 	{
@@ -243,9 +244,11 @@ public class BaseTarget : MonoBehaviour
 
 	public void UpdateDie()
 	{
-
+		mTileMap.MapInfo.SetTileType (mPositionX, mPositionY, DTileMap.TileType.Floor, true);
+		mManager.curDefending = DTileMap.TileType.TargetSpot;
 		PhotonNetwork.Destroy (gameObject);
 		Destroy (gameObject);
+		mManager.RemoveTarget (this);
 	}
 
 	void PathDecision()//Decision on Paths

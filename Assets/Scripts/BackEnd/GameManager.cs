@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
 	
 	public bool AttackWorked = false;
 	public bool CounterAttackWorked = false;
-
+	public bool HudUpdated = false;
 	public Player[] sPlayers;
 	public BaseTarget[] sTargets;
 
@@ -113,7 +113,28 @@ public class GameManager : MonoBehaviour
 	{
 		return sPlayers [curDefending - DTileMap.TileType.Player1];
 	}
-	
+
+	public void RemoveTarget(BaseTarget targetToRemove)
+	{
+		DTileMap.TileType TargetNumber = DTileMap.TileType.Target1;
+		foreach( BaseTarget Target in sTargets)
+		{
+			if( Target == targetToRemove )
+			{
+				targetToRemove = null;
+				sTargetsAlive--;
+				CheckTargets();
+			}
+
+			if(Target)
+			{
+				Target.mTargetIndex = TargetNumber;
+				TargetNumber++;
+			}
+		}
+	}
+
+
 	public BaseTarget CurrentTargetDefender()
 	{
 		return sTargets [curDefending - DTileMap.TileType.Target1];
@@ -173,7 +194,7 @@ public class GameManager : MonoBehaviour
 				p.mMoved = false;
 				p.mTurn = false;
 				p.mPlayerPhase = Player.PlayerPhase.Start;
-				
+				HudUpdated = false;
 				AttackWorked = false;
 				CounterAttackWorked = false;
 				sPlayersTurn++;
@@ -219,6 +240,24 @@ public class GameManager : MonoBehaviour
 		newPlayerAdded = false;
 	}
 
+	void CheckTargets()
+	{
+		BaseTarget[] temp = new BaseTarget[4];
+		int cintd = 0;
+		for (int i = 0; i < sTargets.Length; i++) 
+		{
+			if (sTargets[i] != null)
+			{
+				temp[cintd] = sTargets[i];
+				cintd++;
+			}
+		}
+		for (int i = 0; i < sTargets.Length; i++) 
+		{
+			sTargets[i] = temp[i];
+		}
+	}
+
 	void SpawnTarget()
 	{
 		if(mManagerTileMap == null)
@@ -235,7 +274,6 @@ public class GameManager : MonoBehaviour
 				tempV3 = mManagerTileMap.MapInfo.GetTileLocationIndex(i);
 			}
 		}
-		bool check = false;
 
 		//while(check == false)
 		//{
