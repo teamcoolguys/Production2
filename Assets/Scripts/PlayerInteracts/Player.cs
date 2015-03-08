@@ -341,18 +341,21 @@ public class Player : MonoBehaviour
 	}
 	void UpdateSewer()
 	{
-
-		foreach(int i in mAllSewerIndex)
+		if(mSewerWalkable == false)
 		{
-			DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
-			if(temp == DTileMap.TileType.Sewer)
+			foreach(int i in mAllSewerIndex)
 			{
-				mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.TrueSewer, true) ;
+				DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+				if(temp == DTileMap.TileType.Sewer)
+				{
+					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.TrueSewer, true) ;
+				}
 			}
 		}
 		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.TrueSewer)
 		{
+
 			Teleport (mMouseX, mMouseY);
 			foreach(int i in mAllSewerIndex)
 			{
@@ -362,7 +365,6 @@ public class Player : MonoBehaviour
 					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.Sewer, true) ;
 				}
 			}
-			Debug.Log ("Sewer");
 			FindWalkRange (1);
 			curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 			mSewerWalkable = true;

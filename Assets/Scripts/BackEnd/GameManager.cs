@@ -321,4 +321,16 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
+	void OnGUI()
+	{
+		if(sPlayersTurn < sPlayersInRoom)
+		{
+			GUI.TextArea(new Rect(10,500,100 ,50),"Players Turn " + (sPlayersTurn+1).ToString());
+		}
+		else
+		{
+			GUI.TextArea(new Rect(10,400,100 ,50),"AI Turn");
+			//Debug.Log(mManager.sPlayersTurn.ToString());
+		}
+	}
 }
