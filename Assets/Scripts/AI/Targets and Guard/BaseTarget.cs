@@ -109,13 +109,12 @@ public class BaseTarget : MonoBehaviour
 				{
 					mTileMapObject=GameObject.Find("CurrentTileMap");
 					mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager
-					mManager.AddTarget (this);	
 				}
 				else
 				{
 					mTileMapObject=GameObject.Find("CurrentTileMap(Clone)");
 					mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
-					mManager.AddTarget (this);	
+
 				}
 			}
 			//Debug.Log ("TargetX::" + mPositionX);
@@ -163,10 +162,6 @@ public class BaseTarget : MonoBehaviour
 		if (!mManager)
 		{
 			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
-			if(mManager)
-			{
-				mManager.AddTarget(this);
-			}
 		}
 		return true;
 	}

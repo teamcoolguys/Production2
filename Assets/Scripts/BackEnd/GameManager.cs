@@ -3,6 +3,7 @@
 //Copywrite Wyatt 2014
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,10 +23,10 @@ public class GameManager : MonoBehaviour
 	public bool CounterAttackWorked = false;
 	public bool HudUpdated = false;
 	public Player[] sPlayers;
-	public BaseTarget[] sTargets;
+	public List<BaseTarget> sTargets;
 
 	private bool newPlayerAdded = false;
-
+	 
 	//Call this to restart the lobby
 	public void Init()
 	{
@@ -33,7 +34,6 @@ public class GameManager : MonoBehaviour
 		{
 			Debug.Log("Instantiated");
 			sPlayers.Initialize();
-			sTargets.Initialize();
 			sPlayersInRoom = 0;
 			sPlayersTurn = 0;
 			sTargetsAlive = 0;
@@ -98,9 +98,17 @@ public class GameManager : MonoBehaviour
 	//Adds targets into the game
 	public bool AddTarget(BaseTarget t)
 	{
-		sTargets.SetValue(t, sTargetsAlive);
+		for (int i = 0; i < sTargets.Length - 1; i++) 
+		{
+			if(sTargets[i] == null)
+			{
+				sTargets[i] = t;
+				sTargets[i].mTargetIndex = DTileMap.TileType.Target1 + i;
+			}
+		}
+		sTargets[sTargetsAlive] = t;
 		t.mTargetIndex = DTileMap.TileType.Target1 + sTargetsAlive;
-		sTargetsAlive++;
+		//sTargetsAlive++;
 		return true;
 	}
 	
@@ -133,8 +141,6 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
-
-
 	public BaseTarget CurrentTargetDefender()
 	{
 		return sTargets [curDefending - DTileMap.TileType.Target1];
@@ -142,29 +148,36 @@ public class GameManager : MonoBehaviour
 	// Call this to Have the game logic function
 	public void GameLoop()
 	{
-		if(sTargetsAlive < 2)
+		if(CurrentPlayer ().mInfamy>=5)
 		{
-			Debug.Log ("Manager:" + sTargetsAlive);
-			SpawnTarget();
+			Debug.Log (CurrentPlayer ().mPlayerIndex + " Win");
 		}
-		if(newPlayerAdded)
+		else
 		{
-			CheckPlayers();
+			if(sTargetsAlive < 3)
+			{
+				Debug.Log ("Manager:" + sTargetsAlive);
+				SpawnTarget();
+			}
+			if(newPlayerAdded)
+			{
+				CheckPlayers();
+			}
+			if(sPlayersTurn < sPlayersInRoom)
+			{
+				PlayerTurn((Player)sPlayers[sPlayersTurn]);
+				//Debug.Log(sPlayersTurn);
+			}
+			else if (sPlayersTurn >= sPlayersInRoom)
+			{
+				AITurn();
+				sPlayersTurn++;
+				//Debug.Log(sPlayersTurn);
+				sPlayersTurn = sPlayersTurn % (sPlayersTurn);
+				//Debug.Log(sPlayersTurn);
+			}
+			curAttacking = (DTileMap.TileType)sPlayersTurn;
 		}
-		if(sPlayersTurn < sPlayersInRoom)
-		{
-			PlayerTurn((Player)sPlayers[sPlayersTurn]);
-			//Debug.Log(sPlayersTurn);
-		}
-		else if (sPlayersTurn >= sPlayersInRoom)
-		{
-			AITurn();
-			sPlayersTurn++;
-			//Debug.Log(sPlayersTurn);
-			sPlayersTurn = sPlayersTurn % (sPlayersTurn);
-			//Debug.Log(sPlayersTurn);
-		}
-		curAttacking = (DTileMap.TileType)sPlayersTurn;
 	}
 	
 	//this is what the player can do on their turn
@@ -254,7 +267,11 @@ public class GameManager : MonoBehaviour
 		}
 		for (int i = 0; i < sTargets.Length; i++) 
 		{
-			sTargets[i] = temp[i];
+			if(sTargets[i])
+			{
+				sTargets[i] = temp[i];
+				sTargets[i].mTargetIndex = DTileMap.TileType.Target1 + i;
+			}
 		}
 	}
 
@@ -274,25 +291,18 @@ public class GameManager : MonoBehaviour
 				tempV3 = mManagerTileMap.MapInfo.GetTileLocationIndex(i);
 			}
 		}
-
-		//while(check == false)
-		//{
-		//	int random = Random.Range (0, 7);
-		//	if(positionToSpawn[random] != null)
-		//	{
-		//		check = true;
-		//		tempV3 = positionToSpawn[random];
-		//	}
-		//}
 		//HACK
 		if(!PhotonNetwork.offlineMode)
 		{
-			PhotonNetwork.Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].name, tempV3, Quaternion.identity, 0);
+			GameObject Target = PhotonNetwork.Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].name, tempV3, Quaternion.identity, 0);
+			AddTarget(Target.GetComponent<BaseTarget>());
 		}
 		else
 		{
-			Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].gameObject, tempV3, Quaternion.identity);
+			Object Target = Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].gameObject, tempV3, Quaternion.identity);
+			AddTarget(((GameObject)Target).GetComponent<BaseTarget>());
 		}
+		sTargetsAlive++;
 		//HACK
 	}
 
@@ -356,6 +366,21 @@ public class GameManager : MonoBehaviour
 			if(CurrentPlayer().networkView.isMine)
 			{
 				gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
+			}
+		}
+		GameObject[] TargetsInScene = GameObject.FindGameObjectsWithTag ("Target");
+		foreach(GameObject t in TargetsInScene)
+		{
+			if(t)
+			{
+				if(t == sTargets[0].gameObject || t == sTargets[1].gameObject || t == sTargets[2].gameObject)
+				{
+
+				}
+				else
+				{
+					Destroy(t);
+				}
 			}
 		}
 	}

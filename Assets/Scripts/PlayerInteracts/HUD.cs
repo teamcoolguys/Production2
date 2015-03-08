@@ -762,7 +762,7 @@ public class HUD : MonoBehaviour
 			if (rotr && rotint <= 330)
 			{
 				if (mManager.curAttacking == DTileMap.TileType.Player1)
-				rotate180(p1c);
+					rotate180(p1c);
 				else if (mManager.curAttacking == DTileMap.TileType.Player2)
 					rotate180(p2c);
 				else if (mManager.curAttacking == DTileMap.TileType.Player3)
@@ -793,8 +793,8 @@ public class HUD : MonoBehaviour
 					secs -= 1* Time.deltaTime;
 					if (secs <=0)
 					{
-					secs = 5;
-					Attack();
+						secs = 5;
+						Attack();
 					}
 			}
 				
@@ -1221,6 +1221,7 @@ public class HUD : MonoBehaviour
 		{
 			//Do nothing.
 		}
+		mManager.HudUpdated = true;
 		rotr = false;
 	}
 
