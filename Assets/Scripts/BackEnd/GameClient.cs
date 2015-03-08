@@ -104,17 +104,7 @@ public class GameClient : MonoBehaviour
 	void OnGUI()
 	{
 		if(mManager)
-		{
-			if(mManager.sPlayersTurn < mManager.sPlayersInRoom)
-			{
-				GUI.TextArea(new Rect(10,400,100 ,50),"Players Turn " + (mManager.sPlayersTurn+1).ToString());
-			}
-			else
-			{
-				GUI.TextArea(new Rect(10,400,100 ,50),"AI Turn");
-				//Debug.Log(mManager.sPlayersTurn.ToString());
-			}
-			
+		{			
 			if(GUI.Button(new Rect (10, 500, 100, 50), "End Turn"))
 			{
 				mManager.sPlayersTurn++;

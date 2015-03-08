@@ -93,6 +93,7 @@ public class BaseTarget : MonoBehaviour
 		mWalkPathTrue = false;
 		mRunPathTrue = false;
 		mTargetTurn = false;
+		mState = State.Spawn;
 	}
 	void Update () 
 	{
@@ -117,8 +118,8 @@ public class BaseTarget : MonoBehaviour
 					mManager.AddTarget (this);	
 				}
 			}
-			Debug.Log ("TargetX::" + mPositionX);
-			Debug.Log ("TargetY::" + mPositionY);
+			//Debug.Log ("TargetX::" + mPositionX);
+			//Debug.Log ("TargetY::" + mPositionY);
 			if(mTileMapObject)
 			{
 				mTileMap = mTileMapObject.GetComponent<TileMap>();
@@ -126,7 +127,6 @@ public class BaseTarget : MonoBehaviour
 				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
 				Move(v3Temp);
 			}
-			mState = State.Normal;
 		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
@@ -172,7 +172,10 @@ public class BaseTarget : MonoBehaviour
 	}
 	void UpdateSpawn()
 	{
-
+		PathDecision ();
+		Debug.Log ("Target: Spawn Choice: " + mTowardNodeX + ", " + mTowardNodeY);
+		Travel (mTowardNodeX, mTowardNodeY);
+		mState = State.Normal;
 	}
 	void UpdateNormal()
 	{
@@ -241,7 +244,11 @@ public class BaseTarget : MonoBehaviour
 
 	public void UpdateDie()
 	{
+		mTileMap.MapInfo.SetTileType (mPositionX, mPositionY, DTileMap.TileType.Floor, true);
+		mManager.curDefending = DTileMap.TileType.TargetSpot;
 		PhotonNetwork.Destroy (gameObject);
+		Destroy (gameObject);
+		mManager.RemoveTarget (this);
 	}
 
 	void PathDecision()//Decision on Paths

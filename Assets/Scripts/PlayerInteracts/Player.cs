@@ -341,18 +341,21 @@ public class Player : MonoBehaviour
 	}
 	void UpdateSewer()
 	{
-
-		foreach(int i in mAllSewerIndex)
+		if(mSewerWalkable == false)
 		{
-			DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
-			if(temp == DTileMap.TileType.Sewer)
+			foreach(int i in mAllSewerIndex)
 			{
-				mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.TrueSewer, true) ;
+				DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+				if(temp == DTileMap.TileType.Sewer)
+				{
+					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.TrueSewer, true) ;
+				}
 			}
 		}
 		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.TrueSewer)
 		{
+
 			Teleport (mMouseX, mMouseY);
 			foreach(int i in mAllSewerIndex)
 			{
@@ -362,7 +365,6 @@ public class Player : MonoBehaviour
 					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.Sewer, true) ;
 				}
 			}
-			Debug.Log ("Sewer");
 			FindWalkRange (1);
 			curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 			mSewerWalkable = true;
@@ -622,18 +624,17 @@ public class Player : MonoBehaviour
 	}
 	void UpdateAttack()
 	{
-		if(Input.GetMouseButtonDown(0))
+		if(Input.GetMouseButtonDown(0) || mManager.HudUpdated)
 		{
 			DTileMap.TileType AttackingTarget = mManager.curDefending;
 			if(AttackingTarget>=DTileMap.TileType.Target1)
 			{
-				BaseTarget curDefending = mManager.CurrentTargetDefender();
+				BaseTarget targetDefending = mManager.CurrentTargetDefender();
 				if(mManager.AttackWorked)
 				{
-					Debug.Log ("Attack Worked");
-					Debug.Log ("you die");
-					mInfamy+=curDefending.mInfamy;
-					curDefending.UpdateDie();
+					Debug.Log ("Target Die");
+					mInfamy+=targetDefending.mInfamy;
+					targetDefending.UpdateDie();
 				}
 				else
 				{
@@ -642,35 +643,45 @@ public class Player : MonoBehaviour
 			}
 			else
 			{
-				Player curDefending = mManager.CurrentPlayerDefender ();
+				Player playerDefending = mManager.CurrentPlayerDefender ();
 				if(mManager.AttackWorked)
 				{
 					Debug.Log ("Attack Worked");
 					Debug.Log ("you die");
-					mInfamy++;
-					curDefending.mInfamy--;
-					curDefending.mAlive = false;
-					curDefending.gameObject.renderer.enabled = false;
-					int positionX = curDefending.mPositionX;
-					int positionY = curDefending.mPositionY;
+					if(playerDefending.mInfamy>mInfamy)
+					{
+						mInfamy++;
+						playerDefending.mInfamy--;
+					}
+					playerDefending.mAlive = false;
+					playerDefending.gameObject.renderer.enabled = false;
+					int positionX = playerDefending.mPositionX;
+					int positionY = playerDefending.mPositionY;
 					mTileMap.MapInfo.SetTileType (positionX, positionY, DTileMap.TileType.Floor, true);
 				}
 				else if(mManager.CounterAttackWorked)
 				{
 					Debug.Log ("Counter Attack Worked");
 					Debug.Log ("I die");
-					mInfamy--;
-					curDefending.mInfamy++;
+					if(playerDefending.mInfamy < mInfamy)
+					{
+						mInfamy--;
+						playerDefending.mInfamy++;
+					}
 					gameObject.renderer.enabled = false;
+					mTileMap.MapInfo.SetTileType (mPositionX, mPositionY, DTileMap.TileType.Floor, true);
 				}
 				else
 				{
 					Debug.Log ("Both Live");
 				}
 			}
-			mPlayerPhase = PlayerPhase.End;
+			if(mManager.HudUpdated)
+			{
+				mPlayerPhase = PlayerPhase.End;
+			}
 		}
-		else if(Input.GetMouseButtonDown(0))
+		else if(Input.GetMouseButtonDown(1))
 		{
 			mPlayerPhase = PlayerPhase.Start;
 		}

@@ -10,10 +10,10 @@ public class CameraController : MonoBehaviour {
 	private Quaternion newRot;
 	private float RotationAmmount;
 	//publics
-	public float zoomSpeed = 20f;
-	public float minZoomFOV = 10f;
-	public float maxZoomFOV = 100f;
-	public float Rotation = 30; // degrees per second'
+	public float zoomSpeed = 2.5f;
+	public float minZoomFOV = 10.0f;
+	public float maxZoomFOV = 100.0f;
+	public float Rotation = 30.0f; // degrees per second'
 
 	[Range(0.0f,0.1f)]
 	public float RotationSpeed;
@@ -23,7 +23,7 @@ public class CameraController : MonoBehaviour {
 
 	public void ZoomIn()
 	{
-		cameraFreeWalk.fieldOfView -= zoomSpeed/8;
+		cameraFreeWalk.fieldOfView -= zoomSpeed;//8.0f;
 		if (cameraFreeWalk.fieldOfView < minZoomFOV)
 		{
 			cameraFreeWalk.fieldOfView = minZoomFOV;
@@ -31,7 +31,7 @@ public class CameraController : MonoBehaviour {
 	}
 	public void ZoomOut()
 	{
-		cameraFreeWalk.fieldOfView += zoomSpeed/8;
+		cameraFreeWalk.fieldOfView += zoomSpeed;;//8.0f;
 		if (cameraFreeWalk.fieldOfView > maxZoomFOV)
 		{
 			cameraFreeWalk.fieldOfView = maxZoomFOV;
