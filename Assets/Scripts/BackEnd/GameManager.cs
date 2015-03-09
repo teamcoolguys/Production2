@@ -39,6 +39,8 @@ public class GameManager : MonoBehaviour
 			sTargetsAlive = 0;
 			sInstaniated = 1;
 
+			mManagerTileMap = GameObject.Find("CurrentTileMap").GetComponent<TileMap>();
+
 			//HACK
 			mTargetSpawnPoint = new int[8];
 			mTargetSpawnPoint[0] = 371;
@@ -161,14 +163,15 @@ public class GameManager : MonoBehaviour
 			}
 			else
 			{
-				Debug.Log("HELLO");
 				p.mAttacked = false;
 				p.mMoved = false;
 				p.mTurn = false;
 				p.mPlayerPhase = Player.PlayerPhase.Start;
 				p.ResetWalkRange();
+
 				AttackWorked = false;
 				CounterAttackWorked = false;
+
 				sPlayersTurn++;
 				gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
 				//Debug.Log(sPlayersTurn);
@@ -216,38 +219,31 @@ public class GameManager : MonoBehaviour
 		if(mManagerTileMap == null)
 		{
 			Debug.Log ("mManagerTileMap is null");
-		}
-		Vector3[] positionToSpawn = new Vector3[8];
-		Vector3 tempV3 = new Vector3 (0.0f, 0.0f, 0.0f);
-		for(int i = 0; i < 8 ; i++)
-		{
-			DTileMap.TileType temp = mManagerTileMap.MapInfo.GetTileTypeIndex (i);
-			if(temp == DTileMap.TileType.Floor)
-			{
-				tempV3 = mManagerTileMap.MapInfo.GetTileLocationIndex(i);
-			}
-		}
-		//bool check = false;
-		
-		//while(check == false)
-		//{
-		//	int random = Random.Range (0, 7);
-		//	if(positionToSpawn[random] != null)
-		//	{
-		//		check = true;
-		//		tempV3 = positionToSpawn[random];
-		//	}
-		//}
-		//HACK
-		if(!PhotonNetwork.offlineMode)
-		{
-			PhotonNetwork.Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].name, tempV3, Quaternion.identity, 0);
+
 		}
 		else
 		{
-			Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].gameObject, tempV3, Quaternion.identity);
+			Vector3[] positionToSpawn = new Vector3[8];
+			Vector3 tempV3 = new Vector3 (0.0f, 0.0f, 0.0f);
+			for(int i = 0; i < 8 ; i++)
+			{
+				DTileMap.TileType temp = mManagerTileMap.MapInfo.GetTileTypeIndex (i);
+				if(temp == DTileMap.TileType.Floor)
+				{
+					tempV3 = mManagerTileMap.MapInfo.GetTileLocationIndex(i);
+				}
+			}
+			//HACK
+			if(!PhotonNetwork.offlineMode)
+			{
+				PhotonNetwork.Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].name, tempV3, Quaternion.identity, 0);
+			}
+			else
+			{
+				Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].gameObject, tempV3, Quaternion.identity);
+			}
+			//HACK
 		}
-		//HACK
 	}
 
 	[RPC]

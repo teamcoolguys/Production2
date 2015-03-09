@@ -84,7 +84,7 @@ public class TileMap : MonoBehaviour {
 		//Debug.Log (texture.GetInstanceID());
 		mesh_renderer.material = newMaterial;
 		
-		Debug.Log ("Done Texture!");
+ 		Debug.Log ("Done Texture!");
 	}
 	
 	public void BuildMesh()

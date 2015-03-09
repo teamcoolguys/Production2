@@ -239,10 +239,10 @@ public class Player : MonoBehaviour
 				mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 			}
 
-			if (!gameObject.GetComponent<PhotonView>().isMine)
-			{
-				this.enabled = false;   // due to this, Update() is not called on the owner client.
-			}
+			//if (!gameObject.GetComponent<PhotonView>().isMine)
+			//{
+			//	this.enabled = false;   // due to this, Update() is not called on the owner client.
+			//}
 		}
 
 		fraction += Time.deltaTime * 9;
@@ -816,7 +816,10 @@ public class Player : MonoBehaviour
 	void Travel(int TileX, int TileY)
 	{
 		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, DTileMap.TileType.Floor, true);
-		gameObject.GetPhotonView ().RPC ("NetworkChangeTextureFloor", PhotonTargets.Others, mPositionX, mPositionY);
+		if(!PhotonNetwork.offlineMode)
+		{
+			gameObject.GetPhotonView ().RPC ("NetworkChangeTextureFloor", PhotonTargets.Others, mPositionX, mPositionY);
+		}
 		PathFind (mPositionX, mPositionY, TileX, TileY);
 		Teleport(TileX, TileY);
 	}
@@ -830,8 +833,11 @@ public class Player : MonoBehaviour
 		if (gameObject.renderer.enabled == true) 
 		{
 			mTileMap.MapInfo.SetTileType (mPositionX, mPositionY, mPlayerIndex, false);
-			gameObject.GetPhotonView ().RPC ("NetworkChangePosition", PhotonTargets.Others, transform.position);
-			gameObject.GetPhotonView ().RPC ("NetworkUpdateTextureSelf", PhotonTargets.Others, mPositionX, mPositionY, mPlayerIndex);
+			if(!PhotonNetwork.offlineMode)
+			{
+				gameObject.GetPhotonView ().RPC ("NetworkChangePosition", PhotonTargets.Others, transform.position);
+				gameObject.GetPhotonView ().RPC ("NetworkUpdateTextureSelf", PhotonTargets.Others, mPositionX, mPositionY, mPlayerIndex);
+			}
 		}
 	}
 
