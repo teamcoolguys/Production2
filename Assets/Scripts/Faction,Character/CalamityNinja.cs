@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class CalamityNinja
+public class CalamityNinja : MonoBehaviour
 {
 	public string mCharacterName = "Calamity";
 	public int mInputAttack = 5;
@@ -9,7 +9,7 @@ public class CalamityNinja
 	public int mInputMovement = 6;
 	public int mInputRange = 1;
 	public Faction mFaction = Faction.Clockwork;
-	
+
 	public enum Faction
 	{
 		SkyPirates,

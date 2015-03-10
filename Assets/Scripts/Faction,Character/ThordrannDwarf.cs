@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ThordrannDwarf
+public class ThordrannDwarf : MonoBehaviour
 {
 
 	public string mCharacterName = "Thordrann";
@@ -10,7 +10,7 @@ public class ThordrannDwarf
 	public int mInputMovement = 5;
 	public int mInputRange = 1;
 	public Faction mFaction = Faction.Tesla;
-	
+
 	public enum Faction
 	{
 		SkyPirates,

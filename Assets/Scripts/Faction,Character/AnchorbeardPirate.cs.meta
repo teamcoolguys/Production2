@@ -2,7 +2,21 @@ fileFormatVersion: 2
 guid: 45810c4191df65f44832ea9e4b274f3e
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - mAttackSound: {fileID: 8300000, guid: 8c4fb55573abe604081a725703a3afc8, type: 3}
+  - mBlockSound: {fileID: 8300000, guid: c57a29cd05fc7cd49b88c7b5eacb334b, type: 3}
+  - DialogAttack: {instanceID: 0}
+  - DialogWin: {instanceID: 0}
+  - DialogLoss: {instanceID: 0}
+  - DialogActive: {instanceID: 0}
+  - DialogMovement: {instanceID: 0}
+  - DialogEndTurn: {instanceID: 0}
+  - DialogKillAnchorBeard: {instanceID: 0}
+  - DialogKillCalamity: {instanceID: 0}
+  - DialogKillThordrann: {instanceID: 0}
+  - DialogKillWeldington: {instanceID: 0}
+  - DialogDeath: {instanceID: 0}
+  - DialogSpawn: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

@@ -43,6 +43,7 @@ public class Player : MonoBehaviour
 		Play,
 		Special,
 		Attack,
+		AttackMaybe,
 		End
 	};
 
@@ -124,11 +125,25 @@ public class Player : MonoBehaviour
 	private float fraction;
 
 	//Sound Stuff
-	public AudioClip SoundSelection;
-	public AudioClip SoundConfirmation2;
-	public AudioClip SoundAttack;
-	public AudioClip SoundBlock;
-	
+	public AudioClip mSoundSelection;
+	public AudioClip mSoundConfirmation2;
+
+	public AudioClip mAttackSound;
+	public AudioClip mBlockSound;
+	public AudioClip[] DialogAttack;
+	public AudioClip[] DialogWin;
+	public AudioClip[] DialogLoss;
+	public AudioClip[] DialogActive;
+	public AudioClip[] DialogMovement;
+	public AudioClip[] DialogEndTurn;
+	public AudioClip[] DialogKillAnchorBeard;
+	public AudioClip[] DialogKillCalamity;
+	public AudioClip[] DialogKillThordrann;
+	public AudioClip[] DialogKillWeldington;
+	public AudioClip[] DialogDeath;
+	public AudioClip[] DialogSpawn;
+
+	public AudioSource mAudio;
 
 	void Start()
 	{
@@ -169,7 +184,6 @@ public class Player : MonoBehaviour
 			mDefence = x1.mInputDefence;
 			mMovement = x1.mInputMovement;
 			mRange =x1.mInputRange;
-			//SoundAttack = x1.SoundAttack;
 			break;
 			
 		case Character.Calamity:
@@ -224,6 +238,11 @@ public class Player : MonoBehaviour
 
 				mManager = GameObject.Find ("GameManager(Clone)").GetComponent<GameManager>();
 				mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
+				
+				if (!gameObject.GetComponent<PhotonView>().isMine)
+				{
+					this.enabled = false;   // due to this, Update() is not called on the owner client.
+				}
 			}
 			else
 			{
@@ -239,10 +258,6 @@ public class Player : MonoBehaviour
 				mManager.AddPlayer (this);//allows gamemanager to know that a new player is active
 			}
 
-			//if (!gameObject.GetComponent<PhotonView>().isMine)
-			//{
-			//	this.enabled = false;   // due to this, Update() is not called on the owner client.
-			//}
 		}
 
 		fraction += Time.deltaTime * 9;
@@ -315,6 +330,9 @@ public class Player : MonoBehaviour
 			case PlayerPhase.Attack:
 				UpdateAttack();
 				break;
+			case PlayerPhase.AttackMaybe:
+				UpdateAttackMaybe();
+				break;
 			case PlayerPhase.Play:
 				UpdatePlay ();
 				break;
@@ -346,6 +364,8 @@ public class Player : MonoBehaviour
 		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 		if(Input.GetMouseButtonDown(0) && curValue == DTileMap.TileType.PlayerSpawn)
 		{
+			mAudio.clip = DialogSpawn[(Random.Range(0, DialogSpawn.Length))];
+			mAudio.Play();
 			mAlive = true;
 			gameObject.collider.renderer.enabled = true;
 			Teleport (mMouseX, mMouseY);
@@ -365,18 +385,21 @@ public class Player : MonoBehaviour
 
 	void UpdateSewer()
 	{
-		
-		foreach(int i in mAllSewerIndex)
+		if(mSewerWalkable == false)
 		{
-			DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
-			if(temp == DTileMap.TileType.Sewer)
+			foreach(int i in mAllSewerIndex)
 			{
-				mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.TrueSewer, true) ;
+				DTileMap.TileType temp= mTileMap.MapInfo.GetTileTypeIndex (i) ;
+				if(temp == DTileMap.TileType.Sewer)
+				{
+					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.TrueSewer, true) ;
+				}
 			}
 		}
 		DTileMap.TileType curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 		if(Input.GetMouseButtonDown(0)&& curValue == DTileMap.TileType.TrueSewer)
 		{
+			
 			Teleport (mMouseX, mMouseY);
 			foreach(int i in mAllSewerIndex)
 			{
@@ -386,7 +409,6 @@ public class Player : MonoBehaviour
 					mTileMap.MapInfo.SetTileTypeIndex (i, DTileMap.TileType.Sewer, true) ;
 				}
 			}
-			Debug.Log ("Sewer");
 			FindWalkRange (1);
 			curValue = mTileMap.MapInfo.GetTileType (mMouseX, mMouseY);
 			mSewerWalkable = true;
@@ -460,7 +482,7 @@ public class Player : MonoBehaviour
 				if(Input.GetMouseButtonDown(0))
 				{	
 					
-					AudioSource.PlayClipAtPoint (SoundSelection, transform.position);
+					AudioSource.PlayClipAtPoint (mSoundSelection, transform.position);
 					mStorePositionX = mMouseX;
 					mStorePositionY = mMouseY;
 					DTileMap.TileType temp=mTileMap.MapInfo.GetTileType(mStorePositionX, mStorePositionY);
@@ -491,7 +513,7 @@ public class Player : MonoBehaviour
 						Debug.Log ("Player::Sewer: out of range");
 						break;
 					case DTileMap.TileType.PlayerSpawn:
-						Debug.Log ("Player::Building");
+						Debug.Log ("Player::PlayerSpawn");
 						break;
 					case DTileMap.TileType.Player1:
 						Debug.Log ("Player::Player1");
@@ -500,7 +522,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Player1)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -511,19 +533,19 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Player2)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
 					case DTileMap.TileType.Player3:
 						Debug.Log ("Player::Player3");
-			
+						
 						mManager.curDefending = DTileMap.TileType.Player3;
 						foreach(DTileMap.TileType i in mAttackList)
 						{
 							if(i == DTileMap.TileType.Player3)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -534,7 +556,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Player4)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -546,7 +568,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Target1)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -557,7 +579,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Target2)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -568,7 +590,7 @@ public class Player : MonoBehaviour
 						{
 							if(i == DTileMap.TileType.Target3)
 							{
-								mPlayerPhase = PlayerPhase.Attack;
+								mPlayerPhase = PlayerPhase.AttackMaybe;
 							}
 						}
 						break;
@@ -601,7 +623,7 @@ public class Player : MonoBehaviour
 
 	void UpdateMove()
 	{
-		AudioSource.PlayClipAtPoint (SoundConfirmation2, transform.position);
+		AudioSource.PlayClipAtPoint (mSoundConfirmation2, transform.position);
 		//Debug.Log ("Player::StateMove");
 		//SoundConfirmation2
 		Travel (mStorePositionX, mStorePositionY);
@@ -653,20 +675,35 @@ public class Player : MonoBehaviour
 		}
 	}
 
-	void UpdateAttack()
+	void UpdateAttackMaybe()
 	{
+		Debug.Log ("MayBeAttack");
 		if(Input.GetMouseButtonDown(0))
 		{
+			mAttacked = true;
+			mPlayerPhase = PlayerPhase.Attack;
+		}
+		else if (Input.GetMouseButtonDown (1))
+		{
+			mPlayerPhase = PlayerPhase.Attack;
+		}
+	}
+	void UpdateAttack()
+	{
+		if(mManager.HudUpdated)
+		{
+			Debug.Log ("Attack" + mManager.HudUpdated);
 			DTileMap.TileType AttackingTarget = mManager.curDefending;
 			if(AttackingTarget>=DTileMap.TileType.Target1)
 			{
-				BaseTarget curDefending = mManager.CurrentTargetDefender();
+				BaseTarget targetDefending = mManager.CurrentTargetDefender();
 				if(mManager.AttackWorked)
 				{
-					Debug.Log ("Attack Worked");
-					Debug.Log ("you die");
-					mInfamy+=curDefending.mInfamy;
-					curDefending.UpdateDie();
+					mAudio.clip = DialogAttack[Random.Range(0, DialogAttack.Length)];
+					mAudio.Play();
+					Debug.Log ("Target Die");
+					mInfamy+=targetDefending.mInfamy;
+					targetDefending.UpdateDie();
 				}
 				else
 				{
@@ -675,37 +712,116 @@ public class Player : MonoBehaviour
 			}
 			else
 			{
-				Player curDefending = mManager.CurrentPlayerDefender ();
+				Player playerDefending = mManager.CurrentPlayerDefender ();
 				if(mManager.AttackWorked)
 				{
 					Debug.Log ("Attack Worked");
+					int Rand;
+					switch(playerDefending.mCharacter)
+					{
+						case Character.Anchorbeard:
+						{
+							Rand = Random.Range(0, DialogKillAnchorBeard.Length);
+							mAudio.clip = DialogKillAnchorBeard[Rand];
+							mAudio.clip = playerDefending.DialogDeath[Random.Range(0, playerDefending.DialogDeath.Length)];
+							mAudio.PlayDelayed(DialogKillAnchorBeard[Rand].length);
+						}
+						break;
+						case Character.Calamity:
+						{
+							Rand = Random.Range(0, DialogKillCalamity.Length);
+							mAudio.clip = DialogKillCalamity[Rand];
+							mAudio.clip = playerDefending.DialogDeath[Random.Range(0, playerDefending.DialogDeath.Length)];
+							mAudio.PlayDelayed(DialogKillAnchorBeard[Rand].length);
+						}
+						break;
+						case Character.Thordrann:
+						{
+							Rand = Random.Range(0, DialogKillThordrann.Length);
+							mAudio.clip = DialogKillThordrann[Rand];
+							mAudio.clip = playerDefending.DialogDeath[Random.Range(0, playerDefending.DialogDeath.Length)];
+							mAudio.PlayDelayed(DialogKillAnchorBeard[Rand].length);
+						}
+						break;
+						case Character.Weldington:
+						{
+							Rand = Random.Range(0, DialogKillWeldington.Length);
+							mAudio.clip = DialogKillWeldington[Rand];
+							mAudio.clip = playerDefending.DialogDeath[Random.Range(0, playerDefending.DialogDeath.Length)];
+							mAudio.PlayDelayed(DialogKillAnchorBeard[Rand].length);
+						}
+						break;
+					}
+
 					Debug.Log ("you die");
-					mInfamy++;
-					curDefending.mInfamy--;
-					curDefending.mAlive = false;
-					curDefending.gameObject.renderer.enabled = false;
-					int positionX = curDefending.mPositionX;
-					int positionY = curDefending.mPositionY;
+					if(playerDefending.mInfamy>mInfamy)
+					{
+						mInfamy++;
+						playerDefending.mInfamy--;
+					}
+					playerDefending.mAlive = false;
+					playerDefending.gameObject.renderer.enabled = false;
+					int positionX = playerDefending.mPositionX;
+					int positionY = playerDefending.mPositionY;
 					mTileMap.MapInfo.SetTileType (positionX, positionY, DTileMap.TileType.Floor, true);
 				}
 				else if(mManager.CounterAttackWorked)
 				{
 					Debug.Log ("Counter Attack Worked");
+					int Rand;
+					switch(mCharacter)
+					{
+					case Character.Anchorbeard:
+					{
+						Rand = Random.Range(0, playerDefending.DialogKillAnchorBeard.Length);
+						mAudio.clip = playerDefending.DialogKillAnchorBeard[Rand];
+						mAudio.clip = DialogDeath[Random.Range(0, DialogDeath.Length)];
+						mAudio.PlayDelayed(playerDefending.DialogKillAnchorBeard[Rand].length);
+					}
+						break;
+					case Character.Calamity:
+					{
+						Rand = Random.Range(0, playerDefending.DialogKillCalamity.Length);
+						mAudio.clip = playerDefending.DialogKillCalamity[Rand];
+						mAudio.clip = DialogDeath[Random.Range(0, DialogDeath.Length)];
+						mAudio.PlayDelayed(playerDefending.DialogKillAnchorBeard[Rand].length);
+					}
+						break;
+					case Character.Thordrann:
+					{
+						Rand = Random.Range(0, playerDefending.DialogKillThordrann.Length);
+						mAudio.clip = playerDefending.DialogKillThordrann[Rand];
+						mAudio.clip = DialogDeath[Random.Range(0, DialogDeath.Length)];
+						mAudio.PlayDelayed(playerDefending.DialogKillAnchorBeard[Rand].length);
+					}
+						break;
+					case Character.Weldington:
+					{
+						Rand = Random.Range(0, playerDefending.DialogKillWeldington.Length);
+						mAudio.clip = playerDefending.DialogKillWeldington[Rand];
+						mAudio.clip = DialogDeath[Random.Range(0, DialogDeath.Length)];
+						mAudio.PlayDelayed(playerDefending.DialogKillAnchorBeard[Rand].length);
+					}
+						break;
+					}
 					Debug.Log ("I die");
-					mInfamy--;
-					curDefending.mInfamy++;
+					if(playerDefending.mInfamy < mInfamy)
+					{
+						mInfamy--;
+						playerDefending.mInfamy++;
+					}
 					gameObject.renderer.enabled = false;
+					mTileMap.MapInfo.SetTileType (mPositionX, mPositionY, DTileMap.TileType.Floor, true);
 				}
 				else
 				{
 					Debug.Log ("Both Live");
 				}
 			}
-			mPlayerPhase = PlayerPhase.End;
-		}
-		else if(Input.GetMouseButtonDown(0))
-		{
-			mPlayerPhase = PlayerPhase.Start;
+			if(mManager.HudUpdated)
+			{
+				mPlayerPhase = PlayerPhase.End;
+			}
 		}
 	}
 
@@ -720,6 +836,9 @@ public class Player : MonoBehaviour
 
 	void UpdateEnd()
 	{
+		mAudio.clip = DialogEndTurn [Random.Range (0, DialogEndTurn.Length)];
+		mAudio.Play ();
+
 		ResetFindAttackRange ();
 		ResetWalkRange ();
 		//Debug.Log ("PlayerTurn Ended");
@@ -893,9 +1012,15 @@ public class Player : MonoBehaviour
 		{
 			foreach(Node i in mPath)
 			{
-				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path, true);
+				if(mTileMap.MapInfo.GetTileTypeIndex(i.mIndex)== DTileMap.TileType.Walkable)
+				{
+					mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path, true);
+				}
 			}
-			mTileMap.MapInfo.SetTileTypeIndex (mPath[0].mIndex, mPlayerIndex, true);
+			if(gameObject.renderer.enabled == true)
+			{
+				mTileMap.MapInfo.SetTileTypeIndex (mPath[0].mIndex, mPlayerIndex, true);
+			}
 		}
 	}
 

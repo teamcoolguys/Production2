@@ -20,12 +20,14 @@ public class GameManager : MonoBehaviour
 	
 	public bool AttackWorked = false;
 	public bool CounterAttackWorked = false;
+	public bool HudUpdated;
 
 	public Player[] sPlayers;
 	public BaseTarget[] sTargets;
 
 	private bool newPlayerAdded = false;
-	
+	private bool GameOver = false;
+
 	//Call this to restart the lobby
 	public void Init()
 	{
@@ -138,7 +140,7 @@ public class GameManager : MonoBehaviour
 			sPlayersTurn = sPlayersTurn % (sPlayersTurn);
 			//Debug.Log(sPlayersTurn);
 		}
-		curAttacking = (DTileMap.TileType)sPlayersTurn;
+		curAttacking = (DTileMap.TileType)(sPlayersTurn + DTileMap.TileType.Player1);
 	}
 	
 	//this is what the player can do on their turn
@@ -146,6 +148,10 @@ public class GameManager : MonoBehaviour
 	{
 		if(p)
 		{
+			if(p.mInfamy >= 5)
+			{
+			
+			}
 			if(!p.mTurn)
 			{
 				if(PhotonNetwork.offlineMode)
@@ -315,4 +321,22 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
+	void OnGUI()
+	{
+		if(sPlayersTurn < sPlayersInRoom)
+		{
+			GUI.TextArea(new Rect(10,400,100 ,50),"Players Turn " + (sPlayersTurn+1).ToString());
+		}
+		else
+		{
+			GUI.TextArea(new Rect(10,400,100 ,50),"AI Turn");
+			//Debug.Log(mManager.sPlayersTurn.ToString());
+		}
+		if(CurrentPlayer().mInfamy >= 5)
+		{
+			GUI.TextArea(new Rect(Screen.width/2, Screen.height/2, 500, 50), CurrentPlayer().mCharacter + " WINS the Game");
+			CurrentPlayer().mAudio.clip = CurrentPlayer().DialogWin[Random.Range(0, CurrentPlayer().DialogWin.Length)];
+		}
+	}
+
 }

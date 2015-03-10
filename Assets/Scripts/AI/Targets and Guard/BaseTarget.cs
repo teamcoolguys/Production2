@@ -93,8 +93,8 @@ public class BaseTarget : MonoBehaviour
 	private bool firstTime;
 
 	//Sounds Stuff
-	public AudioClip SoundBlock;
-	public AudioClip SoundAttack;
+	public AudioClip mBlockSound;
+	public AudioClip mAttackSound;
 
 	void Start () 
 	{
