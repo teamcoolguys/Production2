@@ -22,49 +22,51 @@ public class BaseTarget : MonoBehaviour
 	//State Currently in
 	private State mState;
 	//Imformation Checking for the Game
+	public Transform curTargetNode;
 	TileMap mTileMap;
 	TileMapMouse mMouse;
+	
 	GameObject mTileMapObject;
 	GameObject mPlayer;
-								//privates
+	//privates
 	private int mPositionX;		//Current Position
 	private int mPositionY;		//Current Position
 	private int mMouseX;		//Mouse Location
 	private int mMouseY;		//Mouse Location
-
+	public DTileMap.TileType mTargetIndex;
 	//Network Stuff
 	GameManager mManager;
 	public bool mTargetTurn;
-
+	
 	//Current Stats
-	public int mDefense;
+	public int mDefence;
 	public int mMovement;
 	public int mRunMovement;
-	public int mInfamy;
-
+	public int mInfamy = 1;
+	
 	//Node currently going to
 	public int mTowardChoice;
 	//4 nodes to move around
 	public int mNodeAX;
 	public int mNodeAY;
 	public int mWeightA;
-
+	
 	public int mNodeBX;
 	public int mNodeBY;
 	public int mWeightB;
-
+	
 	public int mNodeCX;
 	public int mNodeCY;
 	public int mWeightC;
-
+	
 	public int mNodeDX;
 	public int mNodeDY;
 	public int mWeightD;
-
+	
 	private int mTowardNodeX;
 	private int mTowardNodeY;
-
-
+	
+	
 	//4 nodes to Run around
 	public int mNodeRAX;
 	public int mNodeRAY;
@@ -81,18 +83,25 @@ public class BaseTarget : MonoBehaviour
 	public int mNodeRDX;
 	public int mNodeRDY;
 	public int mWeightRD;
-
+	
 	private bool mWalkPathTrue;
 	private bool mRunPathTrue;
 	//List to Track Graph
 	public List<Node>mTowardPath;
 	public List<Node>mCurrentPath;
-
+	
 	private bool firstTime;
+
+	//Sounds Stuff
+	public AudioClip mBlockSound;
+	public AudioClip mAttackSound;
 
 	void Start () 
 	{
-
+		if(mTargetIndex==DTileMap.TileType.Floor)
+		{
+			mTargetIndex = DTileMap.TileType.Target1;
+		}
 		firstTime = true;
 		mWalkPathTrue = false;
 		mRunPathTrue = false;
@@ -100,49 +109,49 @@ public class BaseTarget : MonoBehaviour
 	}
 	void Update () 
 	{
-		if(firstTime == true)
+		if(firstTime==true)
 		{
 			firstTime = false;
 			mPositionX = 0;
 			mPositionY = 0;
 			mTargetTurn = false;
-			if(PhotonNetwork.isMasterClient)
+			if(!mManager)
 			{
-				if(!mManager)
+				if(PhotonNetwork.offlineMode)
 				{
-					if(PhotonNetwork.offlineMode)
-					{
-						mTileMapObject = GameObject.Find("CurrentTileMap");
-						mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager
-						mManager.AddTarget (this);	
-					}
-					else
-					{
-						mTileMapObject=GameObject.Find("CurrentTileMap(Clone)");
-						mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
-						mManager.AddTarget (this);	
-					}
+					mTileMapObject=GameObject.Find("CurrentTileMap");
+					mManager = GameObject.Find("GameManager").GetComponent<GameManager>(); // thats how you get infromation from the manager
+					mManager.AddTarget (this);	
+				}
+				else
+				{
+					mTileMapObject=GameObject.Find("CurrentTileMap(Clone)");
+					mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+					mManager.AddTarget (this);	
 				}
 			}
-			mTileMap = mTileMapObject.GetComponent<TileMap>();
+			Debug.Log ("TargetX::" + mPositionX);
+			Debug.Log ("TargetY::" + mPositionY);
+			if(mTileMapObject)
+			{
+				mTileMap = mTileMapObject.GetComponent<TileMap>();
+				//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 5);
+				Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
+				Move(v3Temp);
+			}
 			mState = State.Normal;
-			//mTileMap.MapInfo.SetTileType(mPositionX,mPositionY, 5);
-			Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(mMouseX, mMouseY);
-			Move(v3Temp);
 		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
+		
 		mMouseX = mMouse.mMouseHitX;
 		mMouseY = mMouse.mMouseHitY;
-
-		if (Input.GetKeyDown ("b"))
-		{
-			UpdateTarget();
-		}
+		
+		Vector3 temp = mTileMap.MapInfo.GetTileLocation (mTowardNodeX, mTowardNodeY);
+		curTargetNode.position = temp;
 	}
 	public bool UpdateTarget()
 	{
-
 		switch (mState)
 		{
 		case State.Normal:
@@ -161,43 +170,45 @@ public class BaseTarget : MonoBehaviour
 			Debug.Log ("Unknown state!");
 			break;
 		}
+		if (!mManager)
+		{
+			mManager = GameObject.Find("GameManager(Clone)").GetComponent<GameManager>(); // thats how you get infromation from the manager
+			if(mManager)
+			{
+				mManager.AddTarget(this);
+			}
+		}
 		return true;
 	}
-
 	void UpdateNormal()
 	{
+		if(mTileMap.MapInfo.GetTileType (mTowardNodeX, mTowardNodeY) != DTileMap.TileType.Floor)
+		{
+			mWalkPathTrue = false;
+		}
 		if(mWalkPathTrue==false)
 		{
 			ResetPath(ref mTowardPath);
-			//Decide on a Path;
 			PathDecision (true);
-			//Find Target Node path;
-			mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
-			Debug.Log("CurrentChoice : " + mTowardChoice);
 			mWalkPathTrue = true;
 		}
 		//Find Range, and find current path
-		mCurrentPath = PathFindRange (ref mTowardPath, mMovement);
-		//Find x,y to travel to spot
-		int indexCount = mCurrentPath.Count;
-		int index = mCurrentPath [indexCount - 1].mIndex;
-		int tempX = 0;
-		int tempY = 0;
-		mTileMap.MapInfo.IndexToXY (index, out tempX, out tempY);
-		Travel (tempX, tempY);
-		//Reset currentPath
-		ResetPath (ref mCurrentPath);
+		mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
+		int index = PathFindRange (ref mTowardPath, mMovement);
+		if(index == -1)
+		{
+			Travel (mPositionX, mPositionY);
+		}
+		else
+		{
+			int x = 0;
+			int y = 0;
+			mTileMap.MapInfo.IndexToXY (index, out x, out y);
+			Travel (x, y);
+		}
 		if(mPositionX == mTowardNodeX && mPositionY == mTowardNodeY)
 		{
-			ResetPath (ref mTowardPath);
-			mWalkPathTrue = false;
-		}	
-		if(Input.GetKey ("r"))
-		{
-			ResetPath (ref mCurrentPath);
-			ResetPath (ref mTowardPath);
 			mRunPathTrue = false;
-			mState=State.Run;
 		}
 	}
 	void UpdateRun()
@@ -208,14 +219,12 @@ public class BaseTarget : MonoBehaviour
 			//Decide on a Path;
 			PathDecision (false);
 			//Find Target Node path;
-			mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
+			
 			Debug.Log("CurrentChoice : " + mTowardChoice);
 			mRunPathTrue = true;
 		}
-		mCurrentPath = PathFindRange (ref mTowardPath, mRunMovement);
-		//Find x,y to travel to spot
-		int indexCount = mCurrentPath.Count;
-		int index = mCurrentPath [indexCount - 1].mIndex;
+		mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
+		int index = PathFindRange (ref mTowardPath, mRunMovement);
 		int tempX = 0;
 		int tempY = 0;
 		mTileMap.MapInfo.IndexToXY (index, out tempX, out tempY);
@@ -235,10 +244,12 @@ public class BaseTarget : MonoBehaviour
 			mState=State.Run;
 		}
 	}
-	void UpdateDie()
+	
+	public void UpdateDie()
 	{
-
+		PhotonNetwork.Destroy (gameObject);
 	}
+	
 	void PathDecision(bool WalkTrue)//Decision on Paths
 	{
 		if(WalkTrue == true)
@@ -310,54 +321,40 @@ public class BaseTarget : MonoBehaviour
 	{
 		List<Node> Path = null;
 		GraphSearch mSearch= new GraphSearch(mTileMap.MapInfo.mGraph);
-		mSearch.Run(startX, startY, endX, endY);
+		mSearch.PathFind(startX, startY, endX, endY);
 		if(mSearch.IsFound())
 		{
 			//mCloseList = mSearch.GetCloseList();
 			Path= mSearch.GetPathList();
-			foreach(Node i in Path)
-			{
-				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Target);
-			}
+			//foreach(Node i in Path)
+			//{
+			//	mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path);
+			//}
 		}
 		else
 		{
 			Debug.Log("No Path is found");
 		}
 		return Path;
-	}	
-	List<Node> PathFindRange(ref List<Node> totalPath, int range)
+	}	 
+	int PathFindRange(ref List<Node> totalPath, int range)
 	{
-		List<Node> Path = new List<Node>();
-		if (totalPath.Count <= range) 
+		foreach(Node i in totalPath )
 		{
-			totalPath.Reverse ();
-			return totalPath;
-		}
-		else
-		{
-			int temp = totalPath.Count-range;
-			for (int i=(totalPath.Count-1); i>=temp; i--)
+			if(i.g == range)
 			{
-				Path.Add (totalPath[i]);
-				totalPath.RemoveAt (i);
+				DTileMap.TileType temp = mTileMap.MapInfo.GetTileTypeIndex (i.mIndex);
+				if(temp == DTileMap.TileType.Floor)
+				{
+					return i.mIndex;
+				}
+				else
+				{
+					range--;
+				}
 			}
-			foreach(Node i in Path)
-			{
-				mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,DTileMap.TileType.Path);
-			}
-			return Path;
 		}
-
-		//foreach(Node i in totalPath)
-		//{
-		//
-		//}
-		//foreach(Node i in Path)
-		//{
-		//	mTileMap.MapInfo.SetTileTypeIndex(i.mIndex,1);
-		//}
-		return Path;
+		return -1;
 	}	
 	void ResetPath(ref List<Node> Path)
 	{
@@ -368,18 +365,18 @@ public class BaseTarget : MonoBehaviour
 		for (int i=0; i<Path.Count; i++)
 		{
 			int x = Path[i].mIndex;
-			mTileMap.MapInfo.SetTileTypeIndex (x,0);
+			mTileMap.MapInfo.SetTileTypeIndex (x,DTileMap.TileType.Floor, true);
 		}
 		Path.Clear ();
 	}
 	void Travel(int x, int y)
 	{
-		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, 0);
+		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, DTileMap.TileType.Floor, true);
 		Vector3 v3Temp = mTileMap.MapInfo.GetTileLocation(x, y);		
 		Move(v3Temp);
 		mPositionX = x;
 		mPositionY = y;
-		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, DTileMap.TileType.Target);
+		mTileMap.MapInfo.SetTileType(mPositionX, mPositionY, mTargetIndex, false);
 	}
 	void Move(Vector3 pos)
 	{

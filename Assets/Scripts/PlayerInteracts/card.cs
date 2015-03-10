@@ -12,15 +12,12 @@ public class Card : MonoBehaviour
 		AttackModifier = atk;
 		DefenceModifier = def;
 	}
-
-	void Start () 
+	public int ActivateAttackMod()
 	{
-	
+		return AttackModifier;
 	}
-	
-	// Update is called once per frame
-	void Update () 
+	public int ActivateDefenceMod()
 	{
-	
+		return DefenceModifier;
 	}
 }

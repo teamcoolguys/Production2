@@ -6,16 +6,28 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
-    //publics
+	//publics
 	public int sPlayersInRoom;
 	public int sPlayersTurn;
 	public int sTargetsAlive;
 	public int sInstaniated = 0;
+	public BaseTarget[] mTargetsObjects;
+	public int[] mTargetSpawnPoint;
+	public TileMap mManagerTileMap;
+	
+	public DTileMap.TileType curDefending;
+	public DTileMap.TileType curAttacking;
+	
+	public bool AttackWorked = false;
+	public bool CounterAttackWorked = false;
+	public bool HudUpdated;
+
 	public Player[] sPlayers;
 	public BaseTarget[] sTargets;
 
 	private bool newPlayerAdded = false;
-	
+	private bool GameOver = false;
+
 	//Call this to restart the lobby
 	public void Init()
 	{
@@ -28,9 +40,28 @@ public class GameManager : MonoBehaviour
 			sPlayersTurn = 0;
 			sTargetsAlive = 0;
 			sInstaniated = 1;
+
+			mManagerTileMap = GameObject.Find("CurrentTileMap").GetComponent<TileMap>();
+
+			//HACK
+			mTargetSpawnPoint = new int[8];
+			mTargetSpawnPoint[0] = 371;
+			mTargetSpawnPoint[1] = 402;
+			mTargetSpawnPoint[2] = 343;
+			mTargetSpawnPoint[3] = 202;
+			mTargetSpawnPoint[4] = 169;
+			mTargetSpawnPoint[5] = 161;
+			mTargetSpawnPoint[6] = 4;
+			mTargetSpawnPoint[7] = 20;
+			//HACK
 		}
 	}
 
+	void Start()
+	{
+		Init ();
+	}
+	
 	//Adds Players to the game
 	public bool AddPlayer(Player p)
 	{
@@ -60,55 +91,68 @@ public class GameManager : MonoBehaviour
 		newPlayerAdded = rc;
 		return rc;
 	}
-
+	
 	//Adds targets into the game
 	public bool AddTarget(BaseTarget t)
 	{
 		sTargets.SetValue(t, sTargetsAlive);
+		t.mTargetIndex = DTileMap.TileType.Target1 + sTargetsAlive;
 		sTargetsAlive++;
 		return true;
 	}
-	   
+	
 	public Player CurrentPlayer()
 	{
 		return (Player)sPlayers [sPlayersTurn];
 	}
 
-    // Call this to Have the game logic function
+	public Player CurrentPlayerDefender()
+	{
+		return sPlayers [curDefending - DTileMap.TileType.Player1];
+	}
+
+	public BaseTarget CurrentTargetDefender()
+	{
+		return sTargets [curDefending - DTileMap.TileType.Target1];
+	}
+
 	public void GameLoop()
-    {
+	{
+		if(sTargetsAlive < 2)
+		{
+			Debug.Log ("Manager:" + sTargetsAlive);
+			SpawnTarget();
+		}
 		if(newPlayerAdded)
 		{
 			CheckPlayers();
 		}
 		if(sPlayersTurn < sPlayersInRoom)
 		{
-			if(PhotonNetwork.isMasterClient)
-			{
-				PlayerTurn((Player)sPlayers[sPlayersTurn]);
-			}
-			else
-			{
-				PlayerTurn((Player)sPlayers[sPlayersTurn]);
-			}
+			PlayerTurn((Player)sPlayers[sPlayersTurn]);
 			//Debug.Log(sPlayersTurn);
 		}
 		else if (sPlayersTurn >= sPlayersInRoom)
 		{
 			AITurn();
 			sPlayersTurn++;
-			Debug.Log(sPlayersTurn);
+			//Debug.Log(sPlayersTurn);
 			sPlayersTurn = sPlayersTurn % (sPlayersTurn);
-			Debug.Log(sPlayersTurn);
+			//Debug.Log(sPlayersTurn);
 		}
-    }
-
+		curAttacking = (DTileMap.TileType)(sPlayersTurn + DTileMap.TileType.Player1);
+	}
+	
 	//this is what the player can do on their turn
 	private void PlayerTurn(Player p)
-    {
+	{
 		if(p)
 		{
-			if(!p.mMoved)
+			if(p.mInfamy >= 5)
+			{
+			
+			}
+			if(!p.mTurn)
 			{
 				if(PhotonNetwork.offlineMode)
 				{
@@ -127,14 +171,21 @@ public class GameManager : MonoBehaviour
 			{
 				p.mAttacked = false;
 				p.mMoved = false;
-				//p.mHand.PlayedCard = false;
+				p.mTurn = false;
+				p.mPlayerPhase = Player.PlayerPhase.Start;
+				p.ResetWalkRange();
+
+				AttackWorked = false;
+				CounterAttackWorked = false;
+
 				sPlayersTurn++;
 				gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
 				//Debug.Log(sPlayersTurn);
 			}
 		}
-    }
-
+		//Debug.Log ("LoganFuckUP" + curDefending + ("WeFUCkUp") + CurrentPlayer().curTarget);
+	}
+	
 	//Do AI stuff in this function
 	private void AITurn()
 	{
@@ -149,7 +200,7 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
-
+	
 	void CheckPlayers()
 	{
 		Player[] temp = new Player[5];
@@ -169,18 +220,50 @@ public class GameManager : MonoBehaviour
 		newPlayerAdded = false;
 	}
 
+	void SpawnTarget()
+	{
+		if(mManagerTileMap == null)
+		{
+			Debug.Log ("mManagerTileMap is null");
+
+		}
+		else
+		{
+			Vector3[] positionToSpawn = new Vector3[8];
+			Vector3 tempV3 = new Vector3 (0.0f, 0.0f, 0.0f);
+			for(int i = 0; i < 8 ; i++)
+			{
+				DTileMap.TileType temp = mManagerTileMap.MapInfo.GetTileTypeIndex (i);
+				if(temp == DTileMap.TileType.Floor)
+				{
+					tempV3 = mManagerTileMap.MapInfo.GetTileLocationIndex(i);
+				}
+			}
+			//HACK
+			if(!PhotonNetwork.offlineMode)
+			{
+				PhotonNetwork.Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].name, tempV3, Quaternion.identity, 0);
+			}
+			else
+			{
+				Instantiate(mTargetsObjects[(int)((Random.value * 100) % mTargetsObjects.Length)].gameObject, tempV3, Quaternion.identity);
+			}
+			//HACK
+		}
+	}
+
 	[RPC]
 	public void SetPlayersInRoom(int iPlayersInRoom)
 	{
 		sPlayersInRoom = iPlayersInRoom;
 	}
-
+	
 	[RPC]
 	public void SetPlayersTurn(int iPlayersTurn)
 	{
 		sPlayersTurn = iPlayersTurn;
 	}
-
+	
 	public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
 	{
 		if (stream.isWriting)
@@ -203,7 +286,7 @@ public class GameManager : MonoBehaviour
 			sTargetsAlive = (int)stream.ReceiveNext();
 		}
 	}
-
+	
 	void Awake()
 	{
 		if(GameObject.Find("GameClient"))
@@ -215,7 +298,7 @@ public class GameManager : MonoBehaviour
 			PhotonNetwork.offlineMode = true;
 		}
 	}
-
+	
 	void Update()
 	{
 		if(PhotonNetwork.offlineMode)
@@ -224,10 +307,36 @@ public class GameManager : MonoBehaviour
 		}
 		if(!PhotonNetwork.isMasterClient)
 		{
-			if(CurrentPlayer().networkView.isMine)
+			if(CurrentPlayer () == null)
 			{
-				gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
+				Debug.Log ("Fucking Broken");
+			}
+			else
+			{
+				Debug.Log ("CurrentPlayerNetworkView" + CurrentPlayer().networkView.isMine);
+				if(CurrentPlayer().networkView.isMine)
+				{
+					gameObject.GetPhotonView().RPC("SetPlayersTurn", PhotonTargets.Others, sPlayersTurn);
+				}
 			}
 		}
 	}
+	void OnGUI()
+	{
+		if(sPlayersTurn < sPlayersInRoom)
+		{
+			GUI.TextArea(new Rect(10,400,100 ,50),"Players Turn " + (sPlayersTurn+1).ToString());
+		}
+		else
+		{
+			GUI.TextArea(new Rect(10,400,100 ,50),"AI Turn");
+			//Debug.Log(mManager.sPlayersTurn.ToString());
+		}
+		if(CurrentPlayer().mInfamy >= 5)
+		{
+			GUI.TextArea(new Rect(Screen.width/2, Screen.height/2, 500, 50), CurrentPlayer().mCharacter + " WINS the Game");
+			CurrentPlayer().mAudio.clip = CurrentPlayer().DialogWin[Random.Range(0, CurrentPlayer().DialogWin.Length)];
+		}
+	}
+
 }
