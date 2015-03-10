@@ -5,14 +5,14 @@ using System.Collections.Generic;
 public class HUD : MonoBehaviour 
 {
 	//publix
-	public GameObject[] deck1 = new GameObject[30];
-	public GameObject[] deck2 = new GameObject[30];
-	public GameObject[] deck3 = new GameObject[30];
-	public GameObject[] deck4 = new GameObject[30];
+	public static int decksize = 30;
+	public GameObject[] deck1 = new GameObject[decksize];
+	public GameObject[] deck2 = new GameObject[decksize];
+	public GameObject[] deck3 = new GameObject[decksize];
+	public GameObject[] deck4 = new GameObject[decksize];
 	public double uoff = 0;
 	public Texture bar, backbar;
 	public GUITexture combar, atkbar, defbar, atkprt, defprt, cardslots;
-	public Texture2D turns, stats;
 
 	//Jack
 	//So the ints are player 0,1,2,3
@@ -21,18 +21,18 @@ public class HUD : MonoBehaviour
 	//public int curDefending;
 	//I made these two varible in the manager, so just grab the number there(default to be -1 if nothing is happening)
 	//--------------------//
+
 	//privates
 	private RaycastHit curcard;
 	private float secs = 5;
-	private GameObject stat, estat;
+	private float incr = 0, sizer = 0; 
+	private int ignorecard = -1, te = -1;
+	private Vector3 temp, getbigger;
 	private GameObject set1, set2, set3, set4, set5, set6, set7, set8, set9, set10, set11, set12;
-	private int decksize, cdel;
-	private GameObject[] discard = new GameObject[30];
-	private GameObject[] cards = new GameObject[30];
-	private GameObject[] hand = new GameObject[15];
-	private int cardsheld = 0;
-	private int cardsDealt = 0, rotint = 0;
-	private bool[] cs = new bool[3];
+	private int cdel;
+	private GameObject[] cards1 = new GameObject[decksize], cards2 = new GameObject[decksize], cards3 = new GameObject[decksize], cards4 = new GameObject[decksize];
+	private GameObject[] hand1 = new GameObject[decksize], hand2 = new GameObject[decksize], hand3 = new GameObject[decksize], hand4 = new GameObject[decksize];
+	private int rotint = 0;
 	private bool rotr = false ;
 	private List<GameObject> p1c = new List<GameObject>(), 
 								p2c= new List<GameObject>(), 
@@ -43,7 +43,7 @@ public class HUD : MonoBehaviour
 								t3c= new List<GameObject>();	
 	private bool showR = false;
 	private bool choosing = false;
-	private int attackeratk, attackerdef, defenderatk, defenderdef, bartotal, barpercent;
+	private int attackeratk, attackerdef, defenderatk, defenderdef;
 	
 	//wyatt
 	private GameManager mManager;
@@ -70,105 +70,81 @@ public class HUD : MonoBehaviour
 			t3c.Add (null);
 		}
 
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//Crashing here and below because when hud 
-		//starts curattacking is not set
-		//Someone needs to look into setting up this with 
-		//the manager to make sure the player is always 
-		//set before the hud
-		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//Compute Player stats here
-
-		if(mManager != null && mManager.curAttacking != null)
-		{
-			switch(mManager.curAttacking)
-			{
-			case DTileMap.TileType.Player1:
-				decksize = deck1.Length;
-				break;
-			case  DTileMap.TileType.Player2:
-				decksize = deck2.Length;
-				break;
-			case  DTileMap.TileType.Player3:
-				decksize = deck3.Length;
-				break;
-			case DTileMap.TileType.Player4:
-				decksize = deck4.Length;
-				break;
-			}
-		}
-
-		stat = new GameObject();
-		stat.AddComponent<GUITexture> ();
-		stat.transform.localScale = Vector3.zero;
-		stat.guiTexture.pixelInset = new Rect((Screen.width/2), (Screen.height/2), 200, 300);
-
-		estat = new GameObject();
-		estat.AddComponent<GUITexture> ();
-		estat.transform.localScale = Vector3.zero;
-		estat.guiTexture.pixelInset = new Rect((Screen.width/2), (Screen.height/2), 200, 300);
+		decksize = deck1.Length;
 
 		set1 = new GameObject();
 		set1.AddComponent<GUIText> ();
 		set1.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set1.guiText.text = "N/A";
+		set1.guiText.color = Color.black;
 
 		set2 = new GameObject();
 		set2.AddComponent<GUIText>();
 		set2.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set2.guiText.pixelOffset = new Vector2 (250, 0);
 		set2.guiText.text = "N/A";
+		set2.guiText.color = Color.black;
 
 		set3 = new GameObject ();
 		set3.AddComponent<GUIText>();
 		set3.transform.position = new Vector3(0.5f, 0.5f,  1.0f);
 		set3.guiText.pixelOffset = new Vector2 (350, 0);
 		set3.guiText.text = "N/A";
+		set3.guiText.color = Color.black;
 
 		set4 = new GameObject();
 		set4.AddComponent<GUIText>();
 		set4.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set4.guiText.text = "N/A";
+		set4.guiText.color = Color.black;
 
 		set5 = new GameObject();
 		set5.AddComponent<GUIText>();
 		set5.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set5.guiText.text = "N/A";
+		set5.guiText.color = Color.black;
 
 		set6 = new GameObject();
 		set6.AddComponent<GUIText>();
 		set6.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set6.guiText.text = "N/A";
+		set6.guiText.color = Color.black;
 
 		set7 = new GameObject();
 		set7.AddComponent<GUIText>();
 		set7.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set7.guiText.text = "N/A";
+		set7.guiText.color = Color.black;
 
 		set8 = new GameObject();
 		set8.AddComponent<GUIText>();
 		set8.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set8.guiText.text = "N/A";
+		set8.guiText.color = Color.black;
 
 		set9 = new GameObject();
 		set9.AddComponent<GUIText>();
 		set9.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set9.guiText.text = "N/A";
+		set9.guiText.color = Color.black;
 
 		set10 = new GameObject();
 		set10.AddComponent<GUIText>();
 		set10.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set10.guiText.text = "N/A";
+		set10.guiText.color = Color.black;
 
 		set11 = new GameObject();
 		set11.AddComponent<GUIText>();
 		set11.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set11.guiText.text = "N/A";
+		set11.guiText.color = Color.black;
 
 		set12 = new GameObject();
 		set12.AddComponent<GUIText>();
 		set12.transform.position = new Vector3(0.5f, 0.5f, 1.0f);
 		set12.guiText.text = "N/A";
+		set12.guiText.color = Color.black;
 
 		ResetDeck ();
 
@@ -176,66 +152,63 @@ public class HUD : MonoBehaviour
 	
 	void ResetDeck()
 	{
-		for (int i = 0; i < hand.Length; i++) 
+		for (int i = 0; i < hand1.Length; i++) 
 		{
-			if (hand[i] != null)
-				Destroy(hand[i]);
-			hand[i] = null;	
+			if (hand1[i] != null)
+				Destroy(hand1[i]);
+			hand1[i] = null;	
 		}
-		for (int i = 0; i < discard.Length; i++) 
+
+		for (int i = 0; i < hand2.Length; i++) 
 		{
-			discard[i] = null;	
+			if (hand2[i] != null)
+				Destroy(hand2[i]);
+			hand2[i] = null;	
 		}
-		if(mManager != null && mManager.curAttacking != null)
+
+		for (int i = 0; i < hand3.Length; i++) 
 		{
-			switch(mManager.curAttacking)
-			{
-				case DTileMap.TileType.Player1:
-					System.Array.Copy (deck1, cards, cards.Length);
-					break;
-				case  DTileMap.TileType.Player2:
-					System.Array.Copy (deck2, cards, cards.Length);
-					break;
-				case  DTileMap.TileType.Player3:
-					System.Array.Copy (deck3, cards, cards.Length);
-					break;
-				case DTileMap.TileType.Player4:
-					System.Array.Copy (deck4, cards, cards.Length);
-					break;
-			}
+			if (hand3[i] != null)
+				Destroy(hand3[i]);
+			hand3[i] = null;	
 		}
+
+		for (int i = 0; i < hand4.Length; i++) 
+		{
+			if (hand4[i] != null)
+				Destroy(hand4[i]);
+			hand4[i] = null;	
+		}
+
+
+
+					System.Array.Copy (deck1, cards1, cards1.Length);
+					System.Array.Copy (deck2, cards2, cards2.Length);
+					System.Array.Copy (deck3, cards3, cards3.Length);
+					System.Array.Copy (deck4, cards4, cards4.Length);
+
 
 		showR = false;
 		cdel = 0;
-		cardsheld = 0;
-		cardsDealt = 0;
 	}
 	
 	void Playcard(GameObject cardd)
 	{
 		GameObject al;
 		al = cardd.transform.parent.gameObject;
-
-		for (int i = 0; i <discard.Length; i++)
-		{
-			if (discard[i] == null)
-			{
-				discard[i] = cardd;
-			}
-		}
 		Destroy (al);
 		//do card stuff
 	}
-	
-	GameObject DealCard()
+
+	GameObject DealCard(GameObject[] cards, GameObject[] hand)
 	{
 		System.Random rand = new System.Random();
-		int card = rand.Next (30);
+		int card = rand.Next (decksize);
 		while(true)
 		{
 			if (cards [card] == null)
 			{
-				card = rand.Next (30);
+				card = rand.Next (decksize);
 				Debug.Log(card);
 			}
 			else
@@ -253,8 +226,6 @@ public class HUD : MonoBehaviour
 				break;
 			}
 		}
-
-		cardsheld++;
 		cdel++;
 		return go;
 	}
@@ -309,14 +280,7 @@ public class HUD : MonoBehaviour
 					}
 				}
 
-		estat.guiTexture.pixelInset = new Rect(Screen.width - Screen.width, (Screen.height/2) - 150, 200, 300);
-		estat.guiTexture.texture = stats;
 
-		stat.guiTexture.pixelInset = new Rect(Screen.width - 200, (Screen.height/2) - 150, 200, 300);
-		stat.guiTexture.texture = stats;
-		//estat.guiTexture.pixelInset = new Rect (100, 100, 100, 100);
-		//GUI.DrawTexture(new Rect((Screen.width/2) + 275, 100 , 200, 300), stats , ScaleMode.StretchToFill, true, 0.0f);
-		//GUI.DrawTexture(new Rect((Screen.width/2) - 475, 100 , 200, 300), stats , ScaleMode.StretchToFill, true, 0.0f);
 
 		float infamy = 0;
 
@@ -352,31 +316,25 @@ public class HUD : MonoBehaviour
 		set4.guiText.text = "Infamy:";
 		if(mManager.CurrentPlayer() != null)
 		{
-			if(!PhotonNetwork.offlineMode)
-			{
-					set5.guiText.text = mManager.CurrentPlayer().gameObject.GetPhotonView().photonView.owner.name;
-			}
-			else
-			{
-				set5.guiText.text = mManager.CurrentPlayer().name;
-			}
 
+			set5.guiText.text = mManager.CurrentPlayer().mRange.ToString();
 			set6.guiText.text = mManager.CurrentPlayer().mAttack.ToString();
 			set7.guiText.text = mManager.CurrentPlayer().mDefence.ToString();
 			set8.guiText.text = mManager.CurrentPlayer().mMovement.ToString();
 		}
 
 		set4.guiText.pixelOffset = new Vector2 (-70, (Screen.height/2));
-		set5.guiText.pixelOffset = new Vector2 ((Screen.width / 2) - 100, 0 + 120);
-		set6.guiText.pixelOffset = new Vector2 ((Screen.width / 2) - 100, 0 + 65);
-		set7.guiText.pixelOffset = new Vector2 ((Screen.width / 2) - 100, 0 + 20);
-		set8.guiText.pixelOffset = new Vector2 ((Screen.width / 2) - 100, 0 - 25);
+		set5.guiText.pixelOffset = new Vector2 ((Screen.width / 2) - 120, 0 - 175);
+		set6.guiText.pixelOffset = new Vector2 ((Screen.width / 2) - 210, 0 - 130);
+		set7.guiText.pixelOffset = new Vector2 ((Screen.width / 2) - 120, 0 - 130);
+		set8.guiText.pixelOffset = new Vector2 ((Screen.width / 2) - 210, 0 - 175);
 
 		//Target/Other player stats
 		if (choosing)
 		{
 			if (GUI.Button(new Rect(50,(Screen.height/2) - 200,100, 40), "Play Card") )
 			{
+				ignorecard = -1;
 				choosing = false;
 				switch(mManager.curDefending)
 				{
@@ -387,7 +345,7 @@ public class HUD : MonoBehaviour
 						if (p1c[i] == null)
 						{
 							p1c[i] = PlayCardOnPlayer(p1c[i]);
-						
+							p1c[i].gameObject.tag = "Untagged";
 							break;
 						}
 					}
@@ -399,8 +357,8 @@ public class HUD : MonoBehaviour
 							if (p2c[i] == null)
 							{
 								p2c[i] = PlayCardOnPlayer(p2c[i]);
-								
-								break;
+								p2c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 					break;
@@ -411,8 +369,8 @@ public class HUD : MonoBehaviour
 							if (p3c[i] == null)
 							{
 								p3c[i] = PlayCardOnPlayer(p3c[i]);
-								
-								break;
+							p3c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 					break;
@@ -423,8 +381,8 @@ public class HUD : MonoBehaviour
 							if (p4c[i] == null)
 							{
 								p4c[i] = PlayCardOnPlayer(p4c[i]);
-								
-								break;
+							p4c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 					break;
@@ -435,8 +393,8 @@ public class HUD : MonoBehaviour
 							if (t1c[i] == null)
 							{
 								t1c[i] = PlayCardOnPlayer(t1c[i]);
-								
-								break;
+							t1c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 					break;
@@ -447,8 +405,8 @@ public class HUD : MonoBehaviour
 							if (t2c[i] == null)
 							{
 								t2c[i] = PlayCardOnPlayer(t2c[i]);
-								
-								break;
+							t2c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 					break;
@@ -459,8 +417,8 @@ public class HUD : MonoBehaviour
 							if (t3c[i] == null)
 							{
 								t3c[i] = PlayCardOnPlayer(t3c[i]);
-								
-								break;
+							t3c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 					break;
@@ -471,7 +429,7 @@ public class HUD : MonoBehaviour
 			{
 				Debug.Log ("Wyatt Gargles " + 99 + " fat cocks on the " + mManager.curAttacking + " all day");
 				choosing = false;
-
+				ignorecard = -1;
 				switch(mManager.curAttacking)
 				{
 					case(DTileMap.TileType.Player1):
@@ -481,44 +439,44 @@ public class HUD : MonoBehaviour
 							if (p1c[i] == null)
 							{
 								p1c[i] = PlayCardOnPlayer(p1c[i]);
-								
-								break;
+							p1c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 						break;
 					
-					case(DTileMap.TileType.Player2):
+				case(DTileMap.TileType.Player2):
 						for(int i = 0; i < 4; ++i)
 						{
 							if (p2c[i] == null)
 							{
 								p2c[i] = PlayCardOnPlayer(p2c[i]);
-								
-								break;
+							p2c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 						break;
 					
-					case(DTileMap.TileType.Player3):
+				case(DTileMap.TileType.Player3):
 						for(int i = 0; i < 4; ++i)
 						{
 							if (p3c[i] == null)
 							{
 								p3c[i] = PlayCardOnPlayer(p3c[i]);
-								
-								break;
+							p3c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 						break;
 					
-					case(DTileMap.TileType.Player4):
+				case(DTileMap.TileType.Player4):
 						for(int i = 0; i < 4; ++i)
 						{
 							if (p4c[i] == null)
 							{
 								p4c[i] = PlayCardOnPlayer(p4c[i]);
-								
-								break;
+							p4c[i].gameObject.tag = "Untagged";
+							break;
 							}
 						}
 						break;
@@ -528,7 +486,7 @@ public class HUD : MonoBehaviour
 
 		if (mManager.curDefending == DTileMap.TileType.TargetSpot || mManager.curDefending == mManager.curAttacking)
 		{
-			set9.guiText.text = "None Selected";
+			set9.guiText.text = "N/A";
 			set10.guiText.text = "N/A";
 			set11.guiText.text = "N/A";
 			set12.guiText.text = "N/A";
@@ -576,17 +534,36 @@ public class HUD : MonoBehaviour
 				}
 			}
 		}
-		set9.guiText.pixelOffset  = new Vector2(-(Screen.width/2) + 100, 0 + 120);
-		set10.guiText.pixelOffset = new Vector2(-(Screen.width/2) + 100, 0 + 65);
-		set11.guiText.pixelOffset = new Vector2(-(Screen.width/2) + 100, 0 + 20);
-		set12.guiText.pixelOffset = new Vector2(-(Screen.width/2) + 100, 0 - 25);
+		set9.guiText.pixelOffset  = new Vector2(-(Screen.width/2) + 150, 0 - 175);
+		set10.guiText.pixelOffset = new Vector2(-(Screen.width/2) + 80, 0 - 130);
+		set11.guiText.pixelOffset = new Vector2(-(Screen.width/2) + 150, 0 - 130);
+		set12.guiText.pixelOffset = new Vector2(-(Screen.width/2) + 80, 0 - 175);
+
+		//atk def
+		//mov rng
+		//set9.guiText.text =  "N/A";	range		
+		//set10.guiText.text = "N/A";   attack
+		//set11.guiText.text = mManager.sTargets[(int)mManager.curDefending].mDefence.ToString();
+		//set12.guiText.text = mManager.sTargets[(int)mManager.curDefending].mMovement.ToString();
 
 		
 		if (!showR)
 		{
-			if (GUI.Button(new Rect(10,10,100, 20), "Deal"))
+			if (GUI.Button(new Rect(10,10,100, 20), "Deal1"))
 			{
-				MoveDealtCard();
+				MoveDealtCard(cards1, hand1);
+			}
+			if (GUI.Button(new Rect(10,40,100, 20), "Deal2"))
+			{
+				MoveDealtCard(cards2, hand2);
+			}
+			if (GUI.Button(new Rect(10,70,100, 20), "Deal3"))
+			{
+				MoveDealtCard(cards3, hand3);
+			}
+			if (GUI.Button(new Rect(10,100,100, 20), "Deal4"))
+			{
+				MoveDealtCard(cards4, hand4);
 			}
 		}
 		
@@ -612,15 +589,8 @@ public class HUD : MonoBehaviour
 			//target logic
 			//Debug.Log("TargetThatIsDefending::" + TypeofDefender);
 			mManager.curDefending -= DTileMap.TileType.Target1;
-			if(!PhotonNetwork.offlineMode)
-			{
-				set9.guiText.text = mManager.sTargets[(int)mManager.curDefending].gameObject.GetPhotonView().photonView.owner.name;
-			}
-			else
-			{
-				set9.guiText.text = mManager.sTargets[(int)mManager.curDefending].name;
-			}
-			
+
+			set9.guiText.text =  "N/A";			
 			set10.guiText.text = "N/A";
 			set11.guiText.text = mManager.sTargets[(int)mManager.curDefending].mDefence.ToString();
 			set12.guiText.text = mManager.sTargets[(int)mManager.curDefending].mMovement.ToString();
@@ -631,15 +601,8 @@ public class HUD : MonoBehaviour
 			//player logic
 			//Debug.Log("PlayerThatIsDefending::" + mManager.curDefending);
 			mManager.curDefending -= DTileMap.TileType.Player1;
-			if(!PhotonNetwork.offlineMode)
-			{
-				set9.guiText.text = mManager.sPlayers[(int)mManager.curDefending].gameObject.GetPhotonView().photonView.owner.name;
-			}
-			else
-			{
-				set9.guiText.text = mManager.sPlayers[(int)mManager.curDefending].name;
-			}
-			
+
+			set9.guiText.text = mManager.sPlayers[(int)mManager.curDefending].mRange.ToString();
 			set10.guiText.text = mManager.sPlayers[(int)mManager.curDefending].mAttack.ToString();
 			set11.guiText.text = mManager.sPlayers[(int)mManager.curDefending].mDefence.ToString();
 			set12.guiText.text = mManager.sPlayers[(int)mManager.curDefending].mMovement.ToString();
@@ -650,14 +613,13 @@ public class HUD : MonoBehaviour
 	{
 		curcard.collider.gameObject.tag = "Untagged";
 		gObject = Instantiate(curcard.collider.gameObject.transform.parent.gameObject) as GameObject;
-		cardsheld--;
 		Destroy(curcard.collider.gameObject.transform.parent.gameObject);
 		return gObject;
 	}
 	
-	void MoveDealtCard()
+	void MoveDealtCard(GameObject[] cards, GameObject[] hand)
 	{
-		GameObject newCard = DealCard ();
+		GameObject newCard = DealCard (cards, hand);
 		
 		if (newCard == null)
 		{
@@ -670,41 +632,52 @@ public class HUD : MonoBehaviour
 		newCard.transform.position = hudd.transform.position;
 		newCard.transform.rotation = hudd.transform.rotation;
 		newCard.transform.position = new Vector3(newCard.transform.position.x - offset, newCard.transform.position.y, newCard.transform.position.z + offset);
-		//hand.Add (newCard);
-		cardsDealt++;
 	}
 	
-	void Rearrangehand()
+	void Rearrangehand(GameObject[] hand, int ignore = -1, int ignore2 = -1)
 	{
-		GameObject[] tempdeck = new GameObject[15];
-		int cintd = 0;
-		for (int i = 0; i < hand.Length; i++) 
+		GameObject[] tempo = new GameObject[15];
+		int k = 0;
+		for (int j = 0; j < hand.Length; j++)
 		{
-			if (hand[i] != null)
-			{
-				tempdeck[cintd] = hand[i];
-				cintd++;
-			}
+			if (hand[j] != null)
+			{tempo[k] = hand[j]; k++;}
 		}
-		
-		for (int i = 0; i < hand.Length; i++) 
-		{
-			hand[i] = tempdeck[i];
-		}
-		
-		GameObject hudd = GameObject.FindGameObjectWithTag("HUD");
+		hand = tempo;
 		float offset = (float)-5.6;
 		offset = offset + (float)uoff;
-		
-		//Find farthest card left based on how many cards total
-		
+		float distinc = 0.0f;
+		int cardsheld = 0;
+		for (int j = 0; j < hand.Length; j++)
+		{
+			if (hand [j] != null)
+			cardsheld++;
+		}
+
 		for (int i = 0; i < cardsheld; i++)
 		{
-			hand[i].transform.position = Camera.main.transform.position + Camera.main.transform.forward  * 6;
-			hand[i].transform.position = hand[i].transform.position + Camera.main.transform.right * offset;
-			hand[i].transform.position = new Vector3(hand[i].transform.position.x, hand[i].transform.position.y - 5, hand[i].transform.position.z);
-			hand[i].transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up);
-			offset = offset + (float)0.7;
+			if (i != 0 && hand[i] != null)
+			{
+				BoxCollider box = hand[i].GetComponentInChildren<BoxCollider>();
+				box.size = new Vector3(0.5f, 3.0f, 1.0f);
+				box.center = new Vector3(-0.25f, 0.0f, 0.0f);
+			}
+			if (i == 0)
+			{
+				BoxCollider box = hand[i].GetComponentInChildren<BoxCollider>();
+				box.size = new Vector3(1.0f, 3.0f, 1.0f);
+			}
+			if (i != ignore && i != ignore2 && hand[i] != null)
+			{
+				hand[i].transform.position = new Vector3 (0,0,0);
+				hand[i].transform.position = Camera.main.transform.position + (Camera.main.transform.forward * 12) + (Camera.main.transform.forward * distinc);
+				hand[i].transform.position = hand[i].transform.position + Camera.main.transform.right * offset;
+				hand[i].transform.position = hand[i].transform.position + (Camera.main.transform.up * -5) + ((Camera.main.transform.up * -distinc) / 2);
+				hand[i].transform.localScale = new Vector3(Camera.main.fieldOfView/120,Camera.main.fieldOfView/120,Camera.main.fieldOfView/120);
+				hand[i].transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward, Camera.main.transform.up);
+			}
+			distinc = distinc + 0.01f;
+			offset = offset + 0.7f;
 		}
 	}
 
@@ -726,40 +699,58 @@ public class HUD : MonoBehaviour
 			}
 		}
 
+		switchdisp ();
 
-		if (choosing) 
-		{		
-			if (Input.GetMouseButtonDown (0)) 
-			{
-				Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
-				RaycastHit hit;
-				if (Physics.Raycast (ray, out hit)) 
-				{ 
-					curcard = hit;
-					//curcard.transform.position = new Vector3(curcard.transform.position.x, curcard.transform.position.y, 0.0f);
-				} 
-			}
-			if (Input.GetMouseButtonDown (1)) 
-			{
-				choosing = false;
-			}
-			
+		if (mManager.curAttacking == DTileMap.TileType.Player1)
+			Rearrangehand(hand1, ignorecard, te);
+		else if (mManager.curAttacking == DTileMap.TileType.Player2)
+			Rearrangehand(hand2, ignorecard, te);
+		else if (mManager.curAttacking == DTileMap.TileType.Player3)
+			Rearrangehand(hand3, ignorecard, te);
+		else if (mManager.curAttacking == DTileMap.TileType.Player4)
+			Rearrangehand(hand4, ignorecard, te);
+		
+		Ray mouse = Camera.main.ScreenPointToRay(Input.mousePosition);
+		RaycastHit mhit;
+		if (Physics.Raycast (mouse, out mhit) && (mhit.collider.CompareTag("Card") || mhit.collider.CompareTag("Mouseover")))
+		{
+			if (mManager.CurrentPlayer() == mManager.sPlayers[0])
+				lookat(hand1, mhit);
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[1])
+				lookat(hand2, mhit);
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[2])
+				lookat(hand3, mhit);
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[3])
+				lookat(hand4, mhit);
 		}
 		else
+		{
+			if (mManager.CurrentPlayer() == mManager.sPlayers[0])
+				settagtocard(hand1);
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[1])
+				settagtocard(hand2);
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[2])
+				settagtocard(hand3);
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[3])
+				settagtocard(hand4);
+			te = -1;
+		}
+		
+		if (choosing == false)
 		{	
-			Rearrangehand ();
+			ignorecard = -1;	
 			Quaternion targetRotation;
 			targetRotation = Quaternion.LookRotation(-transform.forward, Vector3.up);
-
+			
 			if (Input.GetKeyDown("space"))
 			{
 				if (rotr == false)
 					rotr = true;
 				else
 					rotr = false;
-			
+				
 			}
-			if (rotr && rotint <= 330)
+			if (rotr && rotint <= 350)
 			{
 				if (mManager.curAttacking == DTileMap.TileType.Player1)
 					rotate180(p1c);
@@ -769,7 +760,7 @@ public class HUD : MonoBehaviour
 					rotate180(p3c);
 				else if (mManager.curAttacking == DTileMap.TileType.Player4)
 					rotate180(p4c);
-
+				
 				if (mManager.curDefending == DTileMap.TileType.Player1)
 					rotate180(p1c);
 				else if (mManager.curDefending == DTileMap.TileType.Player2)
@@ -784,47 +775,43 @@ public class HUD : MonoBehaviour
 					rotate180(t2c);
 				else if (mManager.curDefending == DTileMap.TileType.Target3)
 					rotate180(t3c);
-
+				
 				rotint++;
 			}
-			else if (rotr && rotint > 320)
+			else if (rotr && rotint > 350)
 			{
-
-					secs -= 1* Time.deltaTime;
-					if (secs <=0)
-					{
-						secs = 5;
-						Attack();
-					}
-			}
 				
-
-
-			//DEBUG Purposes
-			//===================================================
-			if (cdel >= 15) 
-			{
-				showR = true;
+				secs -= 1* Time.deltaTime;
+				if (secs <=0)
+				{
+					secs = 5;
+					Attack();
+				}
 			}
-			else
-				showR = false;
-			//===================================================
-
-			//if(Input.GetMouseButtonDown(0))
-			//{
-			//	Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
-			//	RaycastHit hit;
-			//	if (Physics.Raycast(ray, out hit))			
-			//	{ 
-			//		Debug.Log("clicked it");
-			//		
-			//		if(hit.collider.CompareTag("Card"))
-			//		{
-			//			curcard = hit;
-			//			choosing = true;
-			//		}
-			//	} 
-			//}
+			
+			if(Input.GetMouseButtonDown(0))
+			{
+				
+				Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+				RaycastHit hit;
+				if (Physics.Raycast(ray, out hit))			
+				{ 
+					clickcheck(hand1, hit);
+				} 
+			}
+		}
+		
+		if (choosing == true) 
+		{	
+			curcard.transform.parent.position = Vector3.Lerp(temp, (Camera.main.ScreenToWorldPoint(new Vector3(0, 0, 0)) + Camera.main.transform.forward * 5), incr );
+			incr += 0.1f;
+			if (Input.GetMouseButtonDown (1)) 
+			{
+				curcard = new RaycastHit(); 
+				choosing = false;
+				ignorecard = -1;
+			}
+			
 		}
 	}
 	
@@ -1031,13 +1018,13 @@ public class HUD : MonoBehaviour
 		switch(i)
 		{
 		case(0):
-			return Camera.main.ScreenToWorldPoint( new Vector3(0 + 75, Screen.height/2 + 300, 6.0f) );
+			return Camera.main.ScreenToWorldPoint( new Vector3(0 + 95, Screen.height/2 - 20, 6.0f) );
 		case(1):
-			return Camera.main.ScreenToWorldPoint( new Vector3(0 + 150, Screen.height/2 + 300, 6.0f) );
+			return Camera.main.ScreenToWorldPoint( new Vector3(0 + 180, Screen.height/2 - 20, 6.0f) );
 		case(2):
-			return Camera.main.ScreenToWorldPoint( new Vector3(0 + 75, Screen.height/2 + 175, 6.0f) );
+			return Camera.main.ScreenToWorldPoint( new Vector3(0 + 95, Screen.height/2 - 80, 6.0f) );
 		case(3):
-			return Camera.main.ScreenToWorldPoint( new Vector3(0 + 150, Screen.height/2 + 175, 6.0f) );
+			return Camera.main.ScreenToWorldPoint( new Vector3(0 + 180, Screen.height/2 - 80, 6.0f) );
 		default:
 			return new Vector3();
 		}
@@ -1060,13 +1047,13 @@ public class HUD : MonoBehaviour
 		switch(i)
 		{
 		case(0):
-			return Camera.main.ScreenToWorldPoint( new Vector3(Screen.width - 75, Screen.height/2 + 300, 6.0f) );
+			return Camera.main.ScreenToWorldPoint( new Vector3(Screen.width - 200, Screen.height/2 - 20, 6.0f) );
 		case(1):
-			return Camera.main.ScreenToWorldPoint( new Vector3(Screen.width - 150, Screen.height/2 + 300, 6.0f) );
+			return Camera.main.ScreenToWorldPoint( new Vector3(Screen.width - 120, Screen.height/2 - 20, 6.0f) );
 		case(2):
-			return Camera.main.ScreenToWorldPoint( new Vector3(Screen.width - 75, Screen.height/2 + 175, 6.0f) );
+			return Camera.main.ScreenToWorldPoint( new Vector3(Screen.width - 200, Screen.height/2 - 80, 6.0f) );
 		case(3):
-			return Camera.main.ScreenToWorldPoint( new Vector3(Screen.width - 150, Screen.height/2 + 175, 6.0f) );
+			return Camera.main.ScreenToWorldPoint( new Vector3(Screen.width - 120, Screen.height/2 - 80, 6.0f) );
 		default:
 			return new Vector3();
 		}
@@ -1237,6 +1224,120 @@ public class HUD : MonoBehaviour
 			
 		}
 		
+	}
+
+	void lookat(GameObject[] hand, RaycastHit mhit)
+	{
+		if(mhit.collider.CompareTag("Card"))
+		{
+			for (int o = 0; o < 15; o++)
+			{
+				if (hand[o])
+				{
+					sizer = 0;
+					hand[o].transform.gameObject.tag = "Card";
+					hand[o].transform.Find("Card").gameObject.tag = "Card";
+				}
+				
+			}
+			te = -1;
+			for (int p = 0; p < hand.Length; p++)
+			{
+				if (hand[p] != null)
+					if (mhit.collider.transform.position == hand[p].transform.position)
+						te = p;
+				
+			}
+			mhit.collider.tag = "Mouseover";
+			getbigger = mhit.collider.transform.position;
+			sizer = 0;
+			
+		}
+		else if (mhit.collider.CompareTag("Mouseover"))
+		{
+			
+			mhit.collider.transform.parent.position = Vector3.Lerp(getbigger, (getbigger + (Camera.main.transform.up * 2.0f)), sizer);
+			sizer += 0.1f;
+			
+		}
+		
+	}
+
+	void settagtocard(GameObject[] hand)
+	{
+		for (int o = 0; o < 15; o++)
+		{
+			if (hand[o] && o != ignorecard)
+			{
+				sizer = 0;
+				hand[o].transform.gameObject.tag = "Card";
+				hand[o].transform.Find("Card").gameObject.tag = "Card";
+			}
+			
+		}
+	}
+
+	void clickcheck(GameObject[] hand, RaycastHit hit)
+	{
+		if(hit.collider.CompareTag("Mouseover"))
+		{
+			incr = 0;
+			curcard = hit;
+			choosing = true;
+			temp = curcard.transform.position;
+			hit.collider.tag = "Selected";
+			for (int p = 0; p < hand.Length; p++)
+			{
+				if (hand[p] != null)
+					if (hit.collider.transform.position == hand[p].transform.position)
+						ignorecard = p;
+				
+			}
+			
+		}
+	}
+
+	void switchdisp()
+	{
+		for (int o = 0; o < 15; o++)
+		{
+			if (hand1[o] != null)
+			{
+				hand1[o].SetActive(false);
+			}
+			if (hand2[o] != null)
+			{
+				hand2[o].SetActive(false);
+			}
+			if (hand3[o] != null)
+			{
+				hand3[o].SetActive(false);
+			}
+			if (hand4[o] != null)
+			{
+				hand4[o].SetActive(false);
+			}
+			if (mManager.CurrentPlayer() == mManager.sPlayers[0])
+			{
+				if (hand1[o] != null)
+				hand1[o].SetActive(true);
+			}
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[1])
+			{
+				if (hand2[o] != null)
+				hand2[o].SetActive(true);
+			}
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[2])
+			{
+				if (hand3[o] != null)
+				hand3[o].SetActive(true);
+			}
+			else if (mManager.CurrentPlayer() == mManager.sPlayers[3])
+			{
+				if (hand4[o] != null)
+				hand4[o].SetActive(true);
+			}
+		}
 	}
 	
 }

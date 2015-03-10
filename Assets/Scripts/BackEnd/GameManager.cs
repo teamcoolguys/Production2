@@ -178,7 +178,7 @@ public class GameManager : MonoBehaviour
 			sPlayersTurn = sPlayersTurn % (sPlayersTurn);
 			//Debug.Log(sPlayersTurn);
 		}
-		curAttacking = (DTileMap.TileType)sPlayersTurn;
+		curAttacking = (DTileMap.TileType)(sPlayersTurn + DTileMap.TileType.Player1);
 	}
 	
 	//this is what the player can do on their turn
