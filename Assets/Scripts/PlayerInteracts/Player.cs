@@ -109,11 +109,8 @@ public class Player : MonoBehaviour
 	public bool mPlayed;
 	public bool mTurn = false;
 	public bool mOnSewer;
+	bool mTurn1 = true;
 	bool mSewerWalkable = false;
-
-
-	//Wyatt: Network//
-
 	public Hand mHand;
 	public bool mAttacked;
 	private Vector3 syncEndPosition;
@@ -145,6 +142,7 @@ public class Player : MonoBehaviour
 		mAllSewerIndex.Add (296);
 		mAllSewerIndex.Add (66);
 		//Hack
+		mTurn1 = true;
 		if(mPlayerIndex==DTileMap.TileType.Floor)
 		{
 			mPlayerIndex = DTileMap.TileType.Player1;
@@ -339,9 +337,12 @@ public class Player : MonoBehaviour
 				}
 			}
 			mPlayerPhase = PlayerPhase.Start;
+			if(mTurn1 == true)
+			{
+				mTurn1 = false;
+				mPlayerPhase = PlayerPhase.End;
+			}
 		}
-
-
 	}
 	void UpdateSewer()
 	{
@@ -438,7 +439,6 @@ public class Player : MonoBehaviour
 					ResetWalkRange ();
 					ResetPath();
 				}
-				
 				if(Input.GetMouseButtonDown(0))
 				{	
 					mStorePositionX = mMouseX;
@@ -559,7 +559,6 @@ public class Player : MonoBehaviour
 						ResetPath ();
 						break;
 					}
-			
 				}
 			}
 			else if(mMouse.cubeActive == false)
@@ -657,6 +656,7 @@ public class Player : MonoBehaviour
 				else
 				{
 					Debug.Log ("Both Live");
+					targetDefending.mState = BaseTarget.State.Run;
 				}
 			}
 			else
@@ -910,8 +910,6 @@ public class Player : MonoBehaviour
 	void AnchorbeardActive()
 	{
 		ResetWalkRange ();
-
-
 		int rightX = 0;
      	int rightY = 0;
      	int leftX =  0;
@@ -931,12 +929,10 @@ public class Player : MonoBehaviour
 			upY = mPositionY + hookamount;
 			downX = mPositionX;
 			downY = mPositionY - hookamount;
-
 			DTileMap.TileType hookRight = mTileMap.MapInfo.GetTileType (rightX, rightY);
 			DTileMap.TileType hookLeft = mTileMap.MapInfo.GetTileType (leftX, leftY);
 			DTileMap.TileType hookUp = mTileMap.MapInfo.GetTileType (upX, upY);
 			DTileMap.TileType hookDown = mTileMap.MapInfo.GetTileType (downX, downY);
-			
 			if(hookRight==DTileMap.TileType.Wall || hookRight==DTileMap.TileType.Target1 ||hookRight==DTileMap.TileType.Target2||hookRight==DTileMap.TileType.Target3 )
 			{
 				DTileMap.TileType Check = mTileMap.MapInfo.GetTileType (rightX-1, rightY);

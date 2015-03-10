@@ -10,6 +10,12 @@ using System.Collections.Generic;
 [RequireComponent(typeof(GraphSearch))]
 [RequireComponent(typeof(Graph))]
 [RequireComponent(typeof(Node))]
+
+[RequireComponent(typeof(CatGentleman))]
+[RequireComponent(typeof(PenguinScientist))]
+[RequireComponent(typeof(SafeBot))]
+
+
 public class BaseTarget : MonoBehaviour
 {
 	public enum State
@@ -21,7 +27,9 @@ public class BaseTarget : MonoBehaviour
 		Count
 	}
 	//State Currently in
-	private State mState;
+	public State mState;
+	public int mPanicTimer;
+	private int mPanic;
 	//Imformation Checking for the Game
 	public Transform curTargetNode;
 	TileMap mTileMap;
@@ -40,6 +48,7 @@ public class BaseTarget : MonoBehaviour
 	public bool mTargetTurn;
 
 	//Current Stats
+	public string mName;
 	public int mDefence;
 	public int mMovement;
 	public int mRunMovement;
@@ -83,6 +92,10 @@ public class BaseTarget : MonoBehaviour
 
 	private bool firstTime;
 
+	public void SetPanic()
+	{
+		mPanic = mPanicTimer;
+	}
 	void Start () 
 	{
 		if(mTargetIndex==DTileMap.TileType.Floor)
@@ -129,10 +142,8 @@ public class BaseTarget : MonoBehaviour
 		}
 		mMouse = mTileMapObject.GetComponent<TileMapMouse> ();
 		mTileMap = mTileMapObject.GetComponent<TileMap>();
-
 		mMouseX = mMouse.mMouseHitX;
 		mMouseY = mMouse.mMouseHitY;
-
 		Vector3 temp = mTileMap.MapInfo.GetTileLocation (mTowardNodeX, mTowardNodeY);
 		curTargetNode.position = temp;
 	}
@@ -167,7 +178,37 @@ public class BaseTarget : MonoBehaviour
 	}
 	void UpdateSpawn()
 	{
+		//Character Import:
+		int randomInt = Random.Range (0, 3);
+		switch(randomInt)
+		{
+		case 0:
+			CatGentleman mCatGentleman = new CatGentleman ();
+			mName = mCatGentleman.mCharacterName;
+			mMovement = mCatGentleman.mInputMovement;
+			mRunMovement = mCatGentleman.mInputRunMovement;
+			mInfamy = mCatGentleman.mInputInfamy;
+			break;
+		case 1:
+			SafeBot mSafeBot = new SafeBot ();
+			mName = mSafeBot.mCharacterName;
+			mMovement = mSafeBot.mInputMovement;
+			mRunMovement = mSafeBot.mInputRunMovement;
+			mInfamy = mSafeBot.mInputInfamy;
+			break;
+		case 2:
+			PenguinScientist mPenguinScientist = new PenguinScientist ();
+			mName = mPenguinScientist.mCharacterName;
+			mMovement = mPenguinScientist.mInputMovement;
+			mRunMovement = mPenguinScientist.mInputRunMovement;
+			mInfamy = mPenguinScientist.mInputInfamy;
+			break;
+		}
 		PathDecision ();
+		while(mTileMap.MapInfo.GetTileType (mTowardNodeX, mTowardNodeY) != DTileMap.TileType.Floor)
+		{
+			PathDecision();
+		}
 		Debug.Log ("Target: Spawn Choice: " + mTowardNodeX + ", " + mTowardNodeY);
 		Travel (mTowardNodeX, mTowardNodeY);
 		mState = State.Normal;
@@ -203,37 +244,44 @@ public class BaseTarget : MonoBehaviour
 			mRunPathTrue = false;
 		}
 	}
+
 	void UpdateRun()
 	{
-		if(mRunPathTrue==false)
+		if(mTileMap.MapInfo.GetTileType (mTowardNodeX, mTowardNodeY) != DTileMap.TileType.Floor)
+		{
+			mWalkPathTrue = false;
+		}
+		if(mWalkPathTrue==false)
 		{
 			ResetPath(ref mTowardPath);
-			//Decide on a Path;
 			PathDecision ();
-			//Find Target Node path;
-
-			Debug.Log("CurrentChoice : " + mTowardChoice);
-			mRunPathTrue = true;
+			mWalkPathTrue = true;
 		}
+		//Find Range, and find current path
 		mTowardPath = PathFind (mPositionX, mPositionY, mTowardNodeX, mTowardNodeY);
 		int index = PathFindRange (ref mTowardPath, mRunMovement);
-		int tempX = 0;
-		int tempY = 0;
-		mTileMap.MapInfo.IndexToXY (index, out tempX, out tempY);
-		Travel (tempX, tempY);
-		//Reset currentPath
-		ResetPath (ref mCurrentPath);
+		if(index == -1)
+		{
+			Travel (mPositionX, mPositionY);
+		}
+		else
+		{
+			int x = 0;
+			int y = 0;
+			mTileMap.MapInfo.IndexToXY (index, out x, out y);
+			Travel (x, y);
+		}
 		if(mPositionX == mTowardNodeX && mPositionY == mTowardNodeY)
 		{
-			ResetPath (ref mTowardPath);
 			mRunPathTrue = false;
 		}
-		if(Input.GetKey ("n"))
+		if(mPanic == 0)
 		{
-			ResetPath (ref mCurrentPath);
-			ResetPath (ref mTowardPath);
-			mWalkPathTrue = false;
-			mState=State.Run;
+			mState = State.Normal;
+		}
+		else
+		{
+			mPanic--;
 		}
 	}
 
@@ -248,7 +296,6 @@ public class BaseTarget : MonoBehaviour
 
 	void PathDecision()//Decision on Paths
 	{
-
 		//Weight calulation for decision on which path
 		int totalWeight = mWeightA + mWeightB + mWeightC + mWeightD + mWeightE + mWeightF + mWeightG + mWeightH;
 		int randomInt = Random.Range (0, totalWeight);

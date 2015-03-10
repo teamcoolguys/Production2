@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
 	public bool CounterAttackWorked = false;
 	public bool HudUpdated = false;
 	public Player[] sPlayers;
-	public List<BaseTarget> sTargets;
+	public BaseTarget[] sTargets;
 
 	private bool newPlayerAdded = false;
 	 
@@ -98,17 +98,27 @@ public class GameManager : MonoBehaviour
 	//Adds targets into the game
 	public bool AddTarget(BaseTarget t)
 	{
-		for (int i = 0; i < sTargets.Count - 1; i++) 
+		if(sTargets[0]==null)
 		{
-			if(sTargets[i] == null)
-			{
-				sTargets[i] = t;
-				sTargets[i].mTargetIndex = DTileMap.TileType.Target1 + i;
-			}
+			t.mTargetIndex = DTileMap.TileType.Target1;
+			sTargets[0] = t;
+			Debug.Log ("SpawnTarget at 1: " + sTargetsAlive);
+			return true;
 		}
-		sTargets[sTargetsAlive] = t;
-		t.mTargetIndex = DTileMap.TileType.Target1 + sTargetsAlive;
-		//sTargetsAlive++;
+		else if(sTargets[1]==null)
+		{
+			t.mTargetIndex = DTileMap.TileType.Target2;
+			sTargets[1] = t;
+			Debug.Log ("SpawnTarget at 2: " + sTargetsAlive);
+			return true;
+		}
+		else if (sTargets[2]==null)
+		{
+			t.mTargetIndex = DTileMap.TileType.Target3;
+			sTargets[2] = t;
+			Debug.Log ("SpawnTarget at 3: " + sTargetsAlive);
+			return true;
+		}
 		return true;
 	}
 	
@@ -124,7 +134,19 @@ public class GameManager : MonoBehaviour
 
 	public void RemoveTarget(BaseTarget targetToRemove)
 	{
-		sTargets.Remove (targetToRemove);
+		DTileMap.TileType temp = targetToRemove.mTargetIndex;
+		if(temp == DTileMap.TileType.Target1)
+		{
+			sTargets[0] = null;
+		}
+		else if(temp == DTileMap.TileType.Target2)
+		{
+			sTargets[1] = null;
+		}
+		else if(temp == DTileMap.TileType.Target3)
+		{
+			sTargets[2] = null;
+		}
 		sTargetsAlive--;
 	}
 	public BaseTarget CurrentTargetDefender()

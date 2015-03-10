@@ -810,21 +810,21 @@ public class HUD : MonoBehaviour
 				showR = false;
 			//===================================================
 
-			if(Input.GetMouseButtonDown(0))
-			{
-				Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
-				RaycastHit hit;
-				if (Physics.Raycast(ray, out hit))			
-				{ 
-					Debug.Log("clicked it");
-					
-					if(hit.collider.CompareTag("Card"))
-					{
-						curcard = hit;
-						choosing = true;
-					}
-				} 
-			}
+			//if(Input.GetMouseButtonDown(0))
+			//{
+			//	Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+			//	RaycastHit hit;
+			//	if (Physics.Raycast(ray, out hit))			
+			//	{ 
+			//		Debug.Log("clicked it");
+			//		
+			//		if(hit.collider.CompareTag("Card"))
+			//		{
+			//			curcard = hit;
+			//			choosing = true;
+			//		}
+			//	} 
+			//}
 		}
 	}
 	

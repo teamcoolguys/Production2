@@ -3,7 +3,7 @@ using System.Collections;
 
 public class CalamityNinja
 {
-	public string mCharacterName = "Calamity";
+	public string mCharacterName = "Calmity";
 	public int mInputAttack = 5;
 	public int mInputDefence = 4;
 	public int mInputMovement = 6;
